@@ -17,3 +17,7 @@ All notable changes to this repo. Dates are YYYY-MM-DD.
 - `SECURITY.md` — skill-vetting bar (code hygiene, network, provenance, spend/send) + PR review checklist.
 - `playbooks/autonomy-fence.md` — 3-tier action gating + confidence gate.
 - `templates/agent-spec-template.md` — ADK-style agent spec format.
+
+## 2026-06-22 (setup deck)
+### Added
+- `docs/Agentic-Marketing-Mastermind-Setup-Guide.pptx` + `docs/setup-guide.md` — new-user setup walkthrough (authored by Manick Bhan, presented by Jonathan Duque).
