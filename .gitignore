@@ -1,0 +1,12 @@
+# secrets & local state — never commit
+*.env
+.env
+*.secrets
+feed.secrets
+canvas_state.json
+.seen.json
+*.log
+.venv/
+__pycache__/
+*.pyc
+.DS_Store
