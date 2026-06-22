@@ -1,0 +1,229 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>OWASP Cheat-Sheet for Agentic Agencies · AMM Vegas</title>
+<style>
+:root{
+  --ink:#0a0a0a;--ink-2:#3a3a3a;--ink-3:#6e6e72;--ink-4:#a1a1a6;
+  --line:#e5e5e7;--line-2:#f2f2f4;--bg:#ffffff;--bg-2:#fafafa;
+  --accent:#5b3aa3;--accent-2:#f6f3fc;
+  --warn:#9a6b00;--warn-bg:#fff8e7;--ok:#1f6b3a;--ok-bg:#ecf5ef;
+  --danger:#a31a1a;--danger-bg:#fdecec;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{
+  font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Inter","Helvetica Neue",Arial,sans-serif;
+  color:var(--ink);background:var(--bg);font-size:15px;line-height:1.6;
+  -webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;
+}
+.page{max-width:860px;margin:0 auto;padding:64px 56px 96px}
+.eyebrow{font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--accent);font-weight:600;margin-bottom:10px}
+h1{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Inter",sans-serif;font-weight:600;font-size:32px;line-height:1.15;margin:0 0 14px;letter-spacing:-.02em}
+h2{font-weight:600;font-size:22px;margin:44px 0 14px;letter-spacing:-.01em;padding-bottom:8px;border-bottom:1px solid var(--line)}
+h3{font-weight:600;font-size:17px;margin:28px 0 10px}
+h4{font-weight:600;font-size:14px;margin:18px 0 8px;color:var(--ink-2);text-transform:uppercase;letter-spacing:.04em}
+p{margin:0 0 14px;color:var(--ink-2)}
+strong{color:var(--ink);font-weight:600}
+a{color:var(--accent);text-decoration:none;border-bottom:1px solid transparent;transition:border-color .15s}
+a:hover{border-bottom-color:var(--accent)}
+blockquote{margin:18px 0;padding:14px 20px;background:var(--bg-2);border-left:3px solid var(--accent);color:var(--ink-2);font-style:normal;border-radius:0 6px 6px 0}
+blockquote p:last-child{margin-bottom:0}
+ul,ol{margin:6px 0 16px 22px;padding:0;color:var(--ink-2)}
+ul li,ol li{margin:6px 0}
+code{font-family:"SF Mono","JetBrains Mono","Menlo",monospace;font-size:13px;background:var(--line-2);padding:2px 6px;border-radius:4px;color:var(--ink)}
+pre{background:#0f0f12;color:#e8e8ec;padding:14px 18px;border-radius:8px;overflow-x:auto;font-size:13px;line-height:1.5;margin:14px 0}
+pre code{background:none;padding:0;color:inherit;font-size:13px}
+hr{border:none;border-top:1px solid var(--line);margin:36px 0}
+table{width:100%;border-collapse:collapse;margin:14px 0 18px;font-size:14px}
+thead th{
+  text-align:left;font-weight:600;color:var(--ink-3);
+  font-size:11px;letter-spacing:.08em;text-transform:uppercase;
+  padding:10px 12px;border-bottom:1px solid var(--line);background:var(--bg-2);
+}
+tbody td{padding:12px 12px;border-bottom:1px solid var(--line-2);vertical-align:top;color:var(--ink-2)}
+tbody tr:last-child td{border-bottom:1px solid var(--line)}
+tbody td strong{color:var(--ink)}
+header.doc{border-bottom:1px solid var(--line);padding-bottom:24px;margin-bottom:32px}
+footer.doc{margin-top:64px;padding-top:20px;border-top:1px solid var(--line);font-size:12px;color:var(--ink-3)}
+.tag{display:inline-block;font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--accent);background:var(--accent-2);padding:3px 8px;border-radius:4px;font-weight:600;vertical-align:middle}
+.tag.warn{color:var(--warn);background:var(--warn-bg)}
+.tag.ok{color:var(--ok);background:var(--ok-bg)}
+@media print{
+  body{font-size:11pt}
+  .page{padding:0;max-width:none}
+  h2{page-break-after:avoid}
+  table,blockquote{page-break-inside:avoid}
+  pre{page-break-inside:avoid;font-size:9pt}
+  a{color:var(--accent);border-bottom:none}
+}
+</style>
+</head>
+<body>
+<div class="page">
+<header class="doc">
+  <div class="eyebrow">Handout · Print 15 copies</div>
+  <h1>OWASP Cheat-Sheet for Agentic Agencies</h1>
+</header>
+<blockquote>
+<p>One-page reference. Print double-sided. Hand to every attendee.</p>
+</blockquote>
+<p>OWASP is the vendor-neutral framework professional security teams anchor to. When you tell an enterprise client "we're OWASP-aligned," you're speaking their language. This sheet condenses the two Top 10s that matter for agencies running agentic systems.</p>
+<hr />
+<h2>OWASP Top 10 for LLM Applications (the new one)</h2>
+<p>The framework that <em>didn't exist</em> three years ago. Now the most relevant security doc in the room.</p>
+<table>
+<thead>
+<tr>
+<th>Code</th>
+<th>Name</th>
+<th>What it looks like at your agency</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>LLM01</strong></td>
+<td><strong>Prompt Injection</strong></td>
+<td>Untrusted text in a tool result (web page, fetched email, user comment) hijacks your agent's instructions. Defense: separate retrieval from action; treat tool output as untrusted.</td>
+</tr>
+<tr>
+<td>LLM02</td>
+<td>Insecure Output Handling</td>
+<td>Your agent's output is rendered as HTML/SQL/shell without sanitization. Defense: escape on the way out, not just on the way in.</td>
+</tr>
+<tr>
+<td>LLM03</td>
+<td>Training Data Poisoning</td>
+<td>Less direct concern for you (you're using foundation models, not training). Stay aware.</td>
+</tr>
+<tr>
+<td>LLM04</td>
+<td>Model Denial of Service</td>
+<td>Adversarial prompts that burn your token budget. Defense: rate limits, cost ceilings, prompt length caps.</td>
+</tr>
+<tr>
+<td><strong>LLM05</strong></td>
+<td><strong>Supply Chain Vulnerabilities</strong></td>
+<td>npm/pip/MCP supply chain. Shai-Hulud and friends. Defense: lock versions, audit transitively, treat MCP installs as hires.</td>
+</tr>
+<tr>
+<td>LLM06</td>
+<td>Sensitive Information Disclosure</td>
+<td>Your agent leaks secrets, PII, or internal data into its output. Defense: data minimization; never feed secrets into prompt context.</td>
+</tr>
+<tr>
+<td><strong>LLM07</strong></td>
+<td><strong>Insecure Plugin Design</strong></td>
+<td>MCP servers are plugins. Each one runs with the scope you grant it. Defense: vet origin, grant minimum scope, audit on updates.</td>
+</tr>
+<tr>
+<td><strong>LLM08</strong></td>
+<td><strong>Excessive Agency</strong></td>
+<td>Agent has more tool access than the task needs. Defense: principle of least privilege; ask-mode default; bypass only in sandboxes.</td>
+</tr>
+<tr>
+<td>LLM09</td>
+<td>Overreliance</td>
+<td>Your team trusts agent output without verification. Defense: spot-check 3 outputs per session; review before sending.</td>
+</tr>
+<tr>
+<td>LLM10</td>
+<td>Model Theft</td>
+<td>Less direct concern. Relevant if you're fine-tuning.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>The five that hit you hardest: LLM01, LLM05, LLM07, LLM08, LLM06.</strong></p>
+<hr />
+<h2>OWASP Top 10 for Web Applications (the classic)</h2>
+<p>The foundational list. Every website your agency builds for a client should defend against these.</p>
+<table>
+<thead>
+<tr>
+<th>Code</th>
+<th>Name</th>
+<th>One-line defense</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>A01</strong></td>
+<td><strong>Broken Access Control</strong></td>
+<td>Every endpoint checks authorization. No "security through obscurity."</td>
+</tr>
+<tr>
+<td>A02</td>
+<td>Cryptographic Failures</td>
+<td>HTTPS everywhere. No homegrown crypto. Hash passwords (bcrypt/argon2).</td>
+</tr>
+<tr>
+<td>A03</td>
+<td>Injection (SQL, NoSQL, OS, LDAP)</td>
+<td>Parameterized queries. Never concatenate user input into commands.</td>
+</tr>
+<tr>
+<td>A04</td>
+<td>Insecure Design</td>
+<td>Threat-model before you build, not after.</td>
+</tr>
+<tr>
+<td>A05</td>
+<td>Security Misconfiguration</td>
+<td>Default creds removed. Verbose errors off in prod. CSP headers set.</td>
+</tr>
+<tr>
+<td><strong>A06</strong></td>
+<td><strong>Vulnerable &amp; Outdated Components</strong></td>
+<td>The CVE backlog. <code>/security-radar</code> catches these.</td>
+</tr>
+<tr>
+<td>A07</td>
+<td>Identification &amp; Auth Failures</td>
+<td>Rate-limit logins. MFA on admin paths. No password leaks.</td>
+</tr>
+<tr>
+<td>A08</td>
+<td>Software &amp; Data Integrity Failures</td>
+<td>Verify package signatures. Sign your CI/CD artifacts.</td>
+</tr>
+<tr>
+<td>A09</td>
+<td>Security Logging &amp; Monitoring Failures</td>
+<td>Log auth events. Alert on patterns. Keep a trail.</td>
+</tr>
+<tr>
+<td>A10</td>
+<td>Server-Side Request Forgery (SSRF)</td>
+<td>Validate URLs your server fetches. Block internal IPs.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>The three that hit agency-built sites hardest: A01, A06, A05.</strong></p>
+<hr />
+<h2>How <code>/security-radar</code> maps to these</h2>
+<p>Every finding the radar tool surfaces is labeled with one of these codes. You're not memorizing the framework — you're building a habit:</p>
+<blockquote>
+<p>"Critical finding · LLM05 Supply Chain · Package X. Fix: bump to version 1.4.2."</p>
+</blockquote>
+<p>That's the language. Once you can name the OWASP code for a finding, you can talk about it with any security team, any enterprise client, any auditor.</p>
+<hr />
+<h2>When a client asks "are you OWASP-compliant?"</h2>
+<p>The honest, accurate answer:</p>
+<blockquote>
+<p>"OWASP isn't a compliance regime — it's a threat model. We use the OWASP LLM Top 10 to scope risk in our agentic systems, and the OWASP Web Top 10 for any site we deliver. We monitor our surface continuously with tooling anchored to those frameworks. We can share posture briefs on request."</p>
+</blockquote>
+<p>That answer wins the meeting. Vague answers lose it.</p>
+<hr />
+<h2>Further reading (one-tap)</h2>
+<ul>
+<li>OWASP Top 10 for LLM Applications: https://owasp.org/www-project-top-10-for-large-language-model-applications/</li>
+<li>OWASP Top 10 for Web Applications: https://owasp.org/www-project-top-ten/</li>
+<li>OWASP ASVS (deeper standard for the ambitious): https://owasp.org/www-project-application-security-verification-standard/</li>
+<li>OSV.dev (the vuln database the radar tool queries): https://osv.dev/</li>
+</ul>
+<footer class="doc">AMM Vegas · May 27–28, 2026 · 1409 Bonita Ave, Las Vegas</footer>
+</div>
+</body>
+</html>

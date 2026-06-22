@@ -1,0 +1,1156 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>html-reports · 7 archetypes</title>
+<style>
+/* ============================================================================
+ * Atlas — inlined verbatim from html-reports/atlas/styles.css
+ * ============================================================================ */
+:root {
+  --atlas-bg:           #f4f6f9;
+  --atlas-surface:      #ffffff;
+  --atlas-surface-alt:  #fafbfc;
+  --atlas-border:       #e3e6eb;
+  --atlas-border-strong:#d1d6de;
+  --atlas-rule:         #ecedf1;
+  --atlas-text:    #14181f;
+  --atlas-muted:   #525a68;
+  --atlas-subtle:  #7a8290;
+  --atlas-accent:      #2453d6;
+  --atlas-accent-soft: #e7edfc;
+  --atlas-good:        #117a3d;
+  --atlas-good-soft:   #e4f3eb;
+  --atlas-warn:        #92590a;
+  --atlas-warn-soft:   #fbeed1;
+  --atlas-bad:         #b8302a;
+  --atlas-bad-soft:    #fbe3e1;
+  --atlas-radius:    6px;
+  --atlas-radius-sm: 4px;
+  --atlas-font: -apple-system, BlinkMacSystemFont, "Segoe UI", "Inter", Roboto,
+                Helvetica, Arial, sans-serif;
+  --atlas-mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+}
+*, *::before, *::after { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+body.atlas {
+  background: var(--atlas-bg);
+  color: var(--atlas-text);
+  font-family: var(--atlas-font);
+  font-size: 13.5px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+button { font-family: inherit; }
+.atlas-shell { max-width: 1440px; margin: 0 auto; padding: 28px 32px 48px; }
+.atlas-header { margin-bottom: 18px; }
+.atlas-header h1 { margin: 0; font-size: 22px; font-weight: 600; letter-spacing: -0.01em; }
+.atlas-subtitle { margin-top: 4px; color: var(--atlas-muted); font-size: 13px; }
+.atlas-kpis {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  background: var(--atlas-surface);
+  border: 1px solid var(--atlas-border);
+  border-radius: var(--atlas-radius);
+  margin-bottom: 18px;
+  overflow: hidden;
+}
+.atlas-kpi {
+  position: relative;
+  padding: 16px 18px 18px;
+  border-right: 1px solid var(--atlas-rule);
+  border-bottom: 1px solid var(--atlas-rule);
+  min-width: 0;
+}
+.atlas-kpi::before {
+  content: ""; position: absolute; left: 0; top: 12px; bottom: 12px;
+  width: 3px; background: var(--atlas-subtle); border-radius: 0 2px 2px 0;
+}
+.atlas-kpi[data-trend="up"]::before   { background: var(--atlas-good); }
+.atlas-kpi[data-trend="down"]::before { background: var(--atlas-bad); }
+.atlas-kpi[data-trend="flat"]::before { background: var(--atlas-subtle); }
+.atlas-kpi .label {
+  font-size: 10.5px; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 0.08em; color: var(--atlas-subtle);
+}
+.atlas-kpi .value {
+  margin-top: 6px; font-size: 40px; font-weight: 600;
+  font-variant-numeric: tabular-nums; letter-spacing: -0.02em;
+  line-height: 1.05; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.atlas-kpi .delta {
+  display: inline-flex; align-items: baseline; gap: 4px; margin-top: 8px;
+  font-size: 12px; font-weight: 600; font-variant-numeric: tabular-nums;
+}
+.atlas-kpi .delta .arrow { font-size: 10px; }
+.atlas-kpi[data-trend="up"]   .delta { color: var(--atlas-good); }
+.atlas-kpi[data-trend="down"] .delta { color: var(--atlas-bad); }
+.atlas-kpi[data-trend="flat"] .delta { color: var(--atlas-muted); }
+.atlas-kpi .delta .vs { color: var(--atlas-subtle); font-weight: 500; }
+.atlas-filterbar {
+  display: flex; flex-wrap: wrap; gap: 10px 14px; align-items: center;
+  background: var(--atlas-surface); border: 1px solid var(--atlas-border);
+  border-radius: var(--atlas-radius); padding: 10px 12px; margin-bottom: 16px;
+}
+.atlas-search { flex: 1 1 220px; min-width: 200px; }
+.atlas-search input {
+  width: 100%; height: 32px;
+  border: 1px solid var(--atlas-border-strong); border-radius: var(--atlas-radius-sm);
+  padding: 0 10px; font-size: 13px; font-family: inherit;
+  background: #fff; color: var(--atlas-text);
+}
+.atlas-search input:focus {
+  outline: none; border-color: var(--atlas-accent);
+  box-shadow: 0 0 0 3px rgba(36, 83, 214, 0.15);
+}
+.atlas-chip-group-label {
+  font-size: 10.5px; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 0.08em; color: var(--atlas-subtle);
+}
+.atlas-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.atlas-chip {
+  position: relative; display: inline-flex; align-items: center; gap: 4px;
+  border: 1px solid var(--atlas-border-strong); background: #fff;
+  color: var(--atlas-muted); border-radius: var(--atlas-radius-sm);
+  padding: 4px 10px; font-size: 12px; font-weight: 500; cursor: pointer;
+  transition: background 0.12s ease, color 0.12s ease, border-color 0.12s ease;
+}
+.atlas-chip::before { content: ""; width: 0; overflow: hidden; transition: width 0.12s ease; }
+.atlas-chip:hover { border-color: var(--atlas-accent); color: var(--atlas-accent); }
+.atlas-chip:focus-visible {
+  outline: none; box-shadow: 0 0 0 3px rgba(36, 83, 214, 0.20);
+}
+.atlas-chip[aria-pressed="true"] {
+  background: var(--atlas-accent); border-color: var(--atlas-accent); color: #fff;
+}
+.atlas-chip[aria-pressed="true"]::before {
+  content: "✓"; width: auto; font-size: 10px; font-weight: 700; margin-right: 2px;
+}
+.atlas-clear {
+  border: 1px solid transparent; background: transparent;
+  color: var(--atlas-accent); font-size: 12px; font-weight: 600;
+  padding: 4px 8px; border-radius: var(--atlas-radius-sm);
+  cursor: pointer; display: none;
+}
+.atlas-clear.is-shown { display: inline-block; }
+.atlas-clear:hover { background: var(--atlas-accent-soft); }
+.atlas-counter {
+  margin-left: auto; font-size: 11.5px; color: var(--atlas-subtle);
+  font-variant-numeric: tabular-nums;
+}
+.atlas-filter-disclosure { display: none; }
+
+.atlas-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 14px; min-height: 80px;
+}
+.atlas-grid:empty::before {
+  content: "No cards match the current filters.";
+  display: grid; place-items: center; grid-column: 1 / -1; padding: 32px;
+  color: var(--atlas-subtle); font-size: 13px;
+  border: 1px dashed var(--atlas-border-strong); border-radius: var(--atlas-radius);
+}
+.atlas-card {
+  background: var(--atlas-surface); border: 1px solid var(--atlas-border);
+  border-radius: var(--atlas-radius); display: flex; flex-direction: column;
+  min-width: 0; overflow: hidden;
+}
+.atlas-card[data-span="2"] { grid-column: span 2; }
+.atlas-card[data-span="3"] { grid-column: span 3; }
+.atlas-card.is-hidden { display: none; }
+.atlas-card-head {
+  display: flex; align-items: baseline; justify-content: space-between;
+  gap: 8px; padding: 12px 14px 8px;
+  border-bottom: 1px solid var(--atlas-rule); min-width: 0;
+}
+.atlas-card-head h3 {
+  margin: 0; font-size: 12px; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 0.08em; color: var(--atlas-muted);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  min-width: 0; flex: 1 1 auto;
+}
+.atlas-card-head .meta {
+  font-size: 11px; color: var(--atlas-subtle); white-space: nowrap; flex: 0 0 auto;
+}
+.atlas-card-body { padding: 12px 14px 14px; flex: 1; min-width: 0; }
+
+.atlas-pill {
+  display: inline-flex; align-items: center; gap: 4px;
+  font-size: 10.5px; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 0.04em; padding: 2px 7px 2px 5px;
+  border-radius: 999px; line-height: 1.4; white-space: nowrap;
+}
+.atlas-pill::before {
+  content: ""; width: 6px; height: 6px; border-radius: 50%;
+  background: currentColor; opacity: 0.85; flex: 0 0 auto;
+}
+.atlas-pill.good    { background: var(--atlas-good-soft); color: var(--atlas-good); }
+.atlas-pill.warn    { background: var(--atlas-warn-soft); color: var(--atlas-warn); }
+.atlas-pill.bad     { background: var(--atlas-bad-soft);  color: var(--atlas-bad); }
+.atlas-pill.neutral { background: var(--atlas-bg);        color: var(--atlas-muted); }
+.atlas-pill.accent  { background: var(--atlas-accent-soft); color: var(--atlas-accent); }
+
+.sr-only {
+  position: absolute; width: 1px; height: 1px;
+  padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0);
+  white-space: nowrap; border: 0;
+}
+.atlas-footer {
+  margin-top: 24px; color: var(--atlas-subtle);
+  font-size: 11px; text-align: center;
+}
+
+/* ============================================================================
+ * Index-specific additions for the 7-archetype catalog
+ * (band, thumbnail, pills, buttons, pick-rubric)
+ * ============================================================================ */
+.arch-card { padding: 0 !important; }
+.arch-card .atlas-card-body { padding: 0; display: flex; flex-direction: column; }
+
+.arch-band {
+  padding: 16px 18px 14px;
+  color: #fff;
+  position: relative;
+}
+.arch-band .arch-name {
+  font-size: 22px; font-weight: 700; letter-spacing: -0.01em;
+  line-height: 1.1; margin: 0;
+}
+.arch-band .arch-tag {
+  margin-top: 4px; font-size: 12px;
+  opacity: 0.88; font-weight: 500;
+}
+.arch-band .arch-shape {
+  position: absolute; top: 14px; right: 16px;
+  font-size: 9.5px; font-weight: 700; letter-spacing: 0.1em;
+  text-transform: uppercase; opacity: 0.78;
+  background: rgba(255,255,255,0.15); border-radius: 3px;
+  padding: 3px 6px;
+}
+
+/* Identity colors per archetype (bands) */
+.arch-folio    .arch-band { background: #1d2960; }
+.arch-stage    .arch-band { background: #c2410c; }
+.arch-atlas    .arch-band { background: #2453d6; }
+.arch-field    .arch-band { background: #8a1c12; }
+.arch-ledger   .arch-band { background: #1e3a8a; }
+.arch-timeline .arch-band { background: #1a5fb4; }
+.arch-catalog  .arch-band { background: #3f6147; }
+
+/* Thumbnail container */
+.arch-thumb {
+  border-bottom: 1px solid var(--atlas-rule);
+  background: var(--atlas-surface-alt);
+  display: flex; align-items: center; justify-content: center;
+  padding: 14px;
+}
+.arch-thumb svg {
+  width: 100%; max-width: 280px; height: 160px;
+  display: block;
+}
+
+/* Use-case pills row */
+.arch-pills {
+  padding: 12px 14px 6px;
+  display: flex; flex-wrap: wrap; gap: 4px;
+}
+.arch-pill {
+  font-size: 10.5px; font-weight: 600;
+  text-transform: lowercase; letter-spacing: 0.02em;
+  color: var(--atlas-muted);
+  background: var(--atlas-surface-alt);
+  border: 1px solid var(--atlas-rule);
+  padding: 2px 8px; border-radius: 999px;
+  white-space: nowrap;
+}
+
+/* Description paragraph */
+.arch-desc {
+  padding: 6px 14px 12px;
+  font-size: 13px; line-height: 1.5;
+  color: var(--atlas-text);
+  flex: 1;
+}
+
+/* Action bar */
+.arch-actions {
+  display: flex; gap: 8px;
+  padding: 10px 14px 14px;
+  border-top: 1px solid var(--atlas-rule);
+  margin-top: auto;
+}
+.arch-btn {
+  display: inline-flex; align-items: center; gap: 3px;
+  font-size: 12px; font-weight: 600;
+  padding: 6px 10px;
+  border-radius: var(--atlas-radius-sm);
+  text-decoration: none;
+  border: 1px solid var(--atlas-border-strong);
+  background: #fff; color: var(--atlas-text);
+  transition: background 0.12s ease, border-color 0.12s ease, color 0.12s ease;
+}
+.arch-btn:hover {
+  border-color: var(--atlas-accent);
+  color: var(--atlas-accent);
+}
+.arch-btn.primary {
+  background: var(--atlas-accent);
+  border-color: var(--atlas-accent);
+  color: #fff;
+}
+.arch-btn.primary:hover {
+  background: #1e44b3;
+  border-color: #1e44b3;
+  color: #fff;
+}
+
+/* "How to pick" card — uses a quiet slate band */
+.arch-pick .arch-band { background: #14181f; }
+.arch-pick .arch-rubric {
+  padding: 14px 16px 16px;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0;
+}
+.arch-pick .rubric-row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 12px;
+  padding: 10px 0;
+  border-bottom: 1px dashed var(--atlas-rule);
+  align-items: baseline;
+}
+.arch-pick .rubric-row:last-child { border-bottom: 0; }
+.arch-pick .rubric-q {
+  font-size: 13px; color: var(--atlas-text); line-height: 1.45;
+}
+.arch-pick .rubric-a {
+  font-size: 11px; font-weight: 700; letter-spacing: 0.08em;
+  text-transform: uppercase; color: var(--atlas-accent);
+  white-space: nowrap;
+}
+
+/* Self-reference badge for the Atlas card (the recursion call-out) */
+.arch-self-ref {
+  display: inline-flex; align-items: center; gap: 4px;
+  position: absolute; top: 14px; right: 16px;
+  font-size: 9.5px; font-weight: 700; letter-spacing: 0.06em;
+  text-transform: uppercase;
+  background: rgba(255,255,255,0.18);
+  color: #fff;
+  border-radius: 3px;
+  padding: 3px 7px;
+}
+.arch-self-ref::before {
+  content: "↻";
+  font-size: 11px;
+  font-weight: 400;
+}
+.arch-atlas .arch-band .arch-shape { display: none; }
+
+@media (max-width: 1099px) {
+  .atlas-card[data-span="3"] { grid-column: span 2; }
+}
+@media (max-width: 768px) {
+  .atlas-shell { padding: 16px; }
+  .atlas-header h1 { font-size: 19px; }
+  .atlas-kpis { grid-template-columns: repeat(2, 1fr); }
+  .atlas-kpi .value { font-size: 28px; }
+  .atlas-kpi { padding: 12px 14px 14px; }
+  .atlas-grid { grid-template-columns: 1fr; }
+  .atlas-card[data-span="2"],
+  .atlas-card[data-span="3"] { grid-column: span 1; }
+  .atlas-filter-disclosure { display: block; width: 100%; }
+  .atlas-filter-disclosure summary {
+    list-style: none; cursor: pointer; padding: 10px 0;
+    min-height: 44px; font-size: 13px; font-weight: 600;
+    color: var(--atlas-muted); display: flex; align-items: center; gap: 6px;
+  }
+  .atlas-filter-disclosure summary::-webkit-details-marker { display: none; }
+  .atlas-filter-disclosure summary::before {
+    content: "▸"; font-size: 10px; color: var(--atlas-subtle);
+    transition: transform 0.15s ease;
+  }
+  .atlas-filter-disclosure[open] summary::before { transform: rotate(90deg); }
+  .atlas-filterbar { flex-direction: column; align-items: stretch; }
+  .atlas-filterbar > .atlas-search,
+  .atlas-filterbar > .atlas-filter-disclosure { width: 100%; }
+  .atlas-search { flex: 1 1 auto; }
+  .atlas-chip { min-height: 32px; padding: 6px 12px; }
+  .atlas-counter { margin-left: 0; margin-top: 4px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .atlas-chip, .atlas-chip::before,
+  .atlas-filter-disclosure summary::before,
+  .arch-btn { transition: none !important; }
+}
+</style>
+</head>
+<body class="atlas">
+<div class="atlas-shell">
+
+  <header class="atlas-header">
+    <h1>html-reports · 7 archetypes</h1>
+    <div class="atlas-subtitle">Pick the shape that fits the document, not the topic · Generated 2026-05-21</div>
+  </header>
+
+  <section class="atlas-kpis" aria-label="Key performance indicators">
+    <div class="atlas-kpi" data-trend="up">
+      <div class="label">Archetypes</div>
+      <div class="value">7</div>
+      <div class="delta"><span class="arrow" aria-hidden="true">▲</span> shippable <span class="vs">all v1.0</span></div>
+    </div>
+    <div class="atlas-kpi" data-trend="flat">
+      <div class="label">Example outputs</div>
+      <div class="value">6</div>
+      <div class="delta"><span class="arrow" aria-hidden="true">■</span> real-data <span class="vs">in a real project</span></div>
+    </div>
+    <div class="atlas-kpi" data-trend="up">
+      <div class="label">Refinement rounds</div>
+      <div class="value">70</div>
+      <div class="delta"><span class="arrow" aria-hidden="true">▲</span> 7 × 10 <span class="vs">per archetype</span></div>
+    </div>
+    <div class="atlas-kpi" data-trend="up">
+      <div class="label">External deps</div>
+      <div class="value">0</div>
+      <div class="delta"><span class="arrow" aria-hidden="true">▲</span> single-file <span class="vs">no CDN, no fonts</span></div>
+    </div>
+    <div class="atlas-kpi" data-trend="up">
+      <div class="label">WCAG contrast</div>
+      <div class="value">AA</div>
+      <div class="delta"><span class="arrow" aria-hidden="true">▲</span> verified <span class="vs">all archetypes</span></div>
+    </div>
+  </section>
+
+  <section class="atlas-filterbar" aria-label="Filter archetypes by shape">
+    <div class="atlas-search">
+      <label class="sr-only" for="atlas-search">Search archetypes</label>
+      <input id="atlas-search" type="search" placeholder="Search archetypes…" autocomplete="off">
+    </div>
+    <span class="atlas-chip-group-label">Shape</span>
+    <div class="atlas-chips" role="group" aria-label="Filter by shape" data-group="shape">
+      <button type="button" class="atlas-chip" aria-pressed="false" data-tag="long-form">long-form</button>
+      <button type="button" class="atlas-chip" aria-pressed="false" data-tag="paginated">paginated</button>
+      <button type="button" class="atlas-chip" aria-pressed="false" data-tag="dense">dense</button>
+      <button type="button" class="atlas-chip" aria-pressed="false" data-tag="comparison">comparison</button>
+      <button type="button" class="atlas-chip" aria-pressed="false" data-tag="chronological">chronological</button>
+      <button type="button" class="atlas-chip" aria-pressed="false" data-tag="searchable">searchable</button>
+    </div>
+
+    <details class="atlas-filter-disclosure">
+      <summary>Filters</summary>
+      <div style="margin-top:8px">
+        <span class="atlas-chip-group-label">Shape</span>
+        <div class="atlas-chips" role="group" aria-label="Filter by shape" data-group="shape-m">
+          <button type="button" class="atlas-chip" aria-pressed="false" data-tag="long-form">long-form</button>
+          <button type="button" class="atlas-chip" aria-pressed="false" data-tag="paginated">paginated</button>
+          <button type="button" class="atlas-chip" aria-pressed="false" data-tag="dense">dense</button>
+          <button type="button" class="atlas-chip" aria-pressed="false" data-tag="comparison">comparison</button>
+          <button type="button" class="atlas-chip" aria-pressed="false" data-tag="chronological">chronological</button>
+          <button type="button" class="atlas-chip" aria-pressed="false" data-tag="searchable">searchable</button>
+        </div>
+      </div>
+    </details>
+
+    <button type="button" class="atlas-clear" id="atlas-clear">Clear filters</button>
+    <div class="atlas-counter" aria-live="polite" id="atlas-counter">Showing 8 of 8</div>
+  </section>
+
+  <section class="atlas-grid">
+
+    <!-- 1. FOLIO -->
+    <article class="atlas-card arch-card arch-folio" data-tags="long-form">
+      <div class="atlas-card-body">
+        <div class="arch-band">
+          <span class="arch-shape">long-form</span>
+          <h3 class="arch-name">Folio</h3>
+          <div class="arch-tag">Book — fixed left TOC + scrollable content</div>
+        </div>
+        <div class="arch-thumb">
+          <svg viewBox="0 0 280 160" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Folio mini-preview: parchment sidebar TOC on the left, indented content lines on the right">
+            <!-- parchment ground -->
+            <rect x="0" y="0" width="280" height="160" fill="#fdfcf9"/>
+            <!-- sidebar (parchment cream) -->
+            <rect x="0" y="0" width="92" height="160" fill="#f7f3ea"/>
+            <rect x="91" y="0" width="1" height="160" fill="#e6dfcf"/>
+            <!-- TOC group label -->
+            <rect x="12" y="14" width="40" height="5" fill="#6b6657" rx="1"/>
+            <!-- TOC links -->
+            <rect x="12" y="28" width="64" height="3.5" fill="#c9b88a" rx="1"/>
+            <rect x="12" y="38" width="56" height="3.5" fill="#1a1b22" opacity="0.4" rx="1"/>
+            <!-- active TOC item with indigo left rule + wash -->
+            <rect x="6" y="46" width="80" height="14" fill="#e8eaf2" rx="2"/>
+            <rect x="6" y="46" width="3" height="14" fill="#1d2960"/>
+            <rect x="12" y="51" width="60" height="4" fill="#1d2960" rx="1"/>
+            <rect x="12" y="66" width="50" height="3.5" fill="#1a1b22" opacity="0.4" rx="1"/>
+            <rect x="12" y="76" width="58" height="3.5" fill="#1a1b22" opacity="0.4" rx="1"/>
+            <rect x="12" y="92" width="44" height="5" fill="#6b6657" rx="1"/>
+            <rect x="12" y="104" width="64" height="3.5" fill="#1a1b22" opacity="0.4" rx="1"/>
+            <rect x="12" y="114" width="50" height="3.5" fill="#1a1b22" opacity="0.4" rx="1"/>
+            <rect x="12" y="124" width="58" height="3.5" fill="#1a1b22" opacity="0.4" rx="1"/>
+            <!-- content: section title + gold rule + body lines -->
+            <rect x="108" y="16" width="120" height="9" fill="#1a1b22" rx="1"/>
+            <rect x="108" y="30" width="40" height="2" fill="#c9b88a"/>
+            <!-- drop cap (indigo block) -->
+            <rect x="108" y="42" width="14" height="18" fill="#1d2960" rx="1"/>
+            <rect x="126" y="44" width="138" height="3" fill="#525a68" opacity="0.7" rx="1"/>
+            <rect x="126" y="51" width="142" height="3" fill="#525a68" opacity="0.7" rx="1"/>
+            <rect x="126" y="58" width="120" height="3" fill="#525a68" opacity="0.7" rx="1"/>
+            <rect x="108" y="68" width="156" height="3" fill="#525a68" opacity="0.7" rx="1"/>
+            <rect x="108" y="75" width="148" height="3" fill="#525a68" opacity="0.7" rx="1"/>
+            <rect x="108" y="82" width="136" height="3" fill="#525a68" opacity="0.7" rx="1"/>
+            <!-- second section heading + gold rule -->
+            <rect x="108" y="98" width="88" height="7" fill="#1a1b22" rx="1"/>
+            <rect x="108" y="109" width="30" height="2" fill="#c9b88a"/>
+            <rect x="108" y="120" width="160" height="3" fill="#525a68" opacity="0.7" rx="1"/>
+            <rect x="108" y="127" width="148" height="3" fill="#525a68" opacity="0.7" rx="1"/>
+            <rect x="108" y="134" width="120" height="3" fill="#525a68" opacity="0.7" rx="1"/>
+            <rect x="108" y="141" width="138" height="3" fill="#525a68" opacity="0.7" rx="1"/>
+          </svg>
+        </div>
+        <div class="arch-pills">
+          <span class="arch-pill">scorecards</span>
+          <span class="arch-pill">audits</span>
+          <span class="arch-pill">framework refs</span>
+        </div>
+        <p class="arch-desc">Book-style long-form report. Fixed left-anchored TOC (~288px) with a generously-typeset right column. As the reader scrolls, the current section auto-highlights in the TOC and the URL hash updates so any scroll position is link-shareable. Parchment + indigo + gold rule under titles.</p>
+        <div class="arch-actions">
+          <a class="arch-btn primary" href="#example">Open example →</a>
+          <a class="arch-btn" href="folio/README.md">Read spec →</a>
+        </div>
+      </div>
+    </article>
+
+    <!-- 2. FIELD -->
+    <article class="atlas-card arch-card arch-field" data-tags="long-form">
+      <div class="atlas-card-body">
+        <div class="arch-band">
+          <span class="arch-shape">long-form</span>
+          <h3 class="arch-name">Field</h3>
+          <div class="arch-tag">Editorial long-read — serif body + pull quotes</div>
+        </div>
+        <div class="arch-thumb">
+          <svg viewBox="0 0 280 160" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Field mini-preview: tall warm-paper hero, narrow column of body text, one full-bleed pull quote">
+            <!-- warm paper ground -->
+            <rect x="0" y="0" width="280" height="160" fill="#f6f3ec"/>
+            <!-- hero band (deeper paper) -->
+            <rect x="0" y="0" width="280" height="44" fill="#efeadf"/>
+            <!-- eyebrow (oxblood) -->
+            <rect x="64" y="10" width="36" height="3" fill="#8a1c12" rx="0.5"/>
+            <!-- hero title (serif display) -->
+            <rect x="64" y="18" width="152" height="9" fill="#161412" rx="1"/>
+            <rect x="64" y="30" width="118" height="7" fill="#161412" opacity="0.7" rx="1"/>
+            <!-- body column with drop cap -->
+            <rect x="68" y="54" width="12" height="14" fill="#8a1c12"/>
+            <rect x="84" y="56" width="128" height="3" fill="#4a4641" rx="0.5"/>
+            <rect x="84" y="63" width="132" height="3" fill="#4a4641" rx="0.5"/>
+            <rect x="68" y="72" width="148" height="3" fill="#4a4641" rx="0.5"/>
+            <rect x="68" y="79" width="140" height="3" fill="#4a4641" rx="0.5"/>
+            <rect x="68" y="86" width="132" height="3" fill="#4a4641" rx="0.5"/>
+            <!-- full-bleed pull quote (escapes column) -->
+            <rect x="0" y="98" width="280" height="32" fill="#efeadf"/>
+            <rect x="0" y="98" width="3" height="32" fill="#8a1c12"/>
+            <rect x="24" y="107" width="232" height="4" fill="#161412" opacity="0.85" rx="0.5"/>
+            <rect x="24" y="115" width="212" height="4" fill="#161412" opacity="0.85" rx="0.5"/>
+            <rect x="24" y="124" width="78" height="3" fill="#6d675c" rx="0.5"/>
+            <!-- body resumes -->
+            <rect x="68" y="138" width="144" height="3" fill="#4a4641" rx="0.5"/>
+            <rect x="68" y="145" width="124" height="3" fill="#4a4641" rx="0.5"/>
+            <rect x="68" y="152" width="136" height="3" fill="#4a4641" rx="0.5"/>
+          </svg>
+        </div>
+        <div class="arch-pills">
+          <span class="arch-pill">post-mortems</span>
+          <span class="arch-pill">case studies</span>
+          <span class="arch-pill">strategy memos</span>
+        </div>
+        <p class="arch-desc">Magazine-grade narrative deep-dives. Warm paper ground (#f6f3ec), ink-not-jet-black body, single oxblood accent, serif 19px / 1.7 at a 680px measure. Pull quotes and stat blocks break full-bleed as eye-rest punctuation. Use when the output is meant to be read, not scanned.</p>
+        <div class="arch-actions">
+          <a class="arch-btn primary" href="#example">Open example →</a>
+          <a class="arch-btn" href="field/README.md">Read spec →</a>
+        </div>
+      </div>
+    </article>
+
+    <!-- 3. STAGE -->
+    <article class="atlas-card arch-card arch-stage" data-tags="paginated">
+      <div class="atlas-card-body">
+        <div class="arch-band">
+          <span class="arch-shape">paginated</span>
+          <h3 class="arch-name">Stage</h3>
+          <div class="arch-tag">Horizontal snap-scroll slide deck</div>
+        </div>
+        <div class="arch-thumb">
+          <svg viewBox="0 0 280 160" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Stage mini-preview: row of five paper slides with the current slide highlighted in orange">
+            <!-- beige void -->
+            <rect x="0" y="0" width="280" height="160" fill="#e8e6df"/>
+            <!-- orange progress bar across top -->
+            <rect x="0" y="0" width="280" height="3" fill="#d8d6cf"/>
+            <rect x="0" y="0" width="112" height="3" fill="#c2410c"/>
+            <!-- slide row (5 cream slides) -->
+            <rect x="14" y="22" width="44" height="108" fill="#fcfcf9" stroke="#d8d6cf" stroke-width="1" rx="2"/>
+            <rect x="14" y="22" width="3" height="108" fill="#c2410c"/>
+            <rect x="22" y="34" width="28" height="3" fill="#0f172a" rx="0.5"/>
+            <rect x="22" y="42" width="22" height="3" fill="#0f172a" rx="0.5"/>
+            <!-- slide 2 -->
+            <rect x="64" y="22" width="44" height="108" fill="#fcfcf9" stroke="#d8d6cf" stroke-width="1" rx="2"/>
+            <rect x="72" y="34" width="28" height="3" fill="#5a6470" rx="0.5"/>
+            <text x="86" y="86" text-anchor="middle" font-family="-apple-system, sans-serif" font-size="22" font-weight="700" fill="#c2410c">7</text>
+            <!-- slide 3 (CURRENT — bigger, brighter) -->
+            <rect x="114" y="14" width="52" height="124" fill="#fcfcf9" stroke="#c2410c" stroke-width="2" rx="2"/>
+            <rect x="122" y="28" width="36" height="3" fill="#5a6470" rx="0.5"/>
+            <rect x="122" y="40" width="34" height="5" fill="#0f172a" rx="0.5"/>
+            <rect x="122" y="50" width="28" height="5" fill="#0f172a" rx="0.5"/>
+            <rect x="122" y="68" width="36" height="2.5" fill="#2e3a4d" rx="0.5"/>
+            <rect x="122" y="75" width="32" height="2.5" fill="#2e3a4d" rx="0.5"/>
+            <rect x="122" y="82" width="34" height="2.5" fill="#2e3a4d" rx="0.5"/>
+            <rect x="122" y="118" width="20" height="3" fill="#c2410c" rx="0.5"/>
+            <!-- slide 4 -->
+            <rect x="172" y="22" width="44" height="108" fill="#fcfcf9" stroke="#d8d6cf" stroke-width="1" rx="2"/>
+            <rect x="180" y="34" width="28" height="3" fill="#5a6470" rx="0.5"/>
+            <rect x="180" y="42" width="22" height="3" fill="#5a6470" rx="0.5"/>
+            <!-- slide 5 (closing — dark ink) -->
+            <rect x="222" y="22" width="44" height="108" fill="#0f172a" rx="2"/>
+            <rect x="230" y="34" width="20" height="3" fill="#c2410c" rx="0.5"/>
+            <rect x="230" y="44" width="28" height="5" fill="#fcfcf9" rx="0.5"/>
+            <rect x="230" y="54" width="24" height="5" fill="#fcfcf9" rx="0.5"/>
+            <!-- counter -->
+            <rect x="232" y="144" width="32" height="9" fill="#fcfcf9" stroke="#d8d6cf" stroke-width="1" rx="1.5"/>
+            <text x="248" y="151" text-anchor="middle" font-family="-apple-system, sans-serif" font-size="7" fill="#5a6470">3 / 5</text>
+          </svg>
+        </div>
+        <div class="arch-pills">
+          <span class="arch-pill">exec readouts</span>
+          <span class="arch-pill">all-hands</span>
+          <span class="arch-pill">kickoffs</span>
+        </div>
+        <p class="arch-desc">Self-contained slide deck for live presentation. One concept per screen, arrow-key / spacebar / swipe navigation. Paper-warm slides on a beige void, monochrome ink with a single burnt-orange accent on numerals, eyebrows, and the progress bar. Speaker notes, presenter timer, B/W blackout.</p>
+        <div class="arch-actions">
+          <a class="arch-btn primary" href="#example">Open example →</a>
+          <a class="arch-btn" href="stage/README.md">Read spec →</a>
+        </div>
+      </div>
+    </article>
+
+    <!-- 4. ATLAS (self-reference) -->
+    <article class="atlas-card arch-card arch-atlas" data-tags="dense">
+      <div class="atlas-card-body">
+        <div class="arch-band">
+          <span class="arch-self-ref" title="This page is itself an Atlas">you are here</span>
+          <h3 class="arch-name">Atlas</h3>
+          <div class="arch-tag">Dashboard — KPI strip + filterable card grid</div>
+        </div>
+        <div class="arch-thumb">
+          <svg viewBox="0 0 280 160" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Atlas mini-preview: four KPI tiles on top, six-card grid below, one card containing a sparkline">
+            <!-- dashboard ground -->
+            <rect x="0" y="0" width="280" height="160" fill="#f4f6f9"/>
+            <!-- KPI strip (4 tiles with colored left rules) -->
+            <rect x="8" y="10" width="264" height="38" fill="#ffffff" stroke="#e3e6eb" stroke-width="1" rx="3"/>
+            <rect x="8" y="18" width="2" height="22" fill="#117a3d"/>
+            <rect x="74" y="18" width="2" height="22" fill="#2453d6"/>
+            <rect x="140" y="18" width="2" height="22" fill="#b8302a"/>
+            <rect x="206" y="18" width="2" height="22" fill="#7a8290"/>
+            <rect x="73" y="10" width="1" height="38" fill="#ecedf1"/>
+            <rect x="139" y="10" width="1" height="38" fill="#ecedf1"/>
+            <rect x="205" y="10" width="1" height="38" fill="#ecedf1"/>
+            <!-- KPI values -->
+            <rect x="16" y="18" width="22" height="2" fill="#7a8290" rx="0.5"/>
+            <text x="16" y="36" font-family="-apple-system, sans-serif" font-size="12" font-weight="600" fill="#14181f">1.4M</text>
+            <rect x="82" y="18" width="22" height="2" fill="#7a8290" rx="0.5"/>
+            <text x="82" y="36" font-family="-apple-system, sans-serif" font-size="12" font-weight="600" fill="#14181f">312</text>
+            <rect x="148" y="18" width="22" height="2" fill="#7a8290" rx="0.5"/>
+            <text x="148" y="36" font-family="-apple-system, sans-serif" font-size="12" font-weight="600" fill="#14181f">7.2%</text>
+            <rect x="214" y="18" width="22" height="2" fill="#7a8290" rx="0.5"/>
+            <text x="214" y="36" font-family="-apple-system, sans-serif" font-size="12" font-weight="600" fill="#14181f">94</text>
+            <!-- filter chip strip -->
+            <rect x="8" y="54" width="264" height="14" fill="#ffffff" stroke="#e3e6eb" stroke-width="1" rx="3"/>
+            <rect x="14" y="58" width="22" height="6" fill="#2453d6" rx="1.5"/>
+            <rect x="40" y="58" width="20" height="6" fill="#ffffff" stroke="#d1d6de" stroke-width="0.5" rx="1.5"/>
+            <rect x="64" y="58" width="26" height="6" fill="#ffffff" stroke="#d1d6de" stroke-width="0.5" rx="1.5"/>
+            <!-- card grid: 3x2 -->
+            <!-- card with sparkline (top-left) -->
+            <rect x="8" y="74" width="84" height="40" fill="#ffffff" stroke="#e3e6eb" stroke-width="1" rx="3"/>
+            <rect x="14" y="80" width="22" height="3" fill="#525a68" rx="0.5"/>
+            <polyline points="14,108 24,102 34,96 44,98 54,90 64,86 74,82 84,78" fill="none" stroke="#117a3d" stroke-width="1.4" stroke-linejoin="round"/>
+            <circle cx="84" cy="78" r="2" fill="#117a3d"/>
+            <rect x="98" y="74" width="84" height="40" fill="#ffffff" stroke="#e3e6eb" stroke-width="1" rx="3"/>
+            <rect x="104" y="80" width="22" height="3" fill="#525a68" rx="0.5"/>
+            <rect x="104" y="90" width="60" height="3" fill="#117a3d" rx="0.5"/>
+            <rect x="104" y="96" width="44" height="3" fill="#92590a" rx="0.5"/>
+            <rect x="104" y="102" width="32" height="3" fill="#b8302a" rx="0.5"/>
+            <rect x="188" y="74" width="84" height="40" fill="#ffffff" stroke="#e3e6eb" stroke-width="1" rx="3"/>
+            <rect x="194" y="80" width="22" height="3" fill="#525a68" rx="0.5"/>
+            <text x="194" y="104" font-family="-apple-system, sans-serif" font-size="16" font-weight="600" fill="#14181f">87</text>
+            <!-- row 2 -->
+            <rect x="8" y="118" width="84" height="36" fill="#ffffff" stroke="#e3e6eb" stroke-width="1" rx="3"/>
+            <rect x="14" y="124" width="22" height="3" fill="#525a68" rx="0.5"/>
+            <rect x="14" y="134" width="70" height="2" fill="#ecedf1"/>
+            <rect x="14" y="140" width="70" height="2" fill="#ecedf1"/>
+            <rect x="14" y="146" width="70" height="2" fill="#ecedf1"/>
+            <rect x="98" y="118" width="84" height="36" fill="#ffffff" stroke="#e3e6eb" stroke-width="1" rx="3"/>
+            <rect x="104" y="124" width="22" height="3" fill="#525a68" rx="0.5"/>
+            <rect x="106" y="132" width="6" height="14" fill="#2453d6"/>
+            <rect x="116" y="138" width="6" height="8" fill="#2453d6"/>
+            <rect x="126" y="130" width="6" height="16" fill="#2453d6"/>
+            <rect x="136" y="134" width="6" height="12" fill="#2453d6"/>
+            <rect x="146" y="128" width="6" height="18" fill="#117a3d"/>
+            <rect x="156" y="132" width="6" height="14" fill="#2453d6"/>
+            <rect x="166" y="136" width="6" height="10" fill="#2453d6"/>
+            <rect x="188" y="118" width="84" height="36" fill="#ffffff" stroke="#e3e6eb" stroke-width="1" rx="3"/>
+            <rect x="194" y="124" width="22" height="3" fill="#525a68" rx="0.5"/>
+            <rect x="194" y="134" width="32" height="6" fill="#e4f3eb" rx="3"/>
+            <circle cx="199" cy="137" r="1.5" fill="#117a3d"/>
+            <rect x="232" y="134" width="34" height="6" fill="#fbe3e1" rx="3"/>
+            <circle cx="237" cy="137" r="1.5" fill="#b8302a"/>
+            <rect x="194" y="144" width="60" height="3" fill="#ecedf1"/>
+          </svg>
+        </div>
+        <div class="arch-pills">
+          <span class="arch-pill">leadership pulse</span>
+          <span class="arch-pill">OKR roll-ups</span>
+          <span class="arch-pill">at-a-glance status</span>
+        </div>
+        <p class="arch-desc">Operational BI dashboard. Top KPI strip + filterable card grid. Designed for "skim in 30 seconds, drill into one card, pivot via chips" leadership snapshots. Sans-serif throughout, tabular numerals, hairline cards, letterspaced uppercase labels. Sparkline + filter chip + status pill are the signature components — and this very page is built from them.</p>
+        <div class="arch-actions">
+          <a class="arch-btn primary" href="#example">Open example →</a>
+          <a class="arch-btn" href="atlas/README.md">Read spec →</a>
+        </div>
+      </div>
+    </article>
+
+    <!-- 5. CATALOG -->
+    <article class="atlas-card arch-card arch-catalog" data-tags="searchable">
+      <div class="atlas-card-body">
+        <div class="arch-band">
+          <span class="arch-shape">searchable</span>
+          <h3 class="arch-name">Catalog</h3>
+          <div class="arch-tag">Search-first faceted list with detail drawer</div>
+        </div>
+        <div class="arch-thumb">
+          <svg viewBox="0 0 280 160" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Catalog mini-preview: left-rail facet chips with active brass-amber chip, right-side list with one selected row">
+            <!-- warm off-white ground -->
+            <rect x="0" y="0" width="280" height="160" fill="#fafaf7"/>
+            <!-- search bar across top -->
+            <rect x="86" y="10" width="186" height="14" fill="#ffffff" stroke="#d6d3cb" stroke-width="1" rx="3"/>
+            <circle cx="94" cy="17" r="2.5" fill="none" stroke="#78716c" stroke-width="1"/>
+            <line x1="96" y1="19" x2="98" y2="21" stroke="#78716c" stroke-width="1"/>
+            <rect x="102" y="15.5" width="80" height="3" fill="#78716c" opacity="0.5" rx="0.5"/>
+            <rect x="254" y="13" width="14" height="8" fill="#efeee7" rx="1.5"/>
+            <text x="261" y="19" text-anchor="middle" font-family="ui-monospace, monospace" font-size="6" fill="#44403c">/</text>
+            <!-- left rail facets -->
+            <rect x="8" y="10" width="70" height="144" fill="#ffffff" stroke="#e7e5de" stroke-width="1" rx="3"/>
+            <!-- facet label -->
+            <rect x="14" y="18" width="28" height="3" fill="#78716c" rx="0.5"/>
+            <!-- chips (some active brass-amber) -->
+            <rect x="14" y="26" width="42" height="8" fill="#fdf6e3" stroke="#a16207" stroke-width="1" rx="2"/>
+            <rect x="16" y="28" width="2" height="4" fill="#a16207"/>
+            <rect x="22" y="29" width="18" height="2" fill="#6b4203" rx="0.3"/>
+            <text x="50" y="32" font-family="-apple-system, sans-serif" font-size="5" fill="#6b4203">38</text>
+            <rect x="14" y="38" width="42" height="8" fill="#ffffff" stroke="#d6d3cb" stroke-width="0.5" rx="2"/>
+            <rect x="18" y="41" width="18" height="2" fill="#44403c" rx="0.3"/>
+            <text x="50" y="44" font-family="-apple-system, sans-serif" font-size="5" fill="#78716c">11</text>
+            <rect x="14" y="50" width="42" height="8" fill="#ffffff" stroke="#d6d3cb" stroke-width="0.5" rx="2"/>
+            <rect x="18" y="53" width="14" height="2" fill="#44403c" rx="0.3"/>
+            <!-- second facet group -->
+            <rect x="14" y="68" width="32" height="3" fill="#78716c" rx="0.5"/>
+            <rect x="14" y="76" width="42" height="8" fill="#ffffff" stroke="#d6d3cb" stroke-width="0.5" rx="2"/>
+            <rect x="18" y="79" width="22" height="2" fill="#44403c" rx="0.3"/>
+            <rect x="14" y="88" width="42" height="8" fill="#fdf6e3" stroke="#a16207" stroke-width="1" rx="2"/>
+            <rect x="16" y="90" width="2" height="4" fill="#a16207"/>
+            <rect x="22" y="91" width="18" height="2" fill="#6b4203" rx="0.3"/>
+            <rect x="14" y="100" width="42" height="8" fill="#ffffff" stroke="#d6d3cb" stroke-width="0.5" rx="2"/>
+            <rect x="18" y="103" width="20" height="2" fill="#44403c" rx="0.3"/>
+            <!-- right side: list rows -->
+            <rect x="86" y="30" width="186" height="124" fill="#ffffff" stroke="#e7e5de" stroke-width="1" rx="3"/>
+            <!-- result count -->
+            <rect x="94" y="36" width="40" height="3" fill="#78716c" rx="0.5"/>
+            <!-- row 1 -->
+            <line x1="86" y1="46" x2="272" y2="46" stroke="#e7e5de" stroke-width="0.5"/>
+            <rect x="94" y="52" width="14" height="14" fill="#f1f0ea" stroke="#d6d3cb" stroke-width="0.5" rx="2"/>
+            <text x="101" y="62" text-anchor="middle" font-family="ui-monospace, monospace" font-size="6" font-weight="700" fill="#3f6147">ST</text>
+            <rect x="114" y="54" width="60" height="3" fill="#1c1917" rx="0.5"/>
+            <rect x="114" y="61" width="78" height="2" fill="#78716c" rx="0.5"/>
+            <rect x="232" y="56" width="34" height="6" fill="#e2ecdf" rx="3"/>
+            <rect x="237" y="58" width="24" height="2" fill="#2f4a34" rx="0.3"/>
+            <!-- row 2 (SELECTED — left accent stripe + light fill) -->
+            <line x1="86" y1="70" x2="272" y2="70" stroke="#e7e5de" stroke-width="0.5"/>
+            <rect x="86" y="70" width="186" height="20" fill="#eaf1eb"/>
+            <rect x="86" y="70" width="3" height="20" fill="#3f6147"/>
+            <rect x="94" y="74" width="14" height="14" fill="#ffffff" stroke="#d6d3cb" stroke-width="0.5" rx="2"/>
+            <text x="101" y="84" text-anchor="middle" font-family="ui-monospace, monospace" font-size="6" font-weight="700" fill="#3f6147">SL</text>
+            <rect x="114" y="76" width="50" height="3" fill="#1c1917" rx="0.5"/>
+            <rect x="114" y="83" width="86" height="2" fill="#78716c" rx="0.5"/>
+            <rect x="232" y="78" width="34" height="6" fill="#fdf0d2" rx="3"/>
+            <rect x="240" y="80" width="18" height="2" fill="#6b4203" rx="0.3"/>
+            <!-- row 3 -->
+            <line x1="86" y1="92" x2="272" y2="92" stroke="#e7e5de" stroke-width="0.5"/>
+            <rect x="94" y="98" width="14" height="14" fill="#f1f0ea" stroke="#d6d3cb" stroke-width="0.5" rx="2"/>
+            <text x="101" y="108" text-anchor="middle" font-family="ui-monospace, monospace" font-size="6" font-weight="700" fill="#3f6147">GH</text>
+            <rect x="114" y="100" width="56" height="3" fill="#1c1917" rx="0.5"/>
+            <rect x="114" y="107" width="74" height="2" fill="#78716c" rx="0.5"/>
+            <rect x="232" y="102" width="34" height="6" fill="#e2ecdf" rx="3"/>
+            <!-- row 4 -->
+            <line x1="86" y1="116" x2="272" y2="116" stroke="#e7e5de" stroke-width="0.5"/>
+            <rect x="94" y="122" width="14" height="14" fill="#f1f0ea" stroke="#d6d3cb" stroke-width="0.5" rx="2"/>
+            <text x="101" y="132" text-anchor="middle" font-family="ui-monospace, monospace" font-size="6" font-weight="700" fill="#3f6147">PG</text>
+            <rect x="114" y="124" width="46" height="3" fill="#1c1917" rx="0.5"/>
+            <rect x="114" y="131" width="82" height="2" fill="#78716c" rx="0.5"/>
+            <rect x="232" y="126" width="34" height="6" fill="#ece9e2" rx="3"/>
+            <line x1="86" y1="140" x2="272" y2="140" stroke="#e7e5de" stroke-width="0.5"/>
+            <rect x="94" y="146" width="40" height="2" fill="#78716c" opacity="0.6" rx="0.5"/>
+          </svg>
+        </div>
+        <div class="arch-pills">
+          <span class="arch-pill">directories</span>
+          <span class="arch-pill">registries</span>
+          <span class="arch-pill">faceted KBs</span>
+        </div>
+        <p class="arch-desc">Single-surface index for finding one specific record among 60–5000 items. Real ordered list, prominent search with <code>/</code> shortcut, left-rail faceted filters (multi-select OR within, AND across), sort, in-page detail drawer with focus trap, virtual scroll for large datasets. Off-white paper + moss accent + brass-amber active facets.</p>
+        <div class="arch-actions">
+          <a class="arch-btn primary" href="catalog/example-minimal.html">Open example →</a>
+          <a class="arch-btn" href="catalog/README.md">Read spec →</a>
+        </div>
+      </div>
+    </article>
+
+    <!-- 6. LEDGER -->
+    <article class="atlas-card arch-card arch-ledger" data-tags="comparison">
+      <div class="atlas-card-body">
+        <div class="arch-band">
+          <span class="arch-shape">comparison</span>
+          <h3 class="arch-name">Ledger</h3>
+          <div class="arch-tag">Side-by-side comparison matrix with scoring</div>
+        </div>
+        <div class="arch-thumb">
+          <svg viewBox="0 0 280 160" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Ledger mini-preview: 4-column by 5-row scoring matrix with colored left rules on each cell">
+            <!-- slate ground -->
+            <rect x="0" y="0" width="280" height="160" fill="#ffffff"/>
+            <rect x="0" y="0" width="280" height="160" fill="#f6f7f9" opacity="0.5"/>
+            <!-- frame -->
+            <rect x="10" y="10" width="260" height="124" fill="#ffffff" stroke="#cbd5e1" stroke-width="1" rx="2"/>
+            <!-- column headers -->
+            <rect x="10" y="10" width="260" height="20" fill="#f6f7f9"/>
+            <line x1="10" y1="30" x2="270" y2="30" stroke="#cbd5e1" stroke-width="1"/>
+            <rect x="16" y="18" width="48" height="3" fill="#64748b" rx="0.5"/>
+            <rect x="76" y="18" width="40" height="3" fill="#0f172a" rx="0.5"/>
+            <rect x="76" y="24" width="32" height="2" fill="#64748b" rx="0.5"/>
+            <rect x="126" y="18" width="40" height="3" fill="#0f172a" rx="0.5"/>
+            <rect x="126" y="24" width="32" height="2" fill="#64748b" rx="0.5"/>
+            <rect x="176" y="18" width="40" height="3" fill="#0f172a" rx="0.5"/>
+            <rect x="176" y="24" width="32" height="2" fill="#64748b" rx="0.5"/>
+            <rect x="226" y="18" width="36" height="3" fill="#0f172a" rx="0.5"/>
+            <rect x="226" y="24" width="28" height="2" fill="#64748b" rx="0.5"/>
+            <!-- column separators -->
+            <line x1="70" y1="10" x2="70" y2="134" stroke="#cbd5e1" stroke-width="0.5"/>
+            <line x1="120" y1="10" x2="120" y2="134" stroke="#e2e8f0" stroke-width="0.5"/>
+            <line x1="170" y1="10" x2="170" y2="134" stroke="#e2e8f0" stroke-width="0.5"/>
+            <line x1="220" y1="10" x2="220" y2="134" stroke="#e2e8f0" stroke-width="0.5"/>
+            <!-- ROW 1 -->
+            <rect x="16" y="38" width="50" height="3" fill="#0f172a" rx="0.5"/>
+            <rect x="16" y="44" width="28" height="2" fill="#64748b" rx="0.5"/>
+            <rect x="72" y="34" width="46" height="16" fill="#e6f4ea"/>
+            <rect x="72" y="34" width="2" height="16" fill="#1f7a45"/>
+            <rect x="92" y="40" width="14" height="4" fill="#134e2b" rx="0.5"/>
+            <rect x="122" y="34" width="46" height="16" fill="#e6f4ea"/>
+            <rect x="122" y="34" width="2" height="16" fill="#1f7a45"/>
+            <rect x="142" y="40" width="14" height="4" fill="#134e2b" rx="0.5"/>
+            <rect x="172" y="34" width="46" height="16" fill="#f9e0e0"/>
+            <rect x="172" y="34" width="2" height="16" fill="#c0392b"/>
+            <rect x="192" y="40" width="14" height="4" fill="#7a1010" rx="0.5"/>
+            <rect x="222" y="34" width="46" height="16" fill="#fdf3d3"/>
+            <rect x="222" y="34" width="2" height="16" fill="#b88600"/>
+            <rect x="242" y="40" width="14" height="4" fill="#6b4a00" rx="0.5"/>
+            <line x1="10" y1="54" x2="270" y2="54" stroke="#e2e8f0" stroke-width="0.5"/>
+            <!-- ROW 2 -->
+            <rect x="16" y="58" width="44" height="3" fill="#0f172a" rx="0.5"/>
+            <rect x="16" y="64" width="32" height="2" fill="#64748b" rx="0.5"/>
+            <rect x="72" y="54" width="46" height="16" fill="#fdf3d3"/>
+            <rect x="72" y="54" width="2" height="16" fill="#b88600"/>
+            <rect x="122" y="54" width="46" height="16" fill="#e6f4ea"/>
+            <rect x="122" y="54" width="2" height="16" fill="#1f7a45"/>
+            <rect x="172" y="54" width="46" height="16" fill="#e6f4ea"/>
+            <rect x="172" y="54" width="2" height="16" fill="#1f7a45"/>
+            <rect x="222" y="54" width="46" height="16" fill="#f9e0e0"/>
+            <rect x="222" y="54" width="2" height="16" fill="#c0392b"/>
+            <line x1="10" y1="74" x2="270" y2="74" stroke="#e2e8f0" stroke-width="0.5"/>
+            <rect x="10" y="74" width="260" height="20" fill="#fbfcfd"/>
+            <!-- ROW 3 -->
+            <rect x="16" y="78" width="48" height="3" fill="#0f172a" rx="0.5"/>
+            <rect x="16" y="84" width="30" height="2" fill="#64748b" rx="0.5"/>
+            <rect x="72" y="74" width="46" height="20" fill="#e6f4ea"/>
+            <rect x="72" y="74" width="2" height="20" fill="#1f7a45"/>
+            <rect x="122" y="74" width="46" height="20" fill="#fdf3d3"/>
+            <rect x="122" y="74" width="2" height="20" fill="#b88600"/>
+            <rect x="172" y="74" width="46" height="20" fill="#fdf3d3"/>
+            <rect x="172" y="74" width="2" height="20" fill="#b88600"/>
+            <rect x="222" y="74" width="46" height="20" fill="#e6f4ea"/>
+            <rect x="222" y="74" width="2" height="20" fill="#1f7a45"/>
+            <line x1="10" y1="94" x2="270" y2="94" stroke="#e2e8f0" stroke-width="0.5"/>
+            <!-- ROW 4 -->
+            <rect x="16" y="98" width="40" height="3" fill="#0f172a" rx="0.5"/>
+            <rect x="72" y="94" width="46" height="20" fill="#f9e0e0"/>
+            <rect x="72" y="94" width="2" height="20" fill="#c0392b"/>
+            <rect x="122" y="94" width="46" height="20" fill="#e6f4ea"/>
+            <rect x="122" y="94" width="2" height="20" fill="#1f7a45"/>
+            <rect x="172" y="94" width="46" height="20" fill="#e6f4ea"/>
+            <rect x="172" y="94" width="2" height="20" fill="#1f7a45"/>
+            <rect x="222" y="94" width="46" height="20" fill="#fdf3d3"/>
+            <rect x="222" y="94" width="2" height="20" fill="#b88600"/>
+            <line x1="10" y1="114" x2="270" y2="114" stroke="#e2e8f0" stroke-width="0.5"/>
+            <rect x="10" y="114" width="260" height="20" fill="#fbfcfd"/>
+            <!-- ROW 5 -->
+            <rect x="16" y="118" width="52" height="3" fill="#0f172a" rx="0.5"/>
+            <rect x="72" y="114" width="46" height="20" fill="#fdf3d3"/>
+            <rect x="72" y="114" width="2" height="20" fill="#b88600"/>
+            <rect x="122" y="114" width="46" height="20" fill="#e6f4ea"/>
+            <rect x="122" y="114" width="2" height="20" fill="#1f7a45"/>
+            <rect x="172" y="114" width="46" height="20" fill="#e6f4ea"/>
+            <rect x="172" y="114" width="2" height="20" fill="#1f7a45"/>
+            <rect x="222" y="114" width="46" height="20" fill="#fdf3d3"/>
+            <rect x="222" y="114" width="2" height="20" fill="#b88600"/>
+            <!-- recommendation band -->
+            <rect x="10" y="140" width="260" height="14" fill="#eef2ff" stroke="#1e3a8a" stroke-width="0.5" rx="2"/>
+            <rect x="10" y="140" width="3" height="14" fill="#1e3a8a"/>
+            <rect x="20" y="145" width="22" height="3" fill="#1e3a8a" rx="0.5"/>
+            <rect x="46" y="145" width="100" height="3" fill="#0f172a" opacity="0.7" rx="0.5"/>
+          </svg>
+        </div>
+        <div class="arch-pills">
+          <span class="arch-pill">vendor bake-offs</span>
+          <span class="arch-pill">A/B reads</span>
+          <span class="arch-pill">option tradeoffs</span>
+        </div>
+        <p class="arch-desc">A scoring matrix for N options against M criteria. Real semantic table with sticky row labels + column headers, colorblind-safe semantic tints (good / okay / weak) each with a coloured left rule that double-encodes meaning, a "show big differences" diff toggle, collapsible criterion groups, and a recommendation band at the bottom. Cool slate neutrals, slate-blue accent.</p>
+        <div class="arch-actions">
+          <a class="arch-btn primary" href="#example">Open example →</a>
+          <a class="arch-btn" href="ledger/README.md">Read spec →</a>
+        </div>
+      </div>
+    </article>
+
+    <!-- 7. TIMELINE -->
+    <article class="atlas-card arch-card arch-timeline" data-tags="chronological">
+      <div class="atlas-card-body">
+        <div class="arch-band">
+          <span class="arch-shape">chronological</span>
+          <h3 class="arch-name">Timeline</h3>
+          <div class="arch-tag">Vertical date spine with event dots + deltas</div>
+        </div>
+        <div class="arch-thumb">
+          <svg viewBox="0 0 280 160" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Timeline mini-preview: vertical spine on the left with kind-coded glyph dots, event cards stacked on the right, anomaly dot pulsing">
+            <!-- ground -->
+            <rect x="0" y="0" width="280" height="160" fill="#ffffff"/>
+            <!-- spine column (sunk bg) -->
+            <rect x="0" y="0" width="56" height="160" fill="#f1f3f6"/>
+            <!-- spine line with fade -->
+            <defs>
+              <linearGradient id="spineFade" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0" stop-color="#c8ced8" stop-opacity="0"/>
+                <stop offset="0.15" stop-color="#c8ced8" stop-opacity="1"/>
+                <stop offset="0.85" stop-color="#c8ced8" stop-opacity="1"/>
+                <stop offset="1" stop-color="#c8ced8" stop-opacity="0"/>
+              </linearGradient>
+            </defs>
+            <rect x="35" y="0" width="2" height="160" fill="url(#spineFade)"/>
+            <!-- progress bar -->
+            <rect x="0" y="0" width="280" height="2" fill="#e3e6ec"/>
+            <rect x="0" y="0" width="168" height="2" fill="#1a5fb4"/>
+            <!-- dates and dots -->
+            <text x="22" y="22" text-anchor="end" font-family="-apple-system, sans-serif" font-size="6" font-weight="600" fill="#3b4452">Mar 24</text>
+            <circle cx="36" cy="20" r="6" fill="#5b6472"/>
+            <text x="36" y="22.5" text-anchor="middle" font-family="-apple-system, sans-serif" font-size="6" fill="#ffffff">●</text>
+            <!-- event 1 card -->
+            <rect x="62" y="14" width="208" height="20" fill="#ffffff" stroke="#e3e6ec" stroke-width="0.7" rx="2"/>
+            <rect x="68" y="19" width="32" height="3" fill="#5b6472" rx="0.5"/>
+            <rect x="68" y="26" width="120" height="3" fill="#14181f" rx="0.5"/>
+            <!-- event 2: RELEASE (blue triangle) -->
+            <text x="22" y="50" text-anchor="end" font-family="-apple-system, sans-serif" font-size="6" font-weight="600" fill="#3b4452">Apr 02</text>
+            <circle cx="36" cy="48" r="6" fill="#1a5fb4"/>
+            <text x="36" y="50.5" text-anchor="middle" font-family="-apple-system, sans-serif" font-size="6" fill="#ffffff">▲</text>
+            <rect x="62" y="42" width="208" height="20" fill="#ffffff" stroke="#1a5fb4" stroke-width="0.7" rx="2"/>
+            <rect x="68" y="47" width="34" height="3" fill="#1a5fb4" rx="0.5"/>
+            <rect x="68" y="54" width="110" height="3" fill="#14181f" rx="0.5"/>
+            <!-- event 3: ANOMALY (amber star, pulsing) with before/after -->
+            <text x="22" y="80" text-anchor="end" font-family="-apple-system, sans-serif" font-size="6" font-weight="600" fill="#3b4452">Apr 18</text>
+            <circle cx="36" cy="78" r="9" fill="none" stroke="#d97706" stroke-width="0.7" opacity="0.5"/>
+            <circle cx="36" cy="78" r="6" fill="#d97706"/>
+            <text x="36" y="80.5" text-anchor="middle" font-family="-apple-system, sans-serif" font-size="6" fill="#ffffff">✦</text>
+            <rect x="62" y="68" width="208" height="32" fill="#ffffff" stroke="#d97706" stroke-width="0.7" rx="2"/>
+            <rect x="68" y="73" width="36" height="3" fill="#d97706" rx="0.5"/>
+            <rect x="68" y="80" width="120" height="3" fill="#14181f" rx="0.5"/>
+            <!-- before/after block -->
+            <rect x="68" y="88" width="60" height="9" fill="#f7f8fa" rx="1"/>
+            <text x="98" y="94" text-anchor="middle" font-family="ui-monospace, monospace" font-size="6" font-weight="700" fill="#14181f">34</text>
+            <text x="138" y="94" text-anchor="middle" font-family="-apple-system, sans-serif" font-size="6" font-weight="700" fill="#d62828">→ -22%</text>
+            <rect x="172" y="88" width="60" height="9" fill="#f7f8fa" rx="1"/>
+            <text x="202" y="94" text-anchor="middle" font-family="ui-monospace, monospace" font-size="6" font-weight="700" fill="#14181f">26</text>
+            <!-- event 4: INCIDENT (red warn) -->
+            <text x="22" y="116" text-anchor="end" font-family="-apple-system, sans-serif" font-size="6" font-weight="600" fill="#3b4452">May 03</text>
+            <circle cx="36" cy="114" r="6" fill="#d62828"/>
+            <text x="36" y="116.5" text-anchor="middle" font-family="-apple-system, sans-serif" font-size="6" fill="#ffffff">⚠</text>
+            <rect x="62" y="106" width="208" height="20" fill="#ffffff" stroke="#d62828" stroke-width="0.7" rx="2"/>
+            <rect x="68" y="111" width="32" height="3" fill="#d62828" rx="0.5"/>
+            <rect x="68" y="118" width="130" height="3" fill="#14181f" rx="0.5"/>
+            <!-- event 5: MILESTONE (green star) -->
+            <text x="22" y="146" text-anchor="end" font-family="-apple-system, sans-serif" font-size="6" font-weight="600" fill="#3b4452">May 19</text>
+            <circle cx="36" cy="144" r="6" fill="#2e7d32"/>
+            <text x="36" y="146.5" text-anchor="middle" font-family="-apple-system, sans-serif" font-size="6" fill="#ffffff">★</text>
+            <rect x="62" y="136" width="208" height="20" fill="#ffffff" stroke="#2e7d32" stroke-width="0.7" rx="2"/>
+            <rect x="68" y="141" width="38" height="3" fill="#2e7d32" rx="0.5"/>
+            <rect x="68" y="148" width="116" height="3" fill="#14181f" rx="0.5"/>
+          </svg>
+        </div>
+        <div class="arch-pills">
+          <span class="arch-pill">incident reviews</span>
+          <span class="arch-pill">growth narratives</span>
+          <span class="arch-pill">release impact</span>
+        </div>
+        <p class="arch-desc">Chronological-narrative report. A vertical date spine runs down the left; each event is an article on the right with a glyph-bearing dot anchored to the spine. Optional per-event metric pills, quote callout, before/after delta block, inline SVG sparkline. Five kinds — incident, release, milestone, anomaly (pulsing), note — colorblind-safe Okabe-Ito palette.</p>
+        <div class="arch-actions">
+          <a class="arch-btn primary" href="#example">Open example →</a>
+          <a class="arch-btn" href="timeline/README.md">Read spec →</a>
+        </div>
+      </div>
+    </article>
+
+    <!-- 8. HOW TO PICK -->
+    <article class="atlas-card arch-card arch-pick" data-tags="long-form,paginated,dense,comparison,chronological,searchable" data-span="2">
+      <div class="atlas-card-body">
+        <div class="arch-band">
+          <span class="arch-shape">picker</span>
+          <h3 class="arch-name">How to pick</h3>
+          <div class="arch-tag">One question per row — match it to a shape</div>
+        </div>
+        <div class="arch-rubric">
+          <div class="rubric-row">
+            <div class="rubric-q">Many small standalone sections, reader hops around?</div>
+            <div class="rubric-a" style="color:#1d2960">Folio →</div>
+          </div>
+          <div class="rubric-row">
+            <div class="rubric-q">The work needs to be <em>read</em>, not scanned (narrative persuasion)?</div>
+            <div class="rubric-a" style="color:#8a1c12">Field →</div>
+          </div>
+          <div class="rubric-row">
+            <div class="rubric-q">One narrative arc, want each beat to land before scrolling?</div>
+            <div class="rubric-a" style="color:#c2410c">Stage →</div>
+          </div>
+          <div class="rubric-row">
+            <div class="rubric-q">A landscape view where relationships matter more than depth?</div>
+            <div class="rubric-a" style="color:#2453d6">Atlas →</div>
+          </div>
+          <div class="rubric-row">
+            <div class="rubric-q">The reader needs to <em>find one specific record</em> in 60–5000 items?</div>
+            <div class="rubric-a" style="color:#3f6147">Catalog →</div>
+          </div>
+          <div class="rubric-row">
+            <div class="rubric-q">Side-by-side comparison with a scoring matrix and a recommendation?</div>
+            <div class="rubric-a" style="color:#1e3a8a">Ledger →</div>
+          </div>
+          <div class="rubric-row">
+            <div class="rubric-q">A story that unfolds chronologically, with deltas at each beat?</div>
+            <div class="rubric-a" style="color:#1a5fb4">Timeline →</div>
+          </div>
+        </div>
+      </div>
+    </article>
+
+  </section>
+
+  <div class="atlas-footer">html-reports · 7 archetypes · This page is itself rendered with the Atlas archetype</div>
+
+</div>
+
+<script>
+(function(){
+  'use strict';
+
+  var cards      = Array.from(document.querySelectorAll('.atlas-card'));
+  var chipGroups = Array.from(document.querySelectorAll('.atlas-chips'));
+  var searchEl   = document.getElementById('atlas-search');
+  var clearBtn   = document.getElementById('atlas-clear');
+  var counterEl  = document.getElementById('atlas-counter');
+  var totalCards = cards.length;
+  var rafId = null;
+
+  function activesByGroup(){
+    var byKey = {};
+    chipGroups.forEach(function(g){
+      var key = (g.dataset.group || '').replace(/-m$/, '');
+      var actives = Array.from(g.querySelectorAll('.atlas-chip[aria-pressed="true"]'))
+                         .map(function(c){ return c.dataset.tag; });
+      byKey[key] = byKey[key] ? byKey[key].concat(actives) : actives;
+    });
+    return byKey;
+  }
+
+  function apply(){
+    var actives = activesByGroup();
+    var hasActiveChip = Object.keys(actives).some(function(k){ return actives[k].length > 0; });
+    var q = (searchEl && searchEl.value || '').trim().toLowerCase();
+    var shown = 0;
+    cards.forEach(function(card){
+      var tags = (card.dataset.tags || '').split(',').filter(Boolean);
+      var groupMatch = Object.keys(actives).every(function(k){
+        var as = actives[k];
+        if (!as.length) return true;
+        return as.some(function(a){ return tags.indexOf(a) !== -1; });
+      });
+      var textMatch = !q || card.innerText.toLowerCase().indexOf(q) !== -1;
+      var visible = groupMatch && textMatch;
+      card.classList.toggle('is-hidden', !visible);
+      if (visible) shown++;
+    });
+    if (counterEl) counterEl.textContent = 'Showing ' + shown + ' of ' + totalCards;
+    if (clearBtn) clearBtn.classList.toggle('is-shown', hasActiveChip || q.length > 0);
+  }
+
+  function applyDebounced(){
+    if (rafId) cancelAnimationFrame(rafId);
+    rafId = requestAnimationFrame(apply);
+  }
+
+  function syncChips(srcChip){
+    var srcGroup = srcChip.parentElement.dataset.group.replace(/-m$/, '');
+    var pressed  = srcChip.getAttribute('aria-pressed') === 'true';
+    chipGroups.forEach(function(g){
+      var key = (g.dataset.group || '').replace(/-m$/, '');
+      if (key !== srcGroup) return;
+      g.querySelectorAll('.atlas-chip').forEach(function(c){
+        if (c === srcChip) return;
+        if (c.dataset.tag === srcChip.dataset.tag) {
+          c.setAttribute('aria-pressed', pressed ? 'true' : 'false');
+        }
+      });
+    });
+  }
+
+  chipGroups.forEach(function(g){
+    g.querySelectorAll('.atlas-chip').forEach(function(chip){
+      chip.addEventListener('click', function(){
+        var next = chip.getAttribute('aria-pressed') !== 'true';
+        chip.setAttribute('aria-pressed', next ? 'true' : 'false');
+        syncChips(chip);
+        apply();
+      });
+    });
+  });
+
+  if (searchEl) searchEl.addEventListener('input', applyDebounced);
+
+  if (clearBtn) clearBtn.addEventListener('click', function(){
+    document.querySelectorAll('.atlas-chip[aria-pressed="true"]').forEach(function(c){
+      c.setAttribute('aria-pressed', 'false');
+    });
+    if (searchEl) searchEl.value = '';
+    apply();
+  });
+
+  if (counterEl) counterEl.textContent = 'Showing ' + totalCards + ' of ' + totalCards;
+})();
+</script>
+</body>
+</html>

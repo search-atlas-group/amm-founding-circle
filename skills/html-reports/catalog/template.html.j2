@@ -1,0 +1,770 @@
+{# =============================================================
+   Catalog — search-first faceted list view (Jinja template)
+   Self-contained: CSS inlined, one JS block, no external deps.
+   Light mode only.
+   ============================================================= #}
+<!doctype html>
+<html lang="{{ lang | default('en') }}">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{ title }}</title>
+<style>
+{% include "styles.css" ignore missing %}
+</style>
+</head>
+<body>
+<a href="#cat-list" class="cat-skip">Skip to results</a>
+
+<div class="cat-shell">
+
+  <header class="cat-header">
+    {% if eyebrow %}<div class="eyebrow">{{ eyebrow }}</div>{% endif %}
+    <h1>{{ title }}</h1>
+    {% if subtitle %}<div class="cat-subtitle">{{ subtitle }}</div>{% endif %}
+    {% if generated_at %}<div class="cat-meta">Generated {{ generated_at }} · {{ items|length }} record{{ '' if items|length == 1 else 's' }}</div>{% endif %}
+  </header>
+
+  {# ---------- Search ---------- #}
+  <div class="cat-searchbar" id="cat-searchbar">
+    <svg class="cat-search-icon" viewBox="0 0 20 20" aria-hidden="true">
+      <circle cx="9" cy="9" r="6" fill="none" stroke="currentColor" stroke-width="1.6"/>
+      <line x1="13.5" y1="13.5" x2="17.5" y2="17.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+    </svg>
+    <label class="sr-only" for="cat-search">Search {{ noun | default('records') }}</label>
+    <input id="cat-search" type="search" autocomplete="off" spellcheck="false"
+           placeholder="{{ search_placeholder | default('Search by name, owner, tag…') }}">
+    <span class="cat-search-kbd" aria-hidden="true">/</span>
+    <button type="button" class="cat-search-clear" aria-label="Clear search">×</button>
+  </div>
+
+  <div class="cat-body">
+
+    {# ---------- Facet rail ---------- #}
+    <aside class="cat-rail" id="cat-rail" aria-label="Filters">
+      {% for facet in facets %}
+      <section class="cat-rail-section" data-facet="{{ facet.key }}">
+        <div class="rail-label">
+          <span>{{ facet.label }}</span>
+          <span class="rail-count" data-active-count>0 active</span>
+        </div>
+        <div class="cat-chips" role="group" aria-label="{{ facet.label }} filters">
+          {% for opt in facet.options %}
+          <button type="button" class="cat-chip"
+                  aria-pressed="false"
+                  data-facet="{{ facet.key }}"
+                  data-value="{{ opt.value }}">
+            <span>{{ opt.label }}</span>
+            {% if opt.count is not none %}<span class="chip-n">{{ opt.count }}</span>{% endif %}
+          </button>
+          {% endfor %}
+        </div>
+      </section>
+      {% endfor %}
+
+      <div class="rail-footer">
+        <div class="rail-active-count" aria-live="polite">
+          <strong id="rail-active-n">0</strong> filter<span id="rail-active-s">s</span> active
+        </div>
+        <button type="button" class="cat-clear-all" id="cat-clear-all">Clear all</button>
+      </div>
+    </aside>
+
+    {# ---------- Main column ---------- #}
+    <div class="cat-main">
+
+      <div class="cat-toolbar">
+        <div class="cat-count" id="cat-count" aria-live="polite">
+          Showing <strong id="cat-count-shown">{{ items|length }}</strong>
+          <span class="count-of">of {{ items|length }}</span>
+        </div>
+
+        <button type="button" class="cat-mobile-filters" id="cat-mobile-filters" aria-haspopup="dialog">
+          Filters <span class="mf-count" id="mf-count">0</span>
+        </button>
+
+        <div class="cat-viewtoggle" role="group" aria-label="View density">
+          <button type="button" data-view="rows"  aria-pressed="true">Rows</button>
+          <button type="button" data-view="cards" aria-pressed="false">Cards</button>
+        </div>
+
+        <div class="cat-sort">
+          <label for="cat-sort">Sort</label>
+          <select id="cat-sort">
+            {% for s in (sort_options or [{'key': 'name', 'label': 'Name'}]) %}
+            <option value="{{ s.key }}"{% if s.default %} selected{% endif %}>{{ s.label }}</option>
+            {% endfor %}
+          </select>
+          <button type="button" class="cat-sort-dir" id="cat-sort-dir"
+                  aria-label="Toggle sort direction (currently ascending)"
+                  aria-pressed="false">↑</button>
+        </div>
+      </div>
+
+      {# ---------- The list (real <ol>) ---------- #}
+      <ol class="cat-list" id="cat-list"
+          data-virtual="{{ 'true' if items|length >= (virtual_threshold | default(80)) else 'false' }}"
+          aria-label="{{ noun | default('Records') }}">
+        <li class="cat-list-spacer" aria-hidden="true"></li>
+        {% for item in items %}
+        <li class="cat-row"
+            data-id="{{ item.id }}"
+            data-name="{{ item.name | lower }}"
+            data-desc="{{ (item.description or '') | lower }}"
+            data-meta="{{ ((item.owner or '') ~ ' ' ~ (item.tags | default([]) | join(' '))) | lower }}"
+            {% for facet in facets %}
+            data-facet-{{ facet.key }}="{{ (item.facets.get(facet.key) or []) | join('|') | lower }}"
+            {% endfor %}
+            data-sort-name="{{ item.name | lower }}"
+            {% for s in (sort_options or []) %}
+              {% if s.key != 'name' %}
+            data-sort-{{ s.key }}="{{ item.sort_keys.get(s.key) if item.sort_keys and s.key in item.sort_keys else '' }}"
+              {% endif %}
+            {% endfor %}>
+          <button type="button" class="cat-row-link" aria-label="Open {{ item.name }}">
+            <span class="cat-icon" aria-hidden="true">{{ item.monogram | default(item.name[:2] | upper) }}</span>
+            <span class="cat-title">
+              <span class="cat-title-line" data-field="name">{{ item.name }}</span>
+              {% if item.description %}<span class="cat-desc" data-field="desc">{{ item.description }}</span>{% endif %}
+            </span>
+            <span class="cat-meta-block">
+              {% if item.meta_pairs %}
+                {% for p in item.meta_pairs %}
+                <span class="cat-meta-pair">
+                  <span class="cat-meta-k">{{ p.k }}</span>
+                  <span class="cat-meta-v" data-field="meta">{{ p.v }}</span>
+                </span>
+                {% endfor %}
+              {% endif %}
+            </span>
+            {% if item.status %}
+            <span class="cat-status st-{{ item.status.tone | default('neutral') }}">{{ item.status.label }}</span>
+            {% endif %}
+            <span class="cat-quickaction" aria-hidden="true">View →</span>
+          </button>
+        </li>
+        {% endfor %}
+      </ol>
+
+      <div class="cat-empty" id="cat-empty" role="status">
+        <div class="empty-mark" aria-hidden="true">∅</div>
+        <div class="empty-title">No {{ noun | default('records') }} match</div>
+        <div class="empty-sub">Try a different search term or clear some filters.</div>
+        <button type="button" class="empty-cta" id="empty-clear">Clear filters</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+{# ---------- Detail drawer ---------- #}
+<div class="cat-drawer-scrim" id="cat-drawer-scrim" tabindex="-1"></div>
+<aside class="cat-drawer" id="cat-drawer"
+       role="dialog" aria-modal="true" aria-labelledby="drawer-title" hidden>
+  <div class="cat-drawer-head">
+    <div class="drawer-icon" aria-hidden="true" id="drawer-icon">··</div>
+    <div class="drawer-title-block">
+      <div class="drawer-eyebrow" id="drawer-eyebrow"></div>
+      <h2 id="drawer-title">—</h2>
+      <p class="drawer-sub" id="drawer-sub"></p>
+    </div>
+    <button type="button" class="cat-drawer-close" id="cat-drawer-close" aria-label="Close detail">×</button>
+  </div>
+  <div class="cat-drawer-body" id="cat-drawer-body">
+    {# Populated by JS from item-data scripts below. #}
+  </div>
+  <div class="cat-drawer-foot">
+    <button type="button" class="btn" id="cat-drawer-prev">← Previous</button>
+    <button type="button" class="btn" id="cat-drawer-next">Next →</button>
+    <button type="button" class="btn btn-primary" id="cat-drawer-open">Open record</button>
+  </div>
+</aside>
+
+{# ---------- Mobile bottom-sheet (clone of rail) ---------- #}
+<div class="cat-bottomsheet-scrim" id="cat-sheet-scrim"></div>
+<div class="cat-bottomsheet" id="cat-sheet" role="dialog" aria-modal="true" aria-label="Filters">
+  <div class="sheet-handle" aria-hidden="true"></div>
+  <div class="sheet-head">
+    <h3>Filters</h3>
+    <button type="button" class="sheet-close" id="cat-sheet-close">Done</button>
+  </div>
+  <div id="cat-sheet-body"><!-- rail content cloned here at runtime --></div>
+</div>
+
+{# ---------- Item-detail payload (one script tag per item) ---------- #}
+{% for item in items %}
+<script type="application/json" id="item-{{ item.id }}">
+{{ item.detail_json | default('{}') | safe }}
+</script>
+{% endfor %}
+
+<script>
+(function () {
+  // ----------------------------------------------------------
+  // Tiny module: state + render + virtual scroll
+  // ----------------------------------------------------------
+  var ROW_H = 72;        // matches --cat-row-h
+  var ROW_H_CARD = 140;  // matches --cat-row-h-card
+  var OVERSCAN = 6;      // rows to render outside visible window
+
+  var list      = document.getElementById('cat-list');
+  var spacer    = list.querySelector('.cat-list-spacer');
+  var rows      = Array.prototype.slice.call(list.querySelectorAll('.cat-row'));
+  var rail      = document.getElementById('cat-rail');
+  var searchBar = document.getElementById('cat-searchbar');
+  var searchEl  = document.getElementById('cat-search');
+  var searchClr = searchBar.querySelector('.cat-search-clear');
+  var countEl   = document.getElementById('cat-count-shown');
+  var clearAll  = document.getElementById('cat-clear-all');
+  var emptyEl   = document.getElementById('cat-empty');
+  var emptyClr  = document.getElementById('empty-clear');
+  var activeN   = document.getElementById('rail-active-n');
+  var activeS   = document.getElementById('rail-active-s');
+  var mfBtn     = document.getElementById('cat-mobile-filters');
+  var mfCount   = document.getElementById('mf-count');
+  var sortSel   = document.getElementById('cat-sort');
+  var sortDir   = document.getElementById('cat-sort-dir');
+  var view      = 'rows';
+  var viewBtns  = list.parentNode.querySelectorAll('.cat-viewtoggle button');
+
+  // ---- Drawer ----
+  var drawer       = document.getElementById('cat-drawer');
+  var drawerScrim  = document.getElementById('cat-drawer-scrim');
+  var drawerClose  = document.getElementById('cat-drawer-close');
+  var drawerBody   = document.getElementById('cat-drawer-body');
+  var drawerTitle  = document.getElementById('drawer-title');
+  var drawerEye    = document.getElementById('drawer-eyebrow');
+  var drawerSub    = document.getElementById('drawer-sub');
+  var drawerIcon   = document.getElementById('drawer-icon');
+  var drawerPrev   = document.getElementById('cat-drawer-prev');
+  var drawerNext   = document.getElementById('cat-drawer-next');
+  var drawerOpen   = document.getElementById('cat-drawer-open');
+
+  // ---- Bottom sheet (mobile) ----
+  var sheet       = document.getElementById('cat-sheet');
+  var sheetScrim  = document.getElementById('cat-sheet-scrim');
+  var sheetClose  = document.getElementById('cat-sheet-close');
+  var sheetBody   = document.getElementById('cat-sheet-body');
+
+  // ---- State ----
+  var state = {
+    q: '',
+    facets: {},   // { facetKey: Set([values]) }
+    sort: sortSel ? sortSel.value : 'name',
+    dir: 'asc',
+    visibleIds: rows.map(function (r) { return r.dataset.id; }),
+  };
+
+  // ---- Pre-index row data for fast filter ----
+  var rowIndex = rows.map(function (r) {
+    var idx = {
+      el: r,
+      id: r.dataset.id,
+      name: r.dataset.name || '',
+      desc: r.dataset.desc || '',
+      meta: r.dataset.meta || '',
+      facets: {},
+      sortKeys: { name: r.dataset.sortName || r.dataset.name || '' },
+    };
+    // Read facet attributes
+    for (var k in r.dataset) {
+      if (k.indexOf('facet') === 0 && k !== 'facet') {
+        var fk = k.slice(5).toLowerCase(); // facetStatus -> status
+        idx.facets[fk] = (r.dataset[k] || '').split('|').filter(Boolean);
+      }
+      if (k.indexOf('sort') === 0 && k !== 'sort') {
+        var sk = k.slice(4).toLowerCase();
+        idx.sortKeys[sk] = r.dataset[k] || '';
+      }
+    }
+    return idx;
+  });
+
+  // ----------------------------------------------------------
+  // Search — debounced
+  // ----------------------------------------------------------
+  var searchTimer = null;
+  function onSearchInput() {
+    if (searchTimer) clearTimeout(searchTimer);
+    searchTimer = setTimeout(function () {
+      state.q = (searchEl.value || '').toLowerCase().trim();
+      searchBar.classList.toggle('has-value', state.q.length > 0);
+      schedule();
+    }, 200);
+  }
+  searchEl.addEventListener('input', onSearchInput);
+  searchEl.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape') {
+      searchEl.value = '';
+      state.q = '';
+      searchBar.classList.remove('has-value');
+      schedule();
+    }
+  });
+  searchClr.addEventListener('click', function () {
+    searchEl.value = '';
+    state.q = '';
+    searchBar.classList.remove('has-value');
+    searchEl.focus();
+    schedule();
+  });
+
+  // '/' focus shortcut (skip when typing in inputs)
+  document.addEventListener('keydown', function (e) {
+    if (e.key === '/' &&
+        !e.metaKey && !e.ctrlKey && !e.altKey &&
+        document.activeElement &&
+        document.activeElement.tagName !== 'INPUT' &&
+        document.activeElement.tagName !== 'TEXTAREA' &&
+        document.activeElement.tagName !== 'SELECT' &&
+        !drawer.classList.contains('is-open')) {
+      e.preventDefault();
+      searchEl.focus();
+      searchEl.select();
+    }
+  });
+
+  // ----------------------------------------------------------
+  // Facet chips
+  // ----------------------------------------------------------
+  rail.addEventListener('click', function (e) {
+    var btn = e.target.closest('.cat-chip');
+    if (!btn) return;
+    toggleFacet(btn);
+  });
+  function toggleFacet(btn) {
+    var fk = btn.dataset.facet;
+    var v  = (btn.dataset.value || '').toLowerCase();
+    if (!state.facets[fk]) state.facets[fk] = {};
+    if (state.facets[fk][v]) {
+      delete state.facets[fk][v];
+      btn.setAttribute('aria-pressed', 'false');
+    } else {
+      state.facets[fk][v] = true;
+      btn.setAttribute('aria-pressed', 'true');
+    }
+    syncFacetButtons(fk, v, btn.getAttribute('aria-pressed') === 'true');
+    updateActiveCount();
+    schedule();
+  }
+  function syncFacetButtons(fk, v, pressed) {
+    // Mobile sheet mirrors rail — keep them in sync
+    var twins = document.querySelectorAll('.cat-chip[data-facet="' + fk + '"][data-value="' + cssEscape(v) + '"]');
+    twins.forEach(function (b) {
+      b.setAttribute('aria-pressed', pressed ? 'true' : 'false');
+    });
+  }
+  function cssEscape(s) {
+    return String(s).replace(/[^a-zA-Z0-9_-]/g, function (c) { return '\\' + c; });
+  }
+  function updateActiveCount() {
+    var total = 0;
+    var perFacet = {};
+    for (var fk in state.facets) {
+      var n = Object.keys(state.facets[fk]).length;
+      perFacet[fk] = n;
+      total += n;
+    }
+    activeN.textContent = String(total);
+    activeS.textContent = total === 1 ? '' : 's';
+    rail.classList.toggle('has-active', total > 0);
+    mfBtn.classList.toggle('has-active', total > 0);
+    if (mfCount) mfCount.textContent = String(total);
+    // Per-facet active badges
+    document.querySelectorAll('.cat-rail-section').forEach(function (s) {
+      var fk = s.dataset.facet;
+      var n = perFacet[fk] || 0;
+      var el = s.querySelector('[data-active-count]');
+      if (el) el.textContent = n === 0 ? '' : (n + ' active');
+    });
+  }
+  clearAll.addEventListener('click', clearAllFilters);
+  emptyClr.addEventListener('click', clearAllFilters);
+  function clearAllFilters() {
+    state.facets = {};
+    state.q = '';
+    searchEl.value = '';
+    searchBar.classList.remove('has-value');
+    document.querySelectorAll('.cat-chip[aria-pressed="true"]').forEach(function (b) {
+      b.setAttribute('aria-pressed', 'false');
+    });
+    updateActiveCount();
+    schedule();
+    searchEl.focus();
+  }
+
+  // ----------------------------------------------------------
+  // Sort
+  // ----------------------------------------------------------
+  if (sortSel) sortSel.addEventListener('change', function () { state.sort = sortSel.value; schedule(); });
+  sortDir.addEventListener('click', function () {
+    state.dir = state.dir === 'asc' ? 'desc' : 'asc';
+    sortDir.setAttribute('aria-pressed', state.dir === 'desc' ? 'true' : 'false');
+    sortDir.setAttribute('aria-label',
+      'Toggle sort direction (currently ' + (state.dir === 'asc' ? 'ascending' : 'descending') + ')');
+    sortDir.textContent = state.dir === 'asc' ? '↑' : '↓';
+    schedule();
+  });
+
+  // ----------------------------------------------------------
+  // View toggle
+  // ----------------------------------------------------------
+  viewBtns.forEach(function (b) {
+    b.addEventListener('click', function () {
+      view = b.dataset.view;
+      viewBtns.forEach(function (x) {
+        x.setAttribute('aria-pressed', x === b ? 'true' : 'false');
+      });
+      list.classList.toggle('view-cards', view === 'cards');
+      schedule();
+    });
+  });
+
+  // ----------------------------------------------------------
+  // Filter + sort pipeline, batched with rAF
+  // ----------------------------------------------------------
+  var raf = null;
+  function schedule() {
+    if (raf) return;
+    raf = requestAnimationFrame(function () {
+      raf = null;
+      render();
+    });
+  }
+
+  function matchSearch(idx, q) {
+    if (!q) return true;
+    return (idx.name + ' ' + idx.desc + ' ' + idx.meta).indexOf(q) !== -1;
+  }
+  function matchFacets(idx, facets) {
+    for (var fk in facets) {
+      var sel = facets[fk];
+      var selKeys = Object.keys(sel);
+      if (selKeys.length === 0) continue;
+      var rowVals = idx.facets[fk] || [];
+      var hit = false;
+      for (var i = 0; i < selKeys.length; i++) {
+        if (rowVals.indexOf(selKeys[i]) !== -1) { hit = true; break; }
+      }
+      if (!hit) return false;
+    }
+    return true;
+  }
+  function compare(a, b) {
+    var ak = (a.sortKeys[state.sort] || '').toString();
+    var bk = (b.sortKeys[state.sort] || '').toString();
+    // numeric where possible
+    var an = parseFloat(ak), bn = parseFloat(bk);
+    var cmp;
+    if (!isNaN(an) && !isNaN(bn) && ak.match(/^-?\d/) && bk.match(/^-?\d/)) {
+      cmp = an - bn;
+    } else {
+      cmp = ak.localeCompare(bk, undefined, { numeric: true, sensitivity: 'base' });
+    }
+    return state.dir === 'asc' ? cmp : -cmp;
+  }
+
+  function render() {
+    var q = state.q;
+    var matched = rowIndex.filter(function (r) {
+      return matchSearch(r, q) && matchFacets(r, state.facets);
+    });
+    matched.sort(compare);
+    state.visibleIds = matched.map(function (r) { return r.id; });
+
+    // Update count
+    countEl.textContent = String(matched.length);
+    var of = countEl.parentNode.querySelector('.count-of');
+    if (of) of.textContent = 'of ' + rowIndex.length;
+
+    // Empty state
+    list.classList.toggle('is-empty', matched.length === 0);
+
+    // Set virtual-scroll spacer height
+    var virtual = list.dataset.virtual === 'true';
+    var rowH = view === 'cards' ? ROW_H_CARD : ROW_H;
+    if (virtual) {
+      spacer.style.height = (matched.length * rowH) + 'px';
+      placeRows(matched, rowH);
+    } else {
+      // Non-virtual: hide rows not in matched set, reorder via DOM.
+      var matchedSet = {};
+      matched.forEach(function (r, i) { matchedSet[r.id] = i; });
+      rowIndex.forEach(function (r) {
+        if (r.id in matchedSet) {
+          r.el.hidden = false;
+          r.el.style.order = matchedSet[r.id];
+          r.el.style.position = '';
+          r.el.style.top = '';
+        } else {
+          r.el.hidden = true;
+        }
+      });
+      // Reorder via flex isn't possible on <ol>. Use DOM reorder instead.
+      // (Only for non-virtual / small lists, so cost is acceptable.)
+      var frag = document.createDocumentFragment();
+      matched.forEach(function (r) { frag.appendChild(r.el); });
+      list.appendChild(frag);
+    }
+
+    applyHighlight(matched, q);
+  }
+
+  // ----------------------------------------------------------
+  // Virtual scroll — recycle node positions via top offsets
+  // ----------------------------------------------------------
+  var listScrollHandler = null;
+  function placeRows(matched, rowH) {
+    if (!listScrollHandler) {
+      listScrollHandler = function () { placeRows(currentMatched, currentRowH); };
+      list.addEventListener('scroll', function () { schedulePlace(); }, { passive: true });
+    }
+    currentMatched = matched;
+    currentRowH = rowH;
+
+    var scrollTop = list.scrollTop;
+    var clientH   = list.clientHeight || 600;
+    var firstIdx  = Math.max(0, Math.floor(scrollTop / rowH) - OVERSCAN);
+    var lastIdx   = Math.min(matched.length, Math.ceil((scrollTop + clientH) / rowH) + OVERSCAN);
+
+    // Hide everything first
+    rowIndex.forEach(function (r) { r.el.hidden = true; r.el.style.top = ''; });
+    for (var i = firstIdx; i < lastIdx; i++) {
+      var r = matched[i];
+      r.el.hidden = false;
+      r.el.style.top = (i * rowH) + 'px';
+    }
+  }
+  var currentMatched = [];
+  var currentRowH = ROW_H;
+  var placeRaf = null;
+  function schedulePlace() {
+    if (placeRaf) return;
+    placeRaf = requestAnimationFrame(function () {
+      placeRaf = null;
+      placeRows(currentMatched, currentRowH);
+    });
+  }
+
+  // ----------------------------------------------------------
+  // Search-match highlighting
+  // ----------------------------------------------------------
+  function applyHighlight(matched, q) {
+    // Clear previous marks (on visible rows only)
+    matched.forEach(function (r) {
+      var fields = r.el.querySelectorAll('[data-field]');
+      fields.forEach(function (f) {
+        if (f.dataset.original !== undefined) {
+          f.textContent = f.dataset.original;
+        } else {
+          f.dataset.original = f.textContent;
+        }
+      });
+    });
+    if (!q) return;
+    var re = new RegExp(escapeRe(q), 'gi');
+    matched.forEach(function (r) {
+      var fields = r.el.querySelectorAll('[data-field]');
+      fields.forEach(function (f) {
+        var orig = f.dataset.original || f.textContent;
+        if (orig.toLowerCase().indexOf(q) === -1) return;
+        var html = '';
+        var last = 0;
+        var m;
+        re.lastIndex = 0;
+        while ((m = re.exec(orig)) !== null) {
+          html += escapeHtml(orig.slice(last, m.index));
+          html += '<mark class="cat-hl">' + escapeHtml(m[0]) + '</mark>';
+          last = m.index + m[0].length;
+          if (m[0].length === 0) re.lastIndex++;
+        }
+        html += escapeHtml(orig.slice(last));
+        f.innerHTML = html;
+      });
+    });
+  }
+  function escapeRe(s) { return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }
+  function escapeHtml(s) {
+    return s.replace(/[&<>"']/g, function (c) {
+      return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c];
+    });
+  }
+
+  // ----------------------------------------------------------
+  // Drawer (detail view)
+  // ----------------------------------------------------------
+  var lastFocus = null;
+  list.addEventListener('click', function (e) {
+    var btn = e.target.closest('.cat-row-link');
+    if (!btn) return;
+    var li = btn.closest('.cat-row');
+    if (!li) return;
+    openDrawer(li.dataset.id);
+  });
+  list.addEventListener('keydown', function (e) {
+    if (e.key !== 'Enter' && e.key !== ' ') return;
+    var btn = e.target.closest('.cat-row-link');
+    if (!btn) return;
+    e.preventDefault();
+    var li = btn.closest('.cat-row');
+    openDrawer(li.dataset.id);
+  });
+
+  function openDrawer(id) {
+    var idx = rowIndex.find(function (r) { return r.id === id; });
+    if (!idx) return;
+    lastFocus = document.activeElement;
+    var payload = readPayload(id);
+
+    // Header
+    drawerTitle.textContent = payload.title || idx.el.querySelector('.cat-title-line').textContent;
+    drawerEye.textContent   = payload.eyebrow || '';
+    drawerSub.textContent   = payload.subtitle || idx.el.querySelector('.cat-desc') && idx.el.querySelector('.cat-desc').textContent || '';
+    drawerIcon.textContent  = payload.monogram || idx.el.querySelector('.cat-icon').textContent;
+
+    // Body
+    drawerBody.innerHTML = '';
+    if (payload.body_html) {
+      var s = document.createElement('div');
+      s.className = 'drawer-section';
+      s.innerHTML = payload.body_html;
+      drawerBody.appendChild(s);
+    }
+    if (payload.kv && payload.kv.length) {
+      var sec = document.createElement('div');
+      sec.className = 'drawer-section';
+      sec.innerHTML = '<h3>Details</h3>';
+      var dl = document.createElement('dl');
+      dl.className = 'drawer-kv';
+      payload.kv.forEach(function (pair) {
+        var dt = document.createElement('dt'); dt.textContent = pair.k;
+        var dd = document.createElement('dd'); dd.textContent = pair.v;
+        dl.appendChild(dt); dl.appendChild(dd);
+      });
+      sec.appendChild(dl);
+      drawerBody.appendChild(sec);
+    }
+    if (payload.tags && payload.tags.length) {
+      var ts = document.createElement('div');
+      ts.className = 'drawer-section';
+      ts.innerHTML = '<h3>Tags</h3>';
+      var wrap = document.createElement('div');
+      wrap.className = 'drawer-tags';
+      payload.tags.forEach(function (t) {
+        var sp = document.createElement('span');
+        sp.className = 'drawer-tag';
+        sp.textContent = t;
+        wrap.appendChild(sp);
+      });
+      ts.appendChild(wrap);
+      drawerBody.appendChild(ts);
+    }
+    // Mark current row
+    document.querySelectorAll('.cat-row-link[aria-current="true"]').forEach(function (x) { x.removeAttribute('aria-current'); });
+    var rowBtn = idx.el.querySelector('.cat-row-link');
+    if (rowBtn) rowBtn.setAttribute('aria-current', 'true');
+
+    drawer.hidden = false;
+    // Force reflow so transition fires
+    void drawer.offsetWidth;
+    drawer.classList.add('is-open');
+    drawerScrim.classList.add('is-open');
+    document.body.style.overflow = 'hidden';
+    // Move focus
+    setTimeout(function () { drawerClose.focus(); }, 50);
+    drawer.dataset.currentId = id;
+  }
+
+  function readPayload(id) {
+    var sc = document.getElementById('item-' + id);
+    if (!sc) return {};
+    try { return JSON.parse(sc.textContent); } catch (e) { return {}; }
+  }
+
+  function closeDrawer() {
+    drawer.classList.remove('is-open');
+    drawerScrim.classList.remove('is-open');
+    document.body.style.overflow = '';
+    setTimeout(function () { drawer.hidden = true; }, 200);
+    document.querySelectorAll('.cat-row-link[aria-current="true"]').forEach(function (x) { x.removeAttribute('aria-current'); });
+    if (lastFocus && lastFocus.focus) lastFocus.focus();
+  }
+  drawerClose.addEventListener('click', closeDrawer);
+  drawerScrim.addEventListener('click', closeDrawer);
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape') {
+      if (drawer.classList.contains('is-open')) { e.preventDefault(); closeDrawer(); return; }
+      if (sheet.classList.contains('is-open')) { e.preventDefault(); closeSheet(); return; }
+    }
+  });
+  // Focus trap inside drawer
+  drawer.addEventListener('keydown', function (e) {
+    if (e.key !== 'Tab') return;
+    var f = drawer.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])');
+    if (!f.length) return;
+    var first = f[0], last = f[f.length - 1];
+    if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+    else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+  });
+
+  // Prev/Next within filtered list
+  drawerPrev.addEventListener('click', function () { stepDrawer(-1); });
+  drawerNext.addEventListener('click', function () { stepDrawer(1); });
+  drawerOpen.addEventListener('click', function () {
+    var p = readPayload(drawer.dataset.currentId || '');
+    if (p && p.href) window.location.href = p.href;
+  });
+  function stepDrawer(dir) {
+    var id = drawer.dataset.currentId;
+    if (!id) return;
+    var i = state.visibleIds.indexOf(id);
+    if (i === -1) return;
+    var j = i + dir;
+    if (j < 0 || j >= state.visibleIds.length) return;
+    openDrawer(state.visibleIds[j]);
+  }
+
+  // ----------------------------------------------------------
+  // Mobile bottom-sheet
+  // ----------------------------------------------------------
+  mfBtn.addEventListener('click', openSheet);
+  sheetClose.addEventListener('click', closeSheet);
+  sheetScrim.addEventListener('click', closeSheet);
+  function openSheet() {
+    // Mirror rail content into the sheet (clone if first time)
+    if (!sheetBody.firstChild) {
+      var cloned = rail.cloneNode(true);
+      cloned.removeAttribute('id');
+      cloned.classList.add('cat-rail');
+      sheetBody.appendChild(cloned);
+    }
+    // Re-sync pressed state on sheet chips
+    var sheetChips = sheetBody.querySelectorAll('.cat-chip');
+    sheetChips.forEach(function (b) {
+      var fk = b.dataset.facet;
+      var v = (b.dataset.value || '').toLowerCase();
+      var on = state.facets[fk] && state.facets[fk][v];
+      b.setAttribute('aria-pressed', on ? 'true' : 'false');
+    });
+    sheet.classList.add('is-open');
+    sheetScrim.classList.add('is-open');
+  }
+  function closeSheet() {
+    sheet.classList.remove('is-open');
+    sheetScrim.classList.remove('is-open');
+  }
+  // Wire chips inside the sheet (delegated)
+  sheetBody && sheetBody.addEventListener('click', function (e) {
+    var btn = e.target.closest('.cat-chip');
+    if (!btn) return;
+    toggleFacet(btn);
+  });
+
+  // ----------------------------------------------------------
+  // Init
+  // ----------------------------------------------------------
+  updateActiveCount();
+  render();
+})();
+</script>
+</body>
+</html>

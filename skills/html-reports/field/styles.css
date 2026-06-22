@@ -1,0 +1,493 @@
+/* ============================================================
+ * Field — long-scroll editorial archetype
+ * Magazine-grade narrative reports. System serif only.
+ * Single source of truth: template.html.j2 inlines this file.
+ * ============================================================ */
+
+:root {
+  /* Palette — warm paper, ink-black body, single muted accent.
+     Verified WCAG AA: --ink on --bg = 16.3:1, --ink-soft on --bg = 7.6:1 */
+  --bg:         #f6f3ec;   /* warm paper tint */
+  --bg-deep:    #efeadf;   /* hero wash / pull-quote ground */
+  --ink:        #161412;   /* near-black, warm */
+  --ink-soft:   #4a4641;   /* secondary body, captions */
+  --ink-faint:  #6d675c;   /* meta, attribution — AA on bg at small sizes */
+  --rule:       #d4cebe;   /* hairlines */
+  --accent:     #8a1c12;   /* deep oxblood — used sparingly */
+  --accent-ink: #6e1610;   /* darker accent for body links (AA against bg) */
+
+  /* Rhythm */
+  --measure:    680px;     /* body column */
+  --measure-wide: 880px;   /* hero + pull quote */
+  --gutter:     clamp(20px, 4vw, 32px);
+
+  /* Type stacks */
+  --serif:      Georgia, "Iowan Old Style", Charter, "Source Serif Pro", "Times New Roman", serif;
+  --sans:       -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+
+* { box-sizing: border-box; }
+
+html { -webkit-text-size-adjust: 100%; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  background: var(--bg);
+  color: var(--ink);
+}
+
+body {
+  font-family: var(--serif);
+  font-size: 19px;
+  line-height: 1.7;
+  font-feature-settings: "kern" 1, "liga" 1, "onum" 1;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  hanging-punctuation: first last;
+}
+
+/* Skip link — invisible until focused */
+.skip-link {
+  position: absolute;
+  left: -9999px;
+  top: 0;
+  background: var(--ink);
+  color: var(--bg);
+  padding: 12px 16px;
+  font-family: var(--sans);
+  font-size: 13px;
+  z-index: 200;
+}
+.skip-link:focus { left: 16px; top: 16px; }
+
+/* ============================================================
+ * Reading-progress bar
+ * ============================================================ */
+.progress {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 2px;
+  width: 0;
+  background: var(--accent);
+  z-index: 100;
+  transition: width 80ms linear;
+  will-change: width;
+  pointer-events: none;
+}
+
+/* ============================================================
+ * Hero — typographic, no images required
+ * ============================================================ */
+.hero {
+  min-height: clamp(560px, 88vh, 880px);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: clamp(48px, 8vh, 96px) var(--gutter) clamp(64px, 10vh, 120px);
+  background:
+    radial-gradient(ellipse at 50% 0%, var(--bg-deep) 0%, var(--bg) 70%),
+    var(--bg);
+  border-bottom: 1px solid var(--rule);
+  position: relative;
+}
+
+/* A whisper-thin rule above the eyebrow — magazine masthead trick */
+.hero::before {
+  content: "";
+  position: absolute;
+  top: 32px;
+  left: var(--gutter);
+  right: var(--gutter);
+  height: 1px;
+  background: var(--rule);
+}
+
+.hero-inner {
+  max-width: var(--measure-wide);
+  margin: 0 auto;
+  width: 100%;
+}
+
+.eyebrow {
+  font-family: var(--sans);
+  font-size: 11px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--accent);
+  font-weight: 600;
+  margin: 0 0 clamp(24px, 5vh, 48px);
+}
+
+.hero h1 {
+  font-family: var(--serif);
+  font-size: clamp(40px, 7.5vw, 88px);
+  line-height: 1.02;
+  font-weight: 700;
+  letter-spacing: -0.025em;
+  margin: 0 0 28px;
+  color: var(--ink);
+  text-wrap: balance;
+  hyphens: none;
+}
+
+.hero .subtitle {
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: clamp(20px, 2.4vw, 28px);
+  line-height: 1.4;
+  color: var(--ink-soft);
+  margin: 0 0 clamp(32px, 6vh, 56px);
+  max-width: 720px;
+  text-wrap: pretty;
+  font-weight: 400;
+}
+
+.meta {
+  font-family: var(--sans);
+  font-size: 12px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0;
+}
+.meta .byline { color: var(--ink); font-weight: 600; }
+.meta .sep { margin: 0 14px; color: var(--rule); }
+.meta .read-time::before { content: "· "; margin-right: 14px; color: var(--rule); }
+
+/* ============================================================
+ * Body column — the spine of Field
+ * ============================================================ */
+.article { display: block; }
+
+.body-col {
+  max-width: var(--measure);
+  margin: 0 auto;
+  padding: clamp(56px, 10vh, 96px) var(--gutter) clamp(64px, 10vh, 96px);
+}
+
+.body-col p {
+  margin: 0 0 1.3em;
+  text-wrap: pretty;
+  hyphens: auto;
+  -webkit-hyphens: auto;
+  orphans: 3;
+  widows: 3;
+}
+
+.body-col h2 {
+  font-family: var(--serif);
+  font-size: clamp(26px, 3.5vw, 34px);
+  line-height: 1.18;
+  font-weight: 700;
+  letter-spacing: -0.012em;
+  margin: 2.2em 0 0.7em;
+  color: var(--ink);
+  text-wrap: balance;
+  page-break-after: avoid;
+  break-after: avoid;
+}
+.body-col h2:first-child { margin-top: 0; }
+
+.body-col h3 {
+  font-family: var(--sans);
+  font-size: 13px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  font-weight: 700;
+  color: var(--accent);
+  margin: 2em 0 0.6em;
+  page-break-after: avoid;
+  break-after: avoid;
+}
+
+.body-col a {
+  color: var(--accent-ink);
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+  text-decoration-color: rgba(110, 22, 16, 0.4);
+  transition: text-decoration-color 120ms ease;
+}
+.body-col a:hover,
+.body-col a:focus { text-decoration-color: var(--accent-ink); }
+
+.body-col em { font-style: italic; }
+.body-col strong { font-weight: 700; }
+
+.body-col ul,
+.body-col ol {
+  margin: 0 0 1.3em;
+  padding-left: 1.4em;
+}
+.body-col li {
+  margin: 0 0 0.4em;
+  text-wrap: pretty;
+  hyphens: auto;
+}
+.body-col li > ul,
+.body-col li > ol { margin: 0.4em 0 0.2em; }
+
+.body-col code {
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 0.88em;
+  background: var(--bg-deep);
+  padding: 0.1em 0.35em;
+  border-radius: 3px;
+}
+
+/* ============================================================
+ * Drop cap — pure CSS, screen-reader safe (no duplicated text)
+ * font-variation-settings line is a no-op on Georgia but light
+ * up beautifully on systems with a variable serif like Charter.
+ * ============================================================ */
+.has-drop-cap::first-letter {
+  font-family: var(--serif);
+  font-feature-settings: "lnum" 1, "kern" 1;
+  font-variation-settings: "opsz" 96;
+  float: left;
+  font-size: 5.4em;
+  line-height: 0.82;
+  padding: 0.06em 0.1em 0 0;
+  margin: 0.04em 0.04em 0 0;
+  font-weight: 700;
+  color: var(--accent);
+}
+/* Fallback for engines that ignore ::first-letter on floated paragraphs */
+@supports not (initial-letter: 5) {
+  .has-drop-cap::first-letter { /* relies on float fallback above */ }
+}
+/* If browser supports initial-letter, prefer it — true baseline alignment */
+@supports (initial-letter: 5) or (-webkit-initial-letter: 5) {
+  .has-drop-cap::first-letter {
+    initial-letter: 5;
+    -webkit-initial-letter: 5;
+    font-size: 1em;        /* initial-letter scales itself */
+    line-height: 1;
+    margin-right: 0.6rem;
+    padding: 0;
+    float: none;
+  }
+}
+
+/* ============================================================
+ * Section divider — centered ornament with hairlines
+ * ============================================================ */
+.divider {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  margin: 3em 0;
+  page-break-after: avoid;
+  break-after: avoid;
+}
+.divider::before,
+.divider::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: var(--rule);
+}
+.divider .glyph {
+  color: var(--accent);
+  font-family: var(--serif);
+  font-size: 18px;
+  line-height: 1;
+}
+
+/* ============================================================
+ * Pull quote — full-bleed on desktop, edge-padded on mobile
+ * Uses negative margin trick to escape body-col without JS.
+ * ============================================================ */
+.pull-quote {
+  margin: clamp(48px, 8vh, 80px) calc(50% - 50vw);
+  padding: clamp(40px, 6vh, 64px) var(--gutter);
+  background: var(--bg-deep);
+  border-top: 1px solid var(--rule);
+  border-bottom: 1px solid var(--rule);
+  page-break-inside: avoid;
+  break-inside: avoid;
+  text-align: center;
+}
+/* When viewport is wider than measure, prevent ridiculous left/right gutters */
+.pull-quote blockquote {
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: clamp(24px, 3.4vw, 36px);
+  line-height: 1.3;
+  font-weight: 400;
+  max-width: var(--measure-wide);
+  margin: 0 auto 18px;
+  color: var(--ink);
+  text-wrap: balance;
+  hanging-punctuation: first last;
+  quotes: "\201C" "\201D";
+}
+.pull-quote blockquote::before {
+  content: open-quote;
+  margin-left: -0.4em;
+  color: var(--accent);
+}
+.pull-quote blockquote::after { content: close-quote; color: var(--accent); }
+.pull-quote cite {
+  display: inline-block;
+  font-family: var(--sans);
+  font-style: normal;
+  font-size: 12px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+}
+.pull-quote cite::before { content: "— "; }
+
+/* ============================================================
+ * Stat block — dark inset bar, breaks the column
+ * ============================================================ */
+.stat-block {
+  margin: clamp(48px, 6vh, 64px) calc(50% - 50vw);
+  padding: clamp(36px, 5vh, 48px) var(--gutter);
+  background: var(--ink);
+  color: var(--bg);
+  display: flex;
+  justify-content: center;
+  gap: clamp(24px, 6vw, 80px);
+  flex-wrap: wrap;
+  page-break-inside: avoid;
+  break-inside: avoid;
+}
+.stat-block .stat {
+  text-align: center;
+  min-width: 110px;
+  flex: 0 1 auto;
+}
+.stat-block .stat .value {
+  font-family: var(--serif);
+  font-size: clamp(36px, 5vw, 56px);
+  font-weight: 700;
+  line-height: 1;
+  color: var(--bg);
+  margin-bottom: 10px;
+  font-variant-numeric: tabular-nums lining-nums;
+  letter-spacing: -0.01em;
+}
+.stat-block .stat .label {
+  font-family: var(--sans);
+  font-size: 10px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: #c8c4ba;
+  font-weight: 500;
+}
+
+/* ============================================================
+ * Footer
+ * ============================================================ */
+.field-footer {
+  max-width: var(--measure);
+  margin: 0 auto;
+  padding: 36px var(--gutter) 64px;
+  border-top: 1px solid var(--rule);
+  font-family: var(--sans);
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  text-align: center;
+}
+
+/* ============================================================
+ * Responsive — tablet (≤900px) then mobile (≤640px)
+ * ============================================================ */
+@media (max-width: 900px) {
+  :root { --measure: 620px; }
+}
+@media (max-width: 640px) {
+  :root { --measure: 100%; --gutter: 24px; }
+  body { font-size: 17px; line-height: 1.65; }
+  .hero { min-height: clamp(440px, 75vh, 640px); }
+  .hero h1 { font-size: clamp(34px, 9vw, 56px); letter-spacing: -0.02em; }
+  .hero .subtitle { font-size: clamp(17px, 4.5vw, 22px); }
+  .has-drop-cap::first-letter { font-size: 4.4em; }
+  .pull-quote { margin: 40px calc(50% - 50vw); padding: 36px 22px; }
+  .pull-quote blockquote { font-size: clamp(20px, 5vw, 26px); }
+  .stat-block { margin: 40px calc(50% - 50vw); padding: 32px 20px; gap: 28px 32px; }
+  .meta { font-size: 11px; }
+  .meta .sep { margin: 0 10px; }
+}
+
+/* ============================================================
+ * Motion preferences
+ * ============================================================ */
+@media (prefers-reduced-motion: reduce) {
+  .progress { transition: none; }
+  *, *::before, *::after { transition: none !important; animation: none !important; }
+}
+
+/* ============================================================
+ * Print stylesheet
+ * Hero collapses to header band, single column, no chrome.
+ * ============================================================ */
+@page { margin: 1in; }
+
+@media print {
+  :root {
+    --bg: #ffffff;
+    --bg-deep: #f3f3f3;
+    --ink: #000000;
+    --ink-soft: #222222;
+    --ink-faint: #555555;
+    --rule: #999999;
+    --accent: #000000;
+    --accent-ink: #000000;
+  }
+  body { font-size: 11pt; line-height: 1.55; }
+  .progress, .skip-link { display: none !important; }
+  .hero {
+    min-height: 0;
+    padding: 0 0 24px;
+    background: none;
+    border-bottom: 1.5pt solid #000;
+    page-break-after: avoid;
+  }
+  .hero::before { display: none; }
+  .hero h1 { font-size: 28pt; margin-bottom: 12px; }
+  .hero .subtitle { font-size: 14pt; margin-bottom: 16px; }
+  .eyebrow { margin-bottom: 12px; color: #000; }
+  .meta { color: #333; font-size: 9pt; }
+  .body-col { padding: 24px 0 0; max-width: none; }
+  .body-col h2 { font-size: 16pt; margin-top: 1.4em; }
+  .has-drop-cap::first-letter { color: #000; }
+  .pull-quote {
+    margin: 18pt 0;
+    padding: 12pt 0;
+    background: none;
+    border: none;
+    border-top: 0.5pt solid #000;
+    border-bottom: 0.5pt solid #000;
+  }
+  .pull-quote blockquote { font-size: 13pt; }
+  .pull-quote blockquote::before,
+  .pull-quote blockquote::after { color: #000; }
+  .stat-block {
+    margin: 18pt 0;
+    padding: 12pt;
+    background: none;
+    color: #000;
+    border: 1pt solid #000;
+  }
+  .stat-block .stat .value,
+  .stat-block .stat .label { color: #000; }
+  .field-footer { border-top: 0.5pt solid #000; color: #000; }
+  a { color: #000; text-decoration: underline; }
+  a[href]::after { content: " (" attr(href) ")"; font-size: 0.85em; color: #555; }
+  a[href^="#"]::after,
+  a[href^="javascript:"]::after { content: ""; }
+  /* Force a fresh page before deep sections in long pieces */
+  .body-col > .divider + h2 { page-break-before: auto; }
+  p { orphans: 3; widows: 3; }
+}

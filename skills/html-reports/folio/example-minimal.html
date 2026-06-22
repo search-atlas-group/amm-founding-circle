@@ -1,0 +1,388 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light">
+<title>Folio archetype — feature showcase</title>
+<style>
+:root {
+  --folio-sidebar-width: 288px;
+  --folio-content-max: 760px;
+  --folio-content-pad-x: 56px;
+  --folio-content-pad-y: 40px;
+  --folio-anchor-offset: 24px;
+  --folio-s1: 4px; --folio-s2: 8px; --folio-s3: 12px; --folio-s4: 16px;
+  --folio-s5: 24px; --folio-s6: 32px; --folio-s7: 48px; --folio-s8: 64px;
+  --folio-bg: #fdfcf9; --folio-bg-sidebar: #f7f3ea; --folio-bg-soft: #f3eee2;
+  --folio-bg-callout: #faf6ec;
+  --folio-text: #1a1b22; --folio-muted: #6b6657;
+  --folio-border: #e6dfcf; --folio-rule: #c9b88a;
+  --folio-accent: #1d2960; --folio-accent-soft: #e8eaf2;
+  --folio-link: #1d2960; --folio-link-hover: #3a4ca3;
+  --folio-good: #1f6f4a; --folio-good-bg: #eaf3ec;
+  --folio-warn: #a8442a; --folio-warn-bg: #f7e9e0;
+  --folio-info: #1d2960; --folio-info-bg: #e8eaf2;
+  --folio-font-serif: "Iowan Old Style", "Palatino Linotype", Palatino, "Book Antiqua", Georgia, "Source Serif Pro", serif;
+  --folio-font-sans: -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --folio-font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+  --folio-fs-body: 16px; --folio-lh-body: 1.6; --folio-fs-small: 13px;
+  --folio-tx: 150ms cubic-bezier(.2,.6,.3,1);
+}
+@media (prefers-reduced-motion: reduce) {
+  :root { --folio-tx: 0ms; }
+  html { scroll-behavior: auto !important; }
+  * { animation: none !important; transition: none !important; }
+}
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body { margin: 0; font-family: var(--folio-font-sans); font-size: var(--folio-fs-body); line-height: var(--folio-lh-body); color: var(--folio-text); background: var(--folio-bg); -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility; font-feature-settings: "kern","liga"; }
+a { color: var(--folio-link); text-decoration: none; border-bottom: 1px solid transparent; transition: color var(--folio-tx), border-color var(--folio-tx); }
+a:hover { color: var(--folio-link-hover); border-bottom-color: currentColor; }
+:focus-visible { outline: 2px solid var(--folio-accent); outline-offset: 3px; border-radius: 2px; }
+.folio-skip { position: absolute; left: -9999px; top: 0; background: var(--folio-accent); color: #fff; padding: 8px 14px; font-size: 14px; font-weight: 600; border-radius: 0 0 6px 0; z-index: 1000; }
+.folio-skip:focus { left: 0; }
+.folio-shell { display: grid; grid-template-columns: var(--folio-sidebar-width) minmax(0,1fr); min-height: 100vh; }
+.folio-sidebar { position: sticky; top: 0; align-self: start; height: 100vh; overflow-y: auto; overscroll-behavior: contain; background: var(--folio-bg-sidebar); border-right: 1px solid var(--folio-border); padding: var(--folio-s5) 0; font-size: var(--folio-fs-small); }
+.folio-sidebar-header { padding: 0 var(--folio-s5) var(--folio-s4); border-bottom: 1px solid var(--folio-border); margin-bottom: var(--folio-s3); }
+.folio-sidebar-eyebrow { font-size: 11px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--folio-muted); margin: 0 0 var(--folio-s2); }
+.folio-sidebar-title { font-family: var(--folio-font-serif); font-size: 18px; font-weight: 600; line-height: 1.25; color: var(--folio-text); margin: 0; max-height: 4.5em; overflow: hidden; }
+.folio-sidebar-meta { font-size: 11px; color: var(--folio-muted); margin: var(--folio-s2) 0 0; font-variant-numeric: tabular-nums; }
+.folio-nav { display: flex; flex-direction: column; padding: var(--folio-s2) 0; }
+.folio-nav-group { margin-bottom: var(--folio-s3); }
+.folio-nav-group-label { font-size: 10px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--folio-muted); padding: var(--folio-s3) var(--folio-s5) var(--folio-s1); display: flex; align-items: center; justify-content: space-between; cursor: pointer; user-select: none; background: none; border: 0; width: 100%; text-align: left; font-family: inherit; }
+.folio-nav-group-caret { width: 8px; height: 8px; border-right: 1.5px solid currentColor; border-bottom: 1.5px solid currentColor; transform: rotate(45deg); transition: transform var(--folio-tx); margin-right: 2px; }
+.folio-nav-group-label[aria-expanded="false"] .folio-nav-group-caret { transform: rotate(-45deg); }
+.folio-nav-group-items { display: flex; flex-direction: column; }
+.folio-nav-group[data-collapsed="true"] .folio-nav-group-items { display: none; }
+.folio-nav-link { display: block; padding: var(--folio-s2) var(--folio-s5) var(--folio-s2) calc(var(--folio-s5) + 4px); font-size: 14px; line-height: 1.4; color: var(--folio-text); border-left: 3px solid transparent; margin-left: -3px; transition: background var(--folio-tx), border-color var(--folio-tx), color var(--folio-tx); border-bottom: 0; min-height: 32px; }
+.folio-nav-link:hover { background: var(--folio-bg-soft); color: var(--folio-accent); border-bottom: 0; }
+.folio-nav-link.is-active { border-left-color: var(--folio-accent); font-weight: 600; color: var(--folio-accent); background: var(--folio-accent-soft); }
+.folio-toc-toggle { display: none; position: fixed; top: 12px; left: 12px; z-index: 100; width: 44px; height: 44px; border-radius: 8px; border: 1px solid var(--folio-border); background: var(--folio-bg); color: var(--folio-text); font-size: 20px; cursor: pointer; box-shadow: 0 2px 6px rgba(26,27,34,0.08); align-items: center; justify-content: center; }
+.folio-toc-scrim { display: none; position: fixed; inset: 0; background: rgba(26,27,34,0.32); z-index: 80; }
+.folio-toc-scrim.is-visible { display: block; }
+.folio-content { padding: var(--folio-content-pad-y) var(--folio-content-pad-x) calc(var(--folio-s8) + var(--folio-s5)); max-width: calc(var(--folio-content-max) + (var(--folio-content-pad-x) * 2)); min-width: 0; }
+.folio-doc-header { margin-bottom: var(--folio-s7); padding-bottom: var(--folio-s5); border-bottom: 1px solid var(--folio-border); position: relative; }
+.folio-doc-header::after { content:""; position: absolute; left: 0; bottom: -1px; width: 80px; height: 3px; background: var(--folio-rule); }
+.folio-doc-eyebrow { font-size: 11px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--folio-muted); margin: 0 0 var(--folio-s3); }
+.folio-doc-title { font-family: var(--folio-font-serif); font-size: clamp(28px, 4vw, 38px); font-weight: 700; margin: 0 0 var(--folio-s3); color: var(--folio-text); line-height: 1.15; letter-spacing: -0.01em; max-width: 22ch; word-wrap: break-word; }
+.folio-doc-subtitle { font-family: var(--folio-font-serif); font-size: 19px; font-style: italic; color: var(--folio-muted); margin: 0; max-width: 50ch; line-height: 1.4; }
+.folio-doc-meta { display: flex; flex-wrap: wrap; gap: var(--folio-s4); font-size: 12px; color: var(--folio-muted); margin-top: var(--folio-s4); font-variant-numeric: tabular-nums; }
+.folio-empty { padding: var(--folio-s8) 0; text-align: center; color: var(--folio-muted); font-family: var(--folio-font-serif); font-style: italic; font-size: 17px; }
+.folio-section { padding: var(--folio-s7) 0 var(--folio-s6); border-bottom: 1px solid var(--folio-border); scroll-margin-top: var(--folio-anchor-offset); }
+.folio-section:last-child { border-bottom: none; }
+.folio-section-eyebrow { font-size: 11px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--folio-muted); margin: 0 0 var(--folio-s2); }
+.folio-section-title { font-family: var(--folio-font-serif); font-size: clamp(22px, 2.6vw, 28px); font-weight: 700; margin: 0 0 var(--folio-s4); color: var(--folio-text); line-height: 1.2; letter-spacing: -0.005em; max-width: 28ch; word-wrap: break-word; position: relative; padding-bottom: var(--folio-s3); }
+.folio-section-title::after { content:""; position: absolute; left: 0; bottom: 0; width: 40px; height: 2px; background: var(--folio-rule); }
+.folio-section p, .folio-section ul, .folio-section ol { margin: 0 0 var(--folio-s4); max-width: 68ch; }
+.folio-section li { margin: 0 0 var(--folio-s2); }
+.folio-section h3 { font-family: var(--folio-font-serif); font-size: 19px; font-weight: 700; margin: var(--folio-s6) 0 var(--folio-s3); color: var(--folio-text); line-height: 1.3; letter-spacing: -0.005em; break-after: avoid; page-break-after: avoid; }
+.folio-section h4 { font-size: 14px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; margin: var(--folio-s5) 0 var(--folio-s2); color: var(--folio-muted); break-after: avoid; page-break-after: avoid; }
+.folio-section > p:first-of-type::first-letter { font-family: var(--folio-font-serif); font-weight: 700; font-size: 3.1em; float: left; line-height: 0.95; padding: 4px 8px 0 0; color: var(--folio-accent); }
+.folio-section table { width: 100%; max-width: 68ch; border-collapse: collapse; font-size: 14px; margin: var(--folio-s4) 0 var(--folio-s5); font-variant-numeric: tabular-nums; }
+.folio-section th, .folio-section td { text-align: left; padding: var(--folio-s2) var(--folio-s3); border-bottom: 1px solid var(--folio-border); vertical-align: top; }
+.folio-section th { font-weight: 600; background: var(--folio-bg-sidebar); font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--folio-muted); border-bottom: 1.5px solid var(--folio-rule); }
+.folio-section td.num, .folio-section th.num { text-align: right; }
+.folio-section code { font-family: var(--folio-font-mono); font-size: 0.88em; background: var(--folio-bg-sidebar); padding: 1px 5px; border-radius: 3px; border: 1px solid var(--folio-border); }
+.folio-section pre { font-family: var(--folio-font-mono); font-size: 13px; line-height: 1.55; background: var(--folio-bg-sidebar); border: 1px solid var(--folio-border); border-left: 3px solid var(--folio-rule); padding: var(--folio-s3) var(--folio-s4); border-radius: 4px; overflow-x: auto; margin: var(--folio-s4) 0; max-width: 100%; break-inside: avoid; page-break-inside: avoid; }
+.folio-section pre code { background: none; border: 0; padding: 0; font-size: inherit; }
+.folio-callout { border-left: 3px solid var(--folio-border); padding: var(--folio-s3) var(--folio-s4); margin: var(--folio-s4) 0; background: var(--folio-bg-callout); border-radius: 0 4px 4px 0; font-size: 15px; max-width: 68ch; break-inside: avoid; page-break-inside: avoid; }
+.folio-callout.is-good { border-left-color: var(--folio-good); background: var(--folio-good-bg); }
+.folio-callout.is-warn { border-left-color: var(--folio-warn); background: var(--folio-warn-bg); }
+.folio-callout.is-info { border-left-color: var(--folio-info); background: var(--folio-info-bg); }
+.folio-callout-label { display: inline-block; font-size: 10px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; margin-bottom: var(--folio-s2); color: var(--folio-muted); }
+.folio-callout.is-good .folio-callout-label { color: var(--folio-good); }
+.folio-callout.is-warn .folio-callout-label { color: var(--folio-warn); }
+.folio-callout.is-info .folio-callout-label { color: var(--folio-info); }
+.folio-callout p:last-child { margin-bottom: 0; }
+.folio-callout blockquote { margin: var(--folio-s2) 0 0; font-family: var(--folio-font-serif); font-style: italic; color: var(--folio-text); line-height: 1.45; }
+.folio-callout blockquote::before { content: "\201C"; }
+.folio-callout blockquote::after { content: "\201D"; }
+.folio-callout blockquote cite { display: block; margin-top: var(--folio-s2); font-style: normal; font-size: 12px; color: var(--folio-muted); font-family: var(--folio-font-sans); }
+.folio-callout blockquote cite::before { content: "— "; }
+.folio-pill { display: inline-flex; align-items: center; gap: 4px; font-family: var(--folio-font-sans); font-size: 12px; font-weight: 600; padding: 2px 10px; border-radius: 999px; background: var(--folio-bg-sidebar); border: 1px solid var(--folio-border); color: var(--folio-text); font-variant-numeric: tabular-nums; }
+.folio-pill.is-grade-A { background: #eaf3ec; border-color: #a9cdb3; color: #155a35; }
+.folio-pill.is-grade-B { background: #eef1f8; border-color: #abb6dd; color: #1d2960; }
+.folio-pill.is-grade-C { background: #f7efd6; border-color: #d8c486; color: #6b5512; }
+.folio-pill.is-grade-D { background: #f7e9e0; border-color: #d4ad8e; color: #8b3a1f; }
+.folio-pill.is-grade-F { background: #f4dcd4; border-color: #c08a72; color: #6f2410; }
+.folio-bar { display: inline-block; vertical-align: middle; width: 140px; height: 6px; background: var(--folio-bg-soft); border-radius: 3px; overflow: hidden; }
+.folio-bar > span { display: block; height: 100%; background: var(--folio-accent); border-radius: 3px; }
+.folio-bar-row { display: flex; align-items: center; gap: var(--folio-s2); margin: 4px 0; }
+.folio-bar-row .folio-bar-label { flex: 1; font-size: 13px; color: var(--folio-text); }
+.folio-bar-row .folio-bar-value { font-variant-numeric: tabular-nums; font-size: 13px; color: var(--folio-muted); min-width: 36px; text-align: right; }
+.folio-section blockquote { margin: var(--folio-s4) 0; padding: 0 0 0 var(--folio-s4); border-left: 2px solid var(--folio-rule); font-family: var(--folio-font-serif); font-style: italic; font-size: 17px; color: var(--folio-text); max-width: 64ch; }
+.folio-section-title a.folio-anchor { opacity: 0; margin-left: var(--folio-s2); font-family: var(--folio-font-sans); font-size: 0.6em; font-weight: 400; color: var(--folio-muted); border-bottom: 0; transition: opacity var(--folio-tx); }
+.folio-section-title:hover a.folio-anchor, .folio-section-title a.folio-anchor:focus-visible { opacity: 1; }
+@media (max-width: 1024px) and (min-width: 641px) { :root { --folio-sidebar-width: 240px; --folio-content-pad-x: 40px; } }
+@media (max-width: 640px) {
+  :root { --folio-content-pad-x: 20px; --folio-content-pad-y: 24px; }
+  .folio-shell { grid-template-columns: 1fr; }
+  .folio-sidebar { position: fixed; top: 0; left: 0; width: min(86vw, 320px); height: 100vh; transform: translateX(-100%); transition: transform 220ms cubic-bezier(.2,.6,.3,1); z-index: 90; box-shadow: 4px 0 24px rgba(26,27,34,0.12); }
+  .folio-sidebar.is-open { transform: translateX(0); }
+  .folio-toc-toggle { display: inline-flex; }
+  .folio-content { padding-top: calc(var(--folio-s8) + var(--folio-s2)); }
+  .folio-nav-link { min-height: 44px; padding-top: var(--folio-s3); padding-bottom: var(--folio-s3); }
+  .folio-section > p:first-of-type::first-letter { font-size: 2.6em; }
+}
+@page { margin: 18mm 16mm 20mm 16mm; }
+@media print {
+  :root { --folio-bg:#fff; --folio-bg-sidebar:#fff; --folio-bg-callout:#fff; --folio-bg-soft:#fff; }
+  body { font-size: 10.5pt; line-height: 1.5; color: #111; background: #fff; }
+  .folio-skip, .folio-sidebar, .folio-toc-toggle, .folio-toc-scrim { display: none !important; }
+  .folio-shell { display: block; }
+  .folio-content { padding: 0; max-width: 100%; }
+  .folio-section { padding: 12pt 0 8pt; border-bottom: 1pt solid #999; scroll-margin-top: 0; }
+  .folio-section + .folio-section { page-break-before: always; break-before: page; }
+  .folio-section h3, .folio-section h4 { break-after: avoid; page-break-after: avoid; }
+  .folio-section p, .folio-section li { orphans: 3; widows: 3; }
+  .folio-callout, .folio-section pre, .folio-section table { break-inside: avoid; }
+  a { color: #000; text-decoration: underline; border: 0 !important; }
+  a[href^="http"]::after { content: " (" attr(href) ")"; font-size: 9pt; color: #555; word-break: break-all; }
+  .folio-section-title::after, .folio-doc-header::after { background: #555; }
+}
+</style>
+</head>
+<body>
+<a href="#folio-main" class="folio-skip">Skip to content</a>
+
+<button class="folio-toc-toggle" type="button" aria-label="Toggle table of contents" aria-controls="folioSidebar" aria-expanded="false" id="folioTocToggle">&#9776;</button>
+<div class="folio-toc-scrim" id="folioTocScrim" aria-hidden="true"></div>
+
+<div class="folio-shell">
+  <aside class="folio-sidebar" id="folioSidebar" aria-label="Table of contents">
+    <div class="folio-sidebar-header">
+      <p class="folio-sidebar-eyebrow">Q2 · 2026 · Review</p>
+      <p class="folio-sidebar-title">Folio archetype — feature showcase</p>
+      <p class="folio-sidebar-meta">8 sections · ~6 min read</p>
+    </div>
+    <nav class="folio-nav" aria-label="Sections">
+      <!-- Grouped TOC demo -->
+      <div class="folio-nav-group" data-group="1">
+        <button type="button" class="folio-nav-group-label" aria-expanded="true" aria-controls="folio-group-1">
+          <span>Preface</span><span class="folio-nav-group-caret" aria-hidden="true"></span>
+        </button>
+        <div class="folio-nav-group-items" id="folio-group-1">
+          <a class="folio-nav-link" href="#intro">Introduction &amp; reading guide</a>
+          <a class="folio-nav-link" href="#identity">Visual identity</a>
+        </div>
+      </div>
+      <div class="folio-nav-group" data-group="2">
+        <button type="button" class="folio-nav-group-label" aria-expanded="true" aria-controls="folio-group-2">
+          <span>Components</span><span class="folio-nav-group-caret" aria-hidden="true"></span>
+        </button>
+        <div class="folio-nav-group-items" id="folio-group-2">
+          <a class="folio-nav-link" href="#callouts">Callouts</a>
+          <a class="folio-nav-link" href="#tables-and-pills">Tables, pills &amp; bars</a>
+          <a class="folio-nav-link" href="#code">Code blocks</a>
+          <a class="folio-nav-link" href="#quotes">Quotes &amp; nested HTML</a>
+        </div>
+      </div>
+      <div class="folio-nav-group" data-group="3">
+        <button type="button" class="folio-nav-group-label" aria-expanded="true" aria-controls="folio-group-3">
+          <span>Edge cases</span><span class="folio-nav-group-caret" aria-hidden="true"></span>
+        </button>
+        <div class="folio-nav-group-items" id="folio-group-3">
+          <a class="folio-nav-link" href="#long-title">A deliberately long section title that should wrap gracefully without breaking the layout</a>
+          <a class="folio-nav-link" href="#long-read">Long-read section</a>
+        </div>
+      </div>
+    </nav>
+  </aside>
+
+  <main class="folio-content" id="folio-main" tabindex="-1">
+    <header class="folio-doc-header">
+      <p class="folio-doc-eyebrow">html-reports · folio · v2</p>
+      <h1 class="folio-doc-title">Folio — feature showcase</h1>
+      <p class="folio-doc-subtitle">Every feature of the Folio archetype, rendered against itself.</p>
+      <div class="folio-doc-meta">
+        <span>Generated 2026-05-20</span>
+        <span>By html-reports</span>
+        <span>8 sections</span>
+      </div>
+    </header>
+
+    <article class="folio-section" id="intro" aria-labelledby="title-intro">
+      <p class="folio-section-eyebrow">Preface</p>
+      <h2 class="folio-section-title" id="title-intro">Introduction &amp; reading guide<a class="folio-anchor" href="#intro" aria-label="Permalink">#</a></h2>
+      <p>Folio is the book-shaped archetype in the <code>html-reports</code> library. It is designed for documents where the reader will hop between many independent sections — per-person scorecards, framework references, audit findings — and wants a persistent table of contents to navigate. The TOC on the left stays fixed, the content scrolls; as you scroll, the active section highlights in the sidebar.</p>
+      <p>This example renders against the same template a real report would use, so every feature you see here is something you can rely on in production. The sidebar uses <em>grouped</em> navigation (three groups, click a group label to collapse it); the alternative flat list is one fewer wrapper.</p>
+    </article>
+
+    <article class="folio-section" id="identity" aria-labelledby="title-identity">
+      <p class="folio-section-eyebrow">Preface</p>
+      <h2 class="folio-section-title" id="title-identity">Visual identity<a class="folio-anchor" href="#identity" aria-label="Permalink">#</a></h2>
+      <p>The palette is intentional. <strong>Parchment cream</strong> in the sidebar, <strong>warm off-white</strong> in the body, <strong>deep indigo</strong> for accents and active TOC links, and a <strong>gold/ochre rule</strong> as the signature device — a 40-80px horizontal mark under titles. Titles are set in a system serif stack (<code>Iowan Old Style → Palatino → Georgia</code>), which gives Folio a manuscript feel without ever requesting a webfont.</p>
+      <h3>Why serifs for headings, sans for body?</h3>
+      <p>Serifs on titles cue "long-form document" the way they do for books and journals. Sans body keeps long-scroll screen reading comfortable. The contrast also makes the section hierarchy visible at a glance.</p>
+      <h4>Reserved tones</h4>
+      <ul>
+        <li><strong>Deep indigo</strong> (<code>#1d2960</code>) — accents, links, active states.</li>
+        <li><strong>Brick / iron-oxide</strong> (<code>#a8442a</code>) — warnings, regression callouts.</li>
+        <li><strong>Forest green</strong> (<code>#1f6f4a</code>) — wins, strengths.</li>
+        <li><strong>Gold</strong> (<code>#c9b88a</code>) — rules and decorative dividers only.</li>
+      </ul>
+    </article>
+
+    <article class="folio-section" id="callouts" aria-labelledby="title-callouts">
+      <p class="folio-section-eyebrow">Components</p>
+      <h2 class="folio-section-title" id="title-callouts">Callouts<a class="folio-anchor" href="#callouts" aria-label="Permalink">#</a></h2>
+      <p>Three callout tones, each with an optional label and an optional <code>blockquote</code> body. Always pair color with a label — never color-alone.</p>
+      <div class="folio-callout is-good">
+        <span class="folio-callout-label">Best moment</span>
+        <blockquote>The reader feels the document was made for them, not generated by a script.<cite>Reader survey, 2026</cite></blockquote>
+      </div>
+      <div class="folio-callout is-warn">
+        <span class="folio-callout-label">Watch out</span>
+        <p>Tables wider than ~5 columns will overflow the 68ch measure; use a Ledger archetype for dense matrices instead.</p>
+      </div>
+      <div class="folio-callout is-info">
+        <span class="folio-callout-label">Note</span>
+        <p>The neutral <code>.folio-callout</code> (no modifier) uses the default parchment tint and a gray rule — good for soft asides.</p>
+      </div>
+      <div class="folio-callout">
+        <p>A bare neutral callout with no label, just a soft block of context.</p>
+      </div>
+    </article>
+
+    <article class="folio-section" id="tables-and-pills" aria-labelledby="title-tables-and-pills">
+      <p class="folio-section-eyebrow">Components</p>
+      <h2 class="folio-section-title" id="title-tables-and-pills">Tables, pills &amp; bars<a class="folio-anchor" href="#tables-and-pills" aria-label="Permalink">#</a></h2>
+      <p>Tables use tabular numerals automatically. Add <code>class="num"</code> to right-align numeric columns. Grade pills cover A–F with WCAG-AA-compliant contrast on cream.</p>
+      <table>
+        <thead>
+          <tr><th scope="col">Person</th><th scope="col">Grade</th><th scope="col" class="num">Score</th><th scope="col" class="num">Δ vs Q1</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Alice Chen</td><td><span class="folio-pill is-grade-A">A</span></td><td class="num">94.2</td><td class="num">+3.1</td></tr>
+          <tr><td>Bob Martinez</td><td><span class="folio-pill is-grade-B">B</span></td><td class="num">87.5</td><td class="num">+0.4</td></tr>
+          <tr><td>Carol Singh</td><td><span class="folio-pill is-grade-C">C</span></td><td class="num">71.0</td><td class="num">−2.8</td></tr>
+          <tr><td>Dave Patel</td><td><span class="folio-pill is-grade-D">D</span></td><td class="num">62.3</td><td class="num">−4.2</td></tr>
+          <tr><td>Erin O'Brien</td><td><span class="folio-pill is-grade-F">F</span></td><td class="num">48.9</td><td class="num">−9.0</td></tr>
+        </tbody>
+      </table>
+      <h4>Dimension bars</h4>
+      <div class="folio-bar-row"><span class="folio-bar-label">Throughput</span><span class="folio-bar" aria-hidden="true"><span style="width:88%"></span></span><span class="folio-bar-value">88</span></div>
+      <div class="folio-bar-row"><span class="folio-bar-label">Quality</span><span class="folio-bar" aria-hidden="true"><span style="width:72%"></span></span><span class="folio-bar-value">72</span></div>
+      <div class="folio-bar-row"><span class="folio-bar-label">Collaboration</span><span class="folio-bar" aria-hidden="true"><span style="width:54%"></span></span><span class="folio-bar-value">54</span></div>
+      <div class="folio-bar-row"><span class="folio-bar-label">Initiative</span><span class="folio-bar" aria-hidden="true"><span style="width:91%"></span></span><span class="folio-bar-value">91</span></div>
+    </article>
+
+    <article class="folio-section" id="code" aria-labelledby="title-code">
+      <p class="folio-section-eyebrow">Components</p>
+      <h2 class="folio-section-title" id="title-code">Code blocks<a class="folio-anchor" href="#code" aria-label="Permalink">#</a></h2>
+      <p>Inline <code>code</code> gets a subtle parchment chip. Block code uses the gold rule as a left border — a visual rhyme with section titles. Long lines scroll horizontally rather than wrap.</p>
+<pre><code>from jinja2 import Environment, FileSystemLoader
+
+env = Environment(loader=FileSystemLoader("~/.claude/skills/html-reports/folio"))
+tpl = env.get_template("template.html.j2")
+html = tpl.render(
+    title="Q2 Engineering Scorecards",
+    subtitle="Per-engineer review for the quarter ending 2026-06-30.",
+    eyebrow="Engineering · Q2 2026",
+    generated_at="2026-05-20",
+    author="Manager Self-Service",
+    sections=[ ... ],
+    nav_groups=[ ... ],  # optional grouping by team
+)</code></pre>
+    </article>
+
+    <article class="folio-section" id="quotes" aria-labelledby="title-quotes">
+      <p class="folio-section-eyebrow">Components</p>
+      <h2 class="folio-section-title" id="title-quotes">Quotes &amp; nested HTML<a class="folio-anchor" href="#quotes" aria-label="Permalink">#</a></h2>
+      <p>Top-level <code>&lt;blockquote&gt;</code> inside a section becomes a pull-quote with a gold rule:</p>
+      <blockquote>A good report is read once and referenced a dozen times. Folio is built for the dozen.</blockquote>
+      <p>Deeply nested HTML works because <code>html_content</code> is rendered verbatim. Nested lists, for example:</p>
+      <ul>
+        <li>Top-level item
+          <ul>
+            <li>Nested item
+              <ul>
+                <li>Doubly nested — still readable, still inside the 68ch measure.</li>
+              </ul>
+            </li>
+          </ul>
+        </li>
+        <li>Sibling top-level item</li>
+      </ul>
+    </article>
+
+    <article class="folio-section" id="long-title" aria-labelledby="title-long-title">
+      <p class="folio-section-eyebrow">Edge cases</p>
+      <h2 class="folio-section-title" id="title-long-title">A deliberately long section title that should wrap gracefully without breaking the layout or pushing past the 28ch measure<a class="folio-anchor" href="#long-title" aria-label="Permalink">#</a></h2>
+      <p>The title above is capped at 28ch and wraps via <code>word-wrap: break-word</code>; the gold underline rule stays anchored to the left at 40px. The TOC link for this section uses an equally long label — observe that the sidebar entry wraps to two lines without breaking alignment, and the active border stays a clean 3px on the leftmost edge.</p>
+      <p>Very long single tokens also work: <code>supercalifragilisticexpialidocious-and-then-some-extra-syllables-just-to-be-sure</code>.</p>
+    </article>
+
+    <article class="folio-section" id="long-read" aria-labelledby="title-long-read">
+      <p class="folio-section-eyebrow">Edge cases</p>
+      <h2 class="folio-section-title" id="title-long-read">Long-read section<a class="folio-anchor" href="#long-read" aria-label="Permalink">#</a></h2>
+      <p>This section exists to demonstrate body comfort at length. Body type is set at 16px with 1.6 line-height, in a system sans (Inter on supported platforms, San Francisco on macOS, Segoe on Windows). The measure is capped at 68ch — wider than the 64ch of a typical book, narrower than full-width — to keep the eye-saccade distance reasonable on a 27-inch monitor without feeling cramped on a 13-inch laptop.</p>
+      <p>Drop caps mark the first paragraph of every section. They are set in the indigo accent color, in the same serif as the titles, at 3.1× the body size, floated left over two-and-a-half lines. On mobile they drop to 2.6× so the first paragraph doesn't get crowded out.</p>
+      <p>Tables, callouts, code blocks, and pre-formatted text all respect the same 68ch ceiling and break gracefully on print: section breaks fall before each top-level <code>&lt;article&gt;</code>, headings stay glued to their following paragraph, callouts and code blocks never split across pages, and orphans/widows are set to 3 lines each.</p>
+      <h3>Active-section highlighting</h3>
+      <p>The TOC tracks the topmost visible section using a single <code>IntersectionObserver</code> with a rootMargin of <code>-15% 0px -65% 0px</code>. As you scroll, the active link transitions over ~150ms (matching the design-system motion token) and the URL hash updates via <code>history.replaceState</code> — so copying the URL gives you a deep link to the section you were just reading.</p>
+      <h3>Keyboard &amp; screen reader</h3>
+      <p>Press <kbd>Tab</kbd> from the top of the page and the skip-to-content link appears in the top-left corner. From there, every TOC entry is reachable with <kbd>Tab</kbd>; the active focus ring uses the indigo accent at 2px with a 3px offset. Group labels are real <code>&lt;button&gt;</code> elements with <code>aria-expanded</code>; their <code>aria-controls</code> points at the group's items. Section anchors are <code>&lt;article&gt;</code> elements labelled by their <code>&lt;h2&gt;</code>, so a screen reader announces "Article, Heading level 2, Long-read section" when you land on one.</p>
+      <h3>Print preview</h3>
+      <p>Open this file and print to PDF — the sidebar disappears, the gold rules turn gray, link URLs are expanded inline in 9pt, and each section begins on its own page. Margins are set in millimeters via <code>@page</code> so the output is consistent across browsers.</p>
+    </article>
+  </main>
+</div>
+
+<script>
+(function(){
+  "use strict";
+  var links = Array.prototype.slice.call(document.querySelectorAll('.folio-nav-link'));
+  var sections = Array.prototype.slice.call(document.querySelectorAll('.folio-section'));
+  var byId = {};
+  links.forEach(function(a){
+    var h = a.getAttribute('href');
+    if (h && h.charAt(0) === '#') byId[h.slice(1)] = a;
+  });
+  function setActive(id) {
+    links.forEach(function(a){ a.classList.remove('is-active'); a.removeAttribute('aria-current'); });
+    var link = byId[id];
+    if (link) {
+      link.classList.add('is-active');
+      link.setAttribute('aria-current', 'location');
+      if (history.replaceState) { try { history.replaceState(null, '', '#' + id); } catch(_) {} }
+    }
+  }
+  if ('IntersectionObserver' in window && sections.length) {
+    var visible = {};
+    var io = new IntersectionObserver(function(entries){
+      entries.forEach(function(e){
+        if (e.isIntersecting) visible[e.target.id] = e.intersectionRatio;
+        else delete visible[e.target.id];
+      });
+      var topId = null;
+      for (var i = 0; i < sections.length; i++) {
+        if (visible[sections[i].id] !== undefined) { topId = sections[i].id; break; }
+      }
+      if (topId) setActive(topId);
+    }, { rootMargin: '-15% 0px -65% 0px', threshold: [0, 0.01] });
+    sections.forEach(function(sec){ io.observe(sec); });
+  }
+  var toggle = document.getElementById('folioTocToggle');
+  var sidebar = document.getElementById('folioSidebar');
+  var scrim = document.getElementById('folioTocScrim');
+  function openS(){ if(!sidebar) return; sidebar.classList.add('is-open'); if(scrim) scrim.classList.add('is-visible'); if(toggle) toggle.setAttribute('aria-expanded','true'); }
+  function closeS(){ if(!sidebar) return; sidebar.classList.remove('is-open'); if(scrim) scrim.classList.remove('is-visible'); if(toggle) toggle.setAttribute('aria-expanded','false'); }
+  if (toggle && sidebar) toggle.addEventListener('click', function(){ sidebar.classList.contains('is-open') ? closeS() : openS(); });
+  if (scrim) scrim.addEventListener('click', closeS);
+  if (sidebar) sidebar.addEventListener('click', function(e){ if(e.target && e.target.classList && e.target.classList.contains('folio-nav-link')) closeS(); });
+  document.addEventListener('keydown', function(e){ if (e.key === 'Escape' && sidebar && sidebar.classList.contains('is-open')) closeS(); });
+  var groupLabels = document.querySelectorAll('.folio-nav-group-label[aria-expanded]');
+  groupLabels.forEach(function(btn){
+    btn.addEventListener('click', function(){
+      var group = btn.closest('.folio-nav-group');
+      var expanded = btn.getAttribute('aria-expanded') === 'true';
+      btn.setAttribute('aria-expanded', expanded ? 'false' : 'true');
+      if (group) group.setAttribute('data-collapsed', expanded ? 'true' : 'false');
+    });
+  });
+})();
+</script>
+</body>
+</html>
