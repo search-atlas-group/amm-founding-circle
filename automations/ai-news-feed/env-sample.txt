@@ -1,0 +1,8 @@
+# Copy to a file named  .env  (gitignored) in this folder and fill in.
+# NEVER commit real values.
+
+# Slack destination — an Incoming Webhook bound to your target channel:
+SLACK_WEBHOOK_URL=https://hooks.slack.com/services/XXX/YYY/ZZZ
+
+# Optional curation fallbacks (Antigravity `agy` login is the primary path):
+# ANTHROPIC_API_KEY=sk-ant-...

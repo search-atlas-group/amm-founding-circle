@@ -1,0 +1,157 @@
+# AMM AI-News Feed config (no secrets here — those live in env vars)
+
+# Max items to consider per run. Higher is fine once curation is on (the model distills);
+# in raw-titles mode this is roughly how many links get posted.
+max_items: 20
+
+# Max items taken from any single feed (round-robin), so one busy source can't dominate.
+per_source: 2
+
+# Look-back window. 48h catches daily newsletters that post off-cycle + slightly laggy feeds.
+window_hours: 48
+
+# --- Quality filter: keeps promo/sponsored + uncorroborated noise out of the channel ---
+# 1) Anything that reads as an ad/install/download CTA is hard-dropped (the Instagram-style
+#    "link in bio / download now / use code" posts).
+# 2) Then corroboration: an item passes ONLY if its source is trusted (below) OR the same
+#    story is reported by >= min_corroboration distinct sources. This is what guarantees a
+#    single promo post from one account can't reach the channel — real news shows up in 2+.
+# Relevance gate — the core test: "is this useful to an agency owner becoming agentic?"
+# An item must touch at least `relevance_min` of these themes (title+summary) to qualify.
+# This is what drops corroborated-but-useless items (e.g. "Pentagon uses AI to write reports").
+relevance_min: 2
+relevance_keywords:
+  # agentic / AI building blocks
+  - agent
+  - agentic
+  - autonomous
+  - automation
+  - automate
+  - workflow
+  - mcp
+  - llm
+  - claude
+  - gpt
+  - chatgpt
+  - gemini
+  - anthropic
+  - openai
+  - model
+  - prompt
+  - rag
+  - fine-tun
+  - no-code
+  - integration
+  - copilot
+  - assistant
+  - chatbot
+  # frontier models / dev tooling (so major model + builder news qualifies)
+  - deepseek
+  - llama
+  - mistral
+  - qwen
+  - grok
+  - glm
+  - open source
+  - open-source
+  - sdk
+  - api
+  - inference
+  - multimodal
+  - reasoning
+  - benchmark
+  - open weights
+  - vibe cod
+  # marketing / agency domain
+  - marketing
+  - seo
+  - geo
+  - aeo
+  - ads
+  - ppc
+  - advertising
+  - campaign
+  - content
+  - brand
+  - lead
+  - client
+  - agency
+  - funnel
+  - conversion
+  - crm
+  - outreach
+  - search
+  # business model / ops
+  - pricing
+  - revenue
+  - monetiz
+  - productiz
+  - saas
+  - scale
+  # tools in the cohort's stack
+  - otto
+  - search atlas
+  - webflow
+  - wordpress
+  - shopify
+  - hubspot
+  - salesforce
+  - zapier
+  - n8n
+  - higgsfield
+  - figma
+
+min_corroboration: 2
+corroboration_token_overlap: 2     # shared significant words to call two items "the same story"
+trusted_source_keywords:           # these pass without needing corroboration (reputable origins)
+  - Anthropic
+  - OpenAI
+  - Google
+  - Hugging Face
+  - TLDR
+  - Ben's Bites
+  - Import AI
+  - Last Week in AI
+  - Latent
+  - Simon Willison
+  - One Useful Thing
+  - AI Supremacy
+# NOTE: Product Hunt, Hacker News, Google-News aggregators, and any Instagram-sourced feed
+# are intentionally NOT trusted — they must be corroborated by another source to pass.
+
+# Curation provider: none | claude | gemini | antigravity
+# CLAUDE (main): runs through the local `claude` CLI using Claude Code subscription auth
+# (no API key needed — the script scrubs ANTHROPIC_API_KEY so OAuth is used). Reliable,
+# unlike the flaky Antigravity path. Falls back to gemini, then raw titles.
+provider: claude
+claude_model: claude-sonnet-4-6
+canvas_url_base: "https://YOUR_WORKSPACE.slack.com/docs/YOUR_WORKSPACE_ID"   # team docs base for canvas links
+gemini_model: gemini-2.5-flash
+antigravity_model: "Gemini 3.5 Flash (Medium)"   # only used if provider is set to antigravity
+
+# Sources to watch. Add/remove freely — anything with an RSS/Atom feed.
+# All URLs below were live-verified June 2026. Grouped by tier so it's easy to prune.
+feeds:
+  # --- Tier 1: the big labs (official) ---
+  - https://www.anthropic.com/rss.xml                # Anthropic news
+  - https://openai.com/blog/rss.xml                  # OpenAI blog
+  - https://blog.google/technology/ai/rss/           # Google AI
+  - https://huggingface.co/blog/feed.xml             # HuggingFace
+
+  # --- Tier 2: daily/weekly AI-news newsletters (the digests people actually read) ---
+  - https://tldr.tech/api/rss/ai                     # TLDR AI (daily)
+  - https://www.bensbites.com/feed                   # Ben's Bites (daily)
+  - https://importai.substack.com/feed               # Import AI — Jack Clark (weekly, deep)
+  - https://lastweekin.ai/feed                        # Last Week in AI
+  - https://www.ai-supremacy.com/feed                # AI Supremacy — Michael Spencer
+  - https://www.oneusefulthing.org/feed              # One Useful Thing — Ethan Mollick
+
+  # --- Tier 3: the builder layer (new projects / what's being shipped) ---
+  - https://www.latent.space/feed                    # Latent Space — swyx (eng + new tools)
+  - https://simonwillison.net/atom/everything/       # Simon Willison (new tools, hands-on)
+  - https://hnrss.org/newest?q=LLM+OR+AI+OR+agent&points=75   # Hacker News, AI posts 75+ pts
+  - https://www.producthunt.com/feed?category=artificial-intelligence  # Product Hunt — new AI launches
+
+  # --- Tier 4: marketing-specific (your niche) ---
+  - https://news.google.com/rss/search?q=AI+agents+marketing+when:1d&hl=en-US&gl=US&ceid=US:en
+  - https://news.google.com/rss/search?q=generative+AI+SEO+when:1d&hl=en-US&gl=US&ceid=US:en

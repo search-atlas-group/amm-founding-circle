@@ -1,0 +1,7 @@
+.venv/
+__pycache__/
+.seen.json
+*.log
+feed.secrets
+.env
+canvas_state.json

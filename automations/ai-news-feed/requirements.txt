@@ -1,0 +1,4 @@
+feedparser>=6.0
+pyyaml>=6.0
+# Gemini curation uses the `gemini` CLI (installed separately, not pip).
+anthropic>=0.39   # only needed for the Claude fallback path
