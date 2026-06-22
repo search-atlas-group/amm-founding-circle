@@ -11,3 +11,9 @@ Playbooks are short workflows you can run during a real task.
 Keep playbooks small. If a workflow needs credentials, private systems, or a
 large automation stack, it does not belong in this repo.
 
+
+## In this folder
+- `autonomy-fence.md` — the 🟢/🟡/🔴 + confidence-gate pattern for letting an agent act safely on your behalf.
+- `browser-verification.md`, `compounding-feedback.md`, `parallel-prototyping.md` — how to work *with* agents.
+
+← Back to the [repo root](../README.md)

@@ -11,3 +11,9 @@ All notable changes to this repo. Dates are YYYY-MM-DD.
 
 ## 2026-06-22 (initial)
 - Public launch: 16 AEO/SEO skills, agentic-ladder curriculum, morning-brief harness, 3D-video SOP, ai-news-feed automation, MIT license, pre-commit secret scanner.
+
+## 2026-06-22 (governance)
+### Added
+- `SECURITY.md` — skill-vetting bar (code hygiene, network, provenance, spend/send) + PR review checklist.
+- `playbooks/autonomy-fence.md` — 3-tier action gating + confidence gate.
+- `templates/agent-spec-template.md` — ADK-style agent spec format.

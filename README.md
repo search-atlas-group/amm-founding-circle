@@ -42,6 +42,12 @@ New to a client? The capstone **[client-onboarding-os](skills/client-onboarding-
 
 All skills run with **no paid APIs** — SearchAtlas MCP is used when available, with graceful web-search fallback.
 
+## Governance
+
+- **[SECURITY.md](SECURITY.md)** — the skill-vetting bar every skill (esp. third-party) must clear, plus a PR review checklist.
+- **[playbooks/autonomy-fence.md](playbooks/autonomy-fence.md)** — the 🟢/🟡/🔴 + confidence-gate pattern for letting an agent act safely on your behalf.
+- **[templates/agent-spec-template.md](templates/agent-spec-template.md)** — a clean ADK-style format for specifying your own agents.
+
 ## Contributing
 
 See [CONTRIBUTING.md](CONTRIBUTING.md). A `scripts/pre-commit` hook blocks secrets / internal URLs / PII — keep it installed.

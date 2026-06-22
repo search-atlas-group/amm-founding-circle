@@ -12,7 +12,7 @@ ship faster are welcome.
 - Internal hostnames or infrastructure URLs.
 - Member/customer names, emails, or private status.
 
-A pre-commit hook (`scripts/pre-commit`) blocks the obvious cases — keep it installed.
+A pre-commit hook (`scripts/pre-commit`) blocks the obvious cases — keep it installed. See [SECURITY.md](SECURITY.md) for the full skill-vetting bar (code hygiene, network surface, provenance, spend/send safety) every skill must clear.
 
 ## How to add
 1. Branch.
