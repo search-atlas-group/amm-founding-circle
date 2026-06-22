@@ -1,0 +1,4 @@
+interface:
+  display_name: "Night Shift"
+  short_description: "Overnight AOSwarm repo analysis."
+  default_prompt: "Use $night-shift to run a bounded overnight AOSwarm analysis across recently active repos and generate a morning HTML report."

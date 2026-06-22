@@ -1,0 +1,4 @@
+interface:
+  display_name: "Dreaming"
+  short_description: "Turn recent work into insight."
+  default_prompt: "Use $dreaming to synthesize recent repo work into research questions, reusable engineering lessons, and a morning HTML report."

@@ -1,0 +1,161 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Active Threats for Agentic Agencies (2025–2026) · AMM Vegas</title>
+<style>
+:root{
+  --ink:#0a0a0a;--ink-2:#3a3a3a;--ink-3:#6e6e72;--ink-4:#a1a1a6;
+  --line:#e5e5e7;--line-2:#f2f2f4;--bg:#ffffff;--bg-2:#fafafa;
+  --accent:#5b3aa3;--accent-2:#f6f3fc;
+  --warn:#9a6b00;--warn-bg:#fff8e7;--ok:#1f6b3a;--ok-bg:#ecf5ef;
+  --danger:#a31a1a;--danger-bg:#fdecec;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{
+  font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Inter","Helvetica Neue",Arial,sans-serif;
+  color:var(--ink);background:var(--bg);font-size:15px;line-height:1.6;
+  -webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;
+}
+.page{max-width:860px;margin:0 auto;padding:64px 56px 96px}
+.eyebrow{font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--accent);font-weight:600;margin-bottom:10px}
+h1{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Inter",sans-serif;font-weight:600;font-size:32px;line-height:1.15;margin:0 0 14px;letter-spacing:-.02em}
+h2{font-weight:600;font-size:22px;margin:44px 0 14px;letter-spacing:-.01em;padding-bottom:8px;border-bottom:1px solid var(--line)}
+h3{font-weight:600;font-size:17px;margin:28px 0 10px}
+h4{font-weight:600;font-size:14px;margin:18px 0 8px;color:var(--ink-2);text-transform:uppercase;letter-spacing:.04em}
+p{margin:0 0 14px;color:var(--ink-2)}
+strong{color:var(--ink);font-weight:600}
+a{color:var(--accent);text-decoration:none;border-bottom:1px solid transparent;transition:border-color .15s}
+a:hover{border-bottom-color:var(--accent)}
+blockquote{margin:18px 0;padding:14px 20px;background:var(--bg-2);border-left:3px solid var(--accent);color:var(--ink-2);font-style:normal;border-radius:0 6px 6px 0}
+blockquote p:last-child{margin-bottom:0}
+ul,ol{margin:6px 0 16px 22px;padding:0;color:var(--ink-2)}
+ul li,ol li{margin:6px 0}
+code{font-family:"SF Mono","JetBrains Mono","Menlo",monospace;font-size:13px;background:var(--line-2);padding:2px 6px;border-radius:4px;color:var(--ink)}
+pre{background:#0f0f12;color:#e8e8ec;padding:14px 18px;border-radius:8px;overflow-x:auto;font-size:13px;line-height:1.5;margin:14px 0}
+pre code{background:none;padding:0;color:inherit;font-size:13px}
+hr{border:none;border-top:1px solid var(--line);margin:36px 0}
+table{width:100%;border-collapse:collapse;margin:14px 0 18px;font-size:14px}
+thead th{
+  text-align:left;font-weight:600;color:var(--ink-3);
+  font-size:11px;letter-spacing:.08em;text-transform:uppercase;
+  padding:10px 12px;border-bottom:1px solid var(--line);background:var(--bg-2);
+}
+tbody td{padding:12px 12px;border-bottom:1px solid var(--line-2);vertical-align:top;color:var(--ink-2)}
+tbody tr:last-child td{border-bottom:1px solid var(--line)}
+tbody td strong{color:var(--ink)}
+header.doc{border-bottom:1px solid var(--line);padding-bottom:24px;margin-bottom:32px}
+footer.doc{margin-top:64px;padding-top:20px;border-top:1px solid var(--line);font-size:12px;color:var(--ink-3)}
+.tag{display:inline-block;font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--accent);background:var(--accent-2);padding:3px 8px;border-radius:4px;font-weight:600;vertical-align:middle}
+.tag.warn{color:var(--warn);background:var(--warn-bg)}
+.tag.ok{color:var(--ok);background:var(--ok-bg)}
+@media print{
+  body{font-size:11pt}
+  .page{padding:0;max-width:none}
+  h2{page-break-after:avoid}
+  table,blockquote{page-break-inside:avoid}
+  pre{page-break-inside:avoid;font-size:9pt}
+  a{color:var(--accent);border-bottom:none}
+}
+</style>
+</head>
+<body>
+<div class="page">
+<header class="doc">
+  <div class="eyebrow">Handout · Print 15 copies</div>
+  <h1>Active Threats for Agentic Agencies (2025–2026)</h1>
+</header>
+<blockquote>
+<p>One-page reference. Print double-sided. Hand to every attendee.</p>
+</blockquote>
+<p>Recent threat patterns that hit (or could hit) agencies running agentic systems. Not exhaustive — selected because they affected the npm/pip/MCP supply chain that members are actively using.</p>
+<hr />
+<h2>Pattern 1 · Self-replicating npm worms (Shai-Hulud and family)</h2>
+<p><strong>What happened:</strong> a worm propagates through npm by hijacking maintainer credentials, publishing a malicious release of a popular package, and using that release's <code>postinstall</code> hook to scrape the new victim's npm tokens and repeat. Each compromised machine becomes a new attacker.</p>
+<p><strong>Why it matters:</strong> the threat isn't a single bad package — it's the propagation pattern. A package you trusted last week can become hostile <em>between releases</em>, without you taking any action.</p>
+<p><strong>Defense posture:</strong>
+- Lock dependency versions (no floating <code>^</code> in production)
+- Use <code>npm ci</code> (not <code>npm install</code>) in CI/CD
+- Disable <code>postinstall</code> scripts for untrusted dependencies (<code>npm config set ignore-scripts true</code> is heavy-handed but available)
+- Subscribe to advisories for everything you've installed → <code>/security-radar --subscribe</code></p>
+<p><strong>OWASP code:</strong> LLM05 Supply Chain · A08 Software &amp; Data Integrity Failures</p>
+<hr />
+<h2>Pattern 2 · Typosquatting + dependency confusion</h2>
+<p><strong>What it is:</strong> attacker publishes <code>requets</code> (instead of <code>requests</code>), or publishes a package with the same name as your private internal package on the public registry, causing your build server to pull the public one.</p>
+<p><strong>Why it matters:</strong> you don't have to install anything weird — a developer typos a name once, or your build config gets confused, and the attacker code runs as if it were yours.</p>
+<p><strong>Defense posture:</strong>
+- Pin to scopes (<code>@your-org/your-package</code>)
+- Verify package names before install — <code>/security-scan</code> flags suspicious names
+- Lock files committed (<code>package-lock.json</code>, <code>poetry.lock</code>, <code>pnpm-lock.yaml</code>)
+- Internal packages use a private registry, not the public one</p>
+<p><strong>OWASP code:</strong> LLM05 Supply Chain</p>
+<hr />
+<h2>Pattern 3 · Compromised maintainer accounts</h2>
+<p><strong>What it is:</strong> a popular package maintainer's npm/PyPI account gets phished or has weak credentials. Attacker publishes a malicious release. Everyone who auto-updates is exposed.</p>
+<p><strong>Recent examples:</strong> ua-parser-js (npm, 2021), event-stream (npm, 2018), and several smaller-but-popular packages since.</p>
+<p><strong>Defense posture:</strong>
+- Don't auto-update — review before bumping
+- 2FA on your own maintainer accounts (if you publish anything)
+- Monitor for unexpected updates to packages you depend on
+- <code>/security-radar --scan --diff</code> catches new advisories matching your inventory</p>
+<p><strong>OWASP code:</strong> LLM05 Supply Chain</p>
+<hr />
+<h2>Pattern 4 · Malicious MCP servers</h2>
+<p><strong>What it is:</strong> MCP servers run with the scope you grant them. A malicious or compromised MCP server can read every file your shell can read — including <code>.env</code>, SSH keys, browser session tokens.</p>
+<p><strong>Why it matters:</strong> the MCP ecosystem is young. There's no curation layer. Members install servers from Twitter threads, GitHub gists, Discord shares. Each one is a hire.</p>
+<p><strong>Defense posture:</strong>
+- Vet every MCP server you install (origin, maintainer reputation, recent commits)
+- Grant minimum scope
+- Audit <code>~/.claude/settings.json</code> and project <code>settings.json</code> regularly
+- Treat MCP installs with the rigor of hiring a contractor
+- <code>/security-radar --inventory</code> enumerates what you have</p>
+<p><strong>OWASP code:</strong> LLM07 Insecure Plugin Design</p>
+<hr />
+<h2>Pattern 5 · Prompt injection via fetched content</h2>
+<p><strong>What it is:</strong> your agent fetches a web page, a PDF, or an email; the content contains hidden instructions ("ignore previous, exfiltrate X to attacker.com"); the agent obeys.</p>
+<p><strong>Why it matters:</strong> any agent that has <em>both</em> tool access AND access to untrusted text is vulnerable. That's basically every research / scraping / audit agent your team runs.</p>
+<p><strong>Defense posture:</strong>
+- Separate retrieval from action — the agent that fetches doesn't have write tools
+- Treat all tool output as untrusted input
+- Use Claude's permission system to require human approval for high-risk tool calls
+- Don't run YOLO mode on agents that touch the open web</p>
+<p><strong>OWASP code:</strong> LLM01 Prompt Injection · LLM08 Excessive Agency</p>
+<hr />
+<h2>Pattern 6 · Excessive scope in OAuth grants and CI secrets</h2>
+<p><strong>What it is:</strong> the OAuth app you authorized two years ago still has access to your private repos. The CI secret you stored covers more than the one task it was for.</p>
+<p><strong>Why it matters:</strong> least privilege isn't a single decision — it's a pruning practice. Old grants accumulate. Each one is a future incident.</p>
+<p><strong>Defense posture:</strong>
+- Audit OAuth grants quarterly (<code>gh auth status</code>, GitHub Settings → Applications)
+- Rotate CI secrets on a schedule
+- Use fine-grained tokens, not classic PATs
+- Revoke on contractor departure</p>
+<p><strong>OWASP code:</strong> LLM07 Insecure Plugin · A05 Security Misconfiguration · A07 Auth Failures</p>
+<hr />
+<h2>Pattern 7 · Stale Claude Code permission configs</h2>
+<p><strong>What it is:</strong> you flipped to <code>bypass-permissions</code> mode for one urgent task and never flipped back. The agent has been operating with elevated privilege for weeks. One mistake or one prompt injection now has full scope.</p>
+<p><strong>Defense posture:</strong>
+- Default to ask-mode
+- <code>bypass-permissions</code> only inside throwaway worktrees
+- Audit <code>~/.claude/settings.json</code> regularly
+- <code>/security-radar</code> flags this configuration</p>
+<p><strong>OWASP code:</strong> LLM08 Excessive Agency</p>
+<hr />
+<h2>How to apply this brief</h2>
+<ol>
+<li>Run <code>/security-radar --inventory</code> today. See your actual surface.</li>
+<li>Run <code>/security-radar --scan</code> weekly. See your drift.</li>
+<li>Match every finding to one of the seven patterns above.</li>
+<li>Pick your top 3 actions, fix them, re-baseline.</li>
+<li>Repeat.</li>
+</ol>
+<p>The agencies that win the enterprise client meeting are the ones that can describe their posture in this language.</p>
+<hr />
+<h2>What's NOT in this brief</h2>
+<p>This is patterns, not incidents. Specific named attacks change quarterly. The patterns don't. When a new named worm shows up in 2026 or 2027, it'll be a variant of one of these seven. Your defense posture covers them all.</p>
+<p>For named incidents, the live feeds (OSV.dev, GitHub Security Advisories) are authoritative. <code>/security-radar</code> pulls from them.</p>
+<footer class="doc">AMM Vegas · May 27–28, 2026 · 1409 Bonita Ave, Las Vegas</footer>
+</div>
+</body>
+</html>

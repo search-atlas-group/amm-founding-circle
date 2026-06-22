@@ -1,0 +1,716 @@
+<!doctype html>
+<html lang="{{ lang | default('en') }}">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light">
+<title>{{ title }}{% if subtitle %} — {{ subtitle }}{% endif %}</title>
+<style>
+/* ============================================================
+   Folio archetype — book-style long-form report.
+   Visual identity: parchment + indigo + system serif headings.
+   ============================================================ */
+:root {
+  /* Geometry */
+  --folio-sidebar-width: 288px;
+  --folio-content-max: 760px;
+  --folio-content-pad-x: 56px;
+  --folio-content-pad-y: 40px;
+  --folio-anchor-offset: 24px;
+
+  /* Spacing scale (4px base, modular) */
+  --folio-s1: 4px;
+  --folio-s2: 8px;
+  --folio-s3: 12px;
+  --folio-s4: 16px;
+  --folio-s5: 24px;
+  --folio-s6: 32px;
+  --folio-s7: 48px;
+  --folio-s8: 64px;
+
+  /* Palette — parchment + indigo */
+  --folio-bg:           #fdfcf9; /* warm off-white (paper) */
+  --folio-bg-sidebar:   #f7f3ea; /* parchment cream */
+  --folio-bg-soft:      #f3eee2; /* deeper parchment for hover */
+  --folio-bg-callout:   #faf6ec; /* slightly warm callout bg */
+  --folio-text:         #1a1b22; /* near-black, slight blue cast */
+  --folio-muted:        #6b6657; /* warm gray-brown */
+  --folio-border:       #e6dfcf; /* warm border */
+  --folio-rule:         #c9b88a; /* gold/ochre underline rule */
+  --folio-accent:       #1d2960; /* deep indigo (TOC active, headings) */
+  --folio-accent-soft:  #e8eaf2; /* indigo wash for active-link bg */
+  --folio-link:         #1d2960;
+  --folio-link-hover:   #3a4ca3;
+
+  /* Callout tones */
+  --folio-good:         #1f6f4a; /* deeper green for AA contrast on cream */
+  --folio-good-bg:      #eaf3ec;
+  --folio-warn:         #a8442a; /* brick / iron-oxide red */
+  --folio-warn-bg:      #f7e9e0;
+  --folio-info:         #1d2960;
+  --folio-info-bg:      #e8eaf2;
+
+  /* Typography */
+  --folio-font-serif:   "Iowan Old Style", "Palatino Linotype", Palatino, "Book Antiqua", Georgia, "Source Serif Pro", serif;
+  --folio-font-sans:    -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --folio-font-mono:    ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+
+  --folio-fs-body:      16px;
+  --folio-lh-body:      1.6;
+  --folio-fs-small:     13px;
+
+  /* Motion */
+  --folio-tx:           150ms cubic-bezier(.2,.6,.3,1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root { --folio-tx: 0ms; }
+  html { scroll-behavior: auto !important; }
+  * { animation: none !important; transition: none !important; }
+}
+
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body {
+  margin: 0;
+  font-family: var(--folio-font-sans);
+  font-size: var(--folio-fs-body);
+  line-height: var(--folio-lh-body);
+  color: var(--folio-text);
+  background: var(--folio-bg);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-feature-settings: "kern", "liga";
+}
+a { color: var(--folio-link); text-decoration: none; border-bottom: 1px solid transparent; transition: color var(--folio-tx), border-color var(--folio-tx); }
+a:hover { color: var(--folio-link-hover); border-bottom-color: currentColor; }
+:focus-visible { outline: 2px solid var(--folio-accent); outline-offset: 3px; border-radius: 2px; }
+
+/* Skip link for keyboard users */
+.folio-skip {
+  position: absolute; left: -9999px; top: 0;
+  background: var(--folio-accent); color: #fff;
+  padding: 8px 14px; font-size: 14px; font-weight: 600;
+  border-radius: 0 0 6px 0; z-index: 1000;
+}
+.folio-skip:focus { left: 0; }
+
+/* ---- Layout shell ---- */
+.folio-shell {
+  display: grid;
+  grid-template-columns: var(--folio-sidebar-width) minmax(0, 1fr);
+  min-height: 100vh;
+}
+
+/* ---- Sidebar / TOC ---- */
+.folio-sidebar {
+  position: sticky;
+  top: 0;
+  align-self: start;
+  height: 100vh;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  background: var(--folio-bg-sidebar);
+  border-right: 1px solid var(--folio-border);
+  padding: var(--folio-s5) 0 var(--folio-s5);
+  font-size: var(--folio-fs-small);
+}
+.folio-sidebar-header {
+  padding: 0 var(--folio-s5) var(--folio-s4);
+  border-bottom: 1px solid var(--folio-border);
+  margin-bottom: var(--folio-s3);
+}
+.folio-sidebar-eyebrow {
+  font-family: var(--folio-font-sans);
+  font-size: 11px; font-weight: 700;
+  letter-spacing: 0.12em; text-transform: uppercase;
+  color: var(--folio-muted); margin: 0 0 var(--folio-s2);
+}
+.folio-sidebar-title {
+  font-family: var(--folio-font-serif);
+  font-size: 18px; font-weight: 600;
+  line-height: 1.25; color: var(--folio-text);
+  margin: 0;
+  max-height: 4.5em; overflow: hidden;
+}
+.folio-sidebar-meta {
+  font-size: 11px; color: var(--folio-muted);
+  margin: var(--folio-s2) 0 0;
+  font-variant-numeric: tabular-nums;
+}
+
+.folio-nav { display: flex; flex-direction: column; padding: var(--folio-s2) 0; }
+.folio-nav-group { margin-bottom: var(--folio-s3); }
+.folio-nav-group-label {
+  font-size: 10px; font-weight: 700;
+  letter-spacing: 0.14em; text-transform: uppercase;
+  color: var(--folio-muted);
+  padding: var(--folio-s3) var(--folio-s5) var(--folio-s1);
+  display: flex; align-items: center; justify-content: space-between;
+  cursor: pointer; user-select: none;
+  background: none; border: 0; width: 100%; text-align: left;
+  font-family: inherit;
+}
+.folio-nav-group-label[aria-expanded] .folio-nav-group-caret {
+  width: 8px; height: 8px;
+  border-right: 1.5px solid currentColor;
+  border-bottom: 1.5px solid currentColor;
+  transform: rotate(45deg);
+  transition: transform var(--folio-tx);
+  margin-right: 2px;
+}
+.folio-nav-group-label[aria-expanded="false"] .folio-nav-group-caret { transform: rotate(-45deg); }
+.folio-nav-group-items { display: flex; flex-direction: column; }
+.folio-nav-group[data-collapsed="true"] .folio-nav-group-items { display: none; }
+
+.folio-nav-link {
+  display: block;
+  padding: var(--folio-s2) var(--folio-s5) var(--folio-s2) calc(var(--folio-s5) + 4px);
+  font-size: 14px; line-height: 1.4;
+  color: var(--folio-text);
+  border-left: 3px solid transparent;
+  margin-left: -3px;
+  transition: background var(--folio-tx), border-color var(--folio-tx), color var(--folio-tx);
+  border-bottom: 0;
+  min-height: 32px;
+}
+.folio-nav-link:hover { background: var(--folio-bg-soft); border-bottom: 0; color: var(--folio-accent); }
+.folio-nav-link.is-active {
+  border-left-color: var(--folio-accent);
+  font-weight: 600;
+  color: var(--folio-accent);
+  background: var(--folio-accent-soft);
+}
+
+/* Mobile hamburger toggle */
+.folio-toc-toggle {
+  display: none;
+  position: fixed; top: 12px; left: 12px;
+  z-index: 100;
+  width: 44px; height: 44px;
+  border-radius: 8px;
+  border: 1px solid var(--folio-border);
+  background: var(--folio-bg);
+  color: var(--folio-text);
+  font-size: 20px;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(26,27,34,0.08);
+  align-items: center; justify-content: center;
+}
+.folio-toc-scrim {
+  display: none;
+  position: fixed; inset: 0;
+  background: rgba(26,27,34,0.32);
+  z-index: 80;
+}
+.folio-toc-scrim.is-visible { display: block; }
+
+/* ---- Content column ---- */
+.folio-content {
+  padding: var(--folio-content-pad-y) var(--folio-content-pad-x) calc(var(--folio-s8) + var(--folio-s5));
+  max-width: calc(var(--folio-content-max) + (var(--folio-content-pad-x) * 2));
+  min-width: 0;
+}
+
+.folio-doc-header {
+  margin-bottom: var(--folio-s7);
+  padding-bottom: var(--folio-s5);
+  border-bottom: 1px solid var(--folio-border);
+  position: relative;
+}
+.folio-doc-header::after {
+  content: ""; position: absolute; left: 0; bottom: -1px;
+  width: 80px; height: 3px;
+  background: var(--folio-rule);
+}
+.folio-doc-eyebrow {
+  font-size: 11px; font-weight: 700;
+  letter-spacing: 0.14em; text-transform: uppercase;
+  color: var(--folio-muted); margin: 0 0 var(--folio-s3);
+}
+.folio-doc-title {
+  font-family: var(--folio-font-serif);
+  font-size: clamp(28px, 4vw, 38px);
+  font-weight: 700;
+  margin: 0 0 var(--folio-s3);
+  color: var(--folio-text);
+  line-height: 1.15;
+  letter-spacing: -0.01em;
+  max-width: 22ch;
+  word-wrap: break-word;
+}
+.folio-doc-subtitle {
+  font-family: var(--folio-font-serif);
+  font-size: 19px; font-style: italic;
+  color: var(--folio-muted); margin: 0;
+  max-width: 50ch; line-height: 1.4;
+}
+.folio-doc-meta {
+  display: flex; flex-wrap: wrap;
+  gap: var(--folio-s4);
+  font-size: 12px; color: var(--folio-muted);
+  margin-top: var(--folio-s4);
+  font-variant-numeric: tabular-nums;
+}
+.folio-doc-meta span { display: inline-flex; align-items: center; gap: 4px; }
+
+/* Empty state */
+.folio-empty {
+  padding: var(--folio-s8) 0;
+  text-align: center;
+  color: var(--folio-muted);
+  font-family: var(--folio-font-serif);
+  font-style: italic;
+  font-size: 17px;
+}
+
+/* ---- Sections ---- */
+.folio-section {
+  padding: var(--folio-s7) 0 var(--folio-s6);
+  border-bottom: 1px solid var(--folio-border);
+  scroll-margin-top: var(--folio-anchor-offset);
+}
+.folio-section:last-child { border-bottom: none; }
+.folio-section-eyebrow {
+  font-size: 11px; font-weight: 700;
+  letter-spacing: 0.14em; text-transform: uppercase;
+  color: var(--folio-muted); margin: 0 0 var(--folio-s2);
+}
+.folio-section-title {
+  font-family: var(--folio-font-serif);
+  font-size: clamp(22px, 2.6vw, 28px);
+  font-weight: 700;
+  margin: 0 0 var(--folio-s4);
+  color: var(--folio-text);
+  line-height: 1.2;
+  letter-spacing: -0.005em;
+  max-width: 28ch;
+  word-wrap: break-word;
+  position: relative;
+  padding-bottom: var(--folio-s3);
+}
+.folio-section-title::after {
+  content: ""; position: absolute; left: 0; bottom: 0;
+  width: 40px; height: 2px;
+  background: var(--folio-rule);
+}
+
+/* Body content inside a section */
+.folio-section p,
+.folio-section ul,
+.folio-section ol {
+  margin: 0 0 var(--folio-s4);
+  max-width: 68ch;
+}
+.folio-section li { margin: 0 0 var(--folio-s2); }
+.folio-section h3 {
+  font-family: var(--folio-font-serif);
+  font-size: 19px; font-weight: 700;
+  margin: var(--folio-s6) 0 var(--folio-s3);
+  color: var(--folio-text);
+  line-height: 1.3;
+  letter-spacing: -0.005em;
+  break-after: avoid; page-break-after: avoid;
+}
+.folio-section h4 {
+  font-size: 14px; font-weight: 700;
+  letter-spacing: 0.04em; text-transform: uppercase;
+  margin: var(--folio-s5) 0 var(--folio-s2);
+  color: var(--folio-muted);
+  break-after: avoid; page-break-after: avoid;
+}
+
+/* Drop-cap on first paragraph of a section */
+.folio-section > p:first-of-type::first-letter {
+  font-family: var(--folio-font-serif);
+  font-weight: 700;
+  font-size: 3.1em;
+  float: left;
+  line-height: 0.95;
+  padding: 4px 8px 0 0;
+  color: var(--folio-accent);
+}
+
+/* Tables */
+.folio-section table {
+  width: 100%; max-width: 68ch;
+  border-collapse: collapse;
+  font-size: 14px;
+  margin: var(--folio-s4) 0 var(--folio-s5);
+  font-variant-numeric: tabular-nums;
+}
+.folio-section th,
+.folio-section td {
+  text-align: left;
+  padding: var(--folio-s2) var(--folio-s3);
+  border-bottom: 1px solid var(--folio-border);
+  vertical-align: top;
+}
+.folio-section th {
+  font-weight: 600;
+  background: var(--folio-bg-sidebar);
+  font-size: 11px; text-transform: uppercase;
+  letter-spacing: 0.08em; color: var(--folio-muted);
+  border-bottom: 1.5px solid var(--folio-rule);
+}
+.folio-section td.num,
+.folio-section th.num { text-align: right; font-variant-numeric: tabular-nums; }
+
+/* Code */
+.folio-section code {
+  font-family: var(--folio-font-mono);
+  font-size: 0.88em;
+  background: var(--folio-bg-sidebar);
+  padding: 1px 5px;
+  border-radius: 3px;
+  border: 1px solid var(--folio-border);
+}
+.folio-section pre {
+  font-family: var(--folio-font-mono);
+  font-size: 13px;
+  line-height: 1.55;
+  background: var(--folio-bg-sidebar);
+  border: 1px solid var(--folio-border);
+  border-left: 3px solid var(--folio-rule);
+  padding: var(--folio-s3) var(--folio-s4);
+  border-radius: 4px;
+  overflow-x: auto;
+  margin: var(--folio-s4) 0;
+  max-width: 100%;
+  break-inside: avoid; page-break-inside: avoid;
+}
+.folio-section pre code {
+  background: none; border: 0; padding: 0; font-size: inherit;
+}
+
+/* Callouts */
+.folio-callout {
+  border-left: 3px solid var(--folio-border);
+  padding: var(--folio-s3) var(--folio-s4);
+  margin: var(--folio-s4) 0;
+  background: var(--folio-bg-callout);
+  border-radius: 0 4px 4px 0;
+  font-size: 15px;
+  max-width: 68ch;
+  break-inside: avoid; page-break-inside: avoid;
+}
+.folio-callout.is-good { border-left-color: var(--folio-good); background: var(--folio-good-bg); }
+.folio-callout.is-warn { border-left-color: var(--folio-warn); background: var(--folio-warn-bg); }
+.folio-callout.is-info { border-left-color: var(--folio-info); background: var(--folio-info-bg); }
+.folio-callout-label {
+  display: inline-block;
+  font-size: 10px; font-weight: 700;
+  letter-spacing: 0.14em; text-transform: uppercase;
+  margin-bottom: var(--folio-s2);
+  color: var(--folio-muted);
+}
+.folio-callout.is-good .folio-callout-label { color: var(--folio-good); }
+.folio-callout.is-warn .folio-callout-label { color: var(--folio-warn); }
+.folio-callout.is-info .folio-callout-label { color: var(--folio-info); }
+.folio-callout p:last-child { margin-bottom: 0; }
+.folio-callout blockquote {
+  margin: var(--folio-s2) 0 0;
+  font-family: var(--folio-font-serif);
+  font-style: italic;
+  color: var(--folio-text);
+  line-height: 1.45;
+}
+.folio-callout blockquote::before { content: "\201C"; margin-right: 1px; }
+.folio-callout blockquote::after { content: "\201D"; margin-left: 1px; }
+.folio-callout blockquote cite {
+  display: block;
+  margin-top: var(--folio-s2);
+  font-style: normal;
+  font-size: 12px;
+  color: var(--folio-muted);
+  font-family: var(--folio-font-sans);
+}
+.folio-callout blockquote cite::before { content: "— "; }
+
+/* Pills / grade chips */
+.folio-pill {
+  display: inline-flex; align-items: center; gap: 4px;
+  font-family: var(--folio-font-sans);
+  font-size: 12px; font-weight: 600;
+  padding: 2px 10px;
+  border-radius: 999px;
+  background: var(--folio-bg-sidebar);
+  border: 1px solid var(--folio-border);
+  color: var(--folio-text);
+  font-variant-numeric: tabular-nums;
+}
+.folio-pill.is-grade-A { background: #eaf3ec; border-color: #a9cdb3; color: #155a35; }
+.folio-pill.is-grade-B { background: #eef1f8; border-color: #abb6dd; color: #1d2960; }
+.folio-pill.is-grade-C { background: #f7efd6; border-color: #d8c486; color: #6b5512; }
+.folio-pill.is-grade-D { background: #f7e9e0; border-color: #d4ad8e; color: #8b3a1f; }
+.folio-pill.is-grade-F { background: #f4dcd4; border-color: #c08a72; color: #6f2410; }
+
+/* Horizontal bar */
+.folio-bar {
+  display: inline-block; vertical-align: middle;
+  width: 140px; height: 6px;
+  background: var(--folio-bg-soft);
+  border-radius: 3px; overflow: hidden;
+}
+.folio-bar > span {
+  display: block; height: 100%;
+  background: var(--folio-accent);
+  border-radius: 3px;
+}
+.folio-bar-row { display: flex; align-items: center; gap: var(--folio-s2); margin: 4px 0; }
+.folio-bar-row .folio-bar-label { flex: 1; font-size: 13px; color: var(--folio-text); }
+.folio-bar-row .folio-bar-value {
+  font-variant-numeric: tabular-nums;
+  font-size: 13px; color: var(--folio-muted);
+  min-width: 36px; text-align: right;
+}
+
+/* Long quote handling */
+.folio-section blockquote {
+  margin: var(--folio-s4) 0;
+  padding: 0 0 0 var(--folio-s4);
+  border-left: 2px solid var(--folio-rule);
+  font-family: var(--folio-font-serif);
+  font-style: italic;
+  font-size: 17px;
+  color: var(--folio-text);
+  max-width: 64ch;
+}
+
+/* Section anchor link (visible on hover) */
+.folio-section-title a.folio-anchor {
+  opacity: 0; margin-left: var(--folio-s2);
+  font-family: var(--folio-font-sans);
+  font-size: 0.6em; font-weight: 400;
+  color: var(--folio-muted);
+  border-bottom: 0;
+  transition: opacity var(--folio-tx);
+}
+.folio-section-title:hover a.folio-anchor,
+.folio-section-title a.folio-anchor:focus-visible { opacity: 1; }
+
+/* ============================================================
+   Responsive — tablet (641-1024) and mobile (≤640)
+   ============================================================ */
+@media (max-width: 1024px) and (min-width: 641px) {
+  :root {
+    --folio-sidebar-width: 240px;
+    --folio-content-pad-x: 40px;
+  }
+}
+
+@media (max-width: 640px) {
+  :root {
+    --folio-content-pad-x: 20px;
+    --folio-content-pad-y: 24px;
+    --folio-fs-body: 16px;
+  }
+  .folio-shell { grid-template-columns: 1fr; }
+  .folio-sidebar {
+    position: fixed; top: 0; left: 0;
+    width: min(86vw, 320px);
+    height: 100vh;
+    transform: translateX(-100%);
+    transition: transform 220ms cubic-bezier(.2,.6,.3,1);
+    z-index: 90;
+    box-shadow: 4px 0 24px rgba(26,27,34,0.12);
+  }
+  .folio-sidebar.is-open { transform: translateX(0); }
+  .folio-toc-toggle { display: inline-flex; }
+  .folio-content { padding-top: calc(var(--folio-s8) + var(--folio-s2)); }
+  .folio-nav-link { min-height: 44px; padding-top: var(--folio-s3); padding-bottom: var(--folio-s3); }
+  .folio-doc-title { font-size: 26px; }
+  .folio-section-title { font-size: 22px; }
+  .folio-section > p:first-of-type::first-letter { font-size: 2.6em; }
+}
+
+/* ============================================================
+   Print — book layout
+   ============================================================ */
+@page { margin: 18mm 16mm 20mm 16mm; }
+
+@media print {
+  :root {
+    --folio-bg: #ffffff;
+    --folio-bg-sidebar: #ffffff;
+    --folio-bg-callout: #ffffff;
+    --folio-bg-soft: #ffffff;
+  }
+  body { font-size: 10.5pt; line-height: 1.5; color: #111; background: #fff; }
+  .folio-skip, .folio-sidebar, .folio-toc-toggle, .folio-toc-scrim { display: none !important; }
+  .folio-shell { display: block; }
+  .folio-content { padding: 0; max-width: 100%; }
+  .folio-doc-header { margin-bottom: 18pt; }
+  .folio-doc-title { font-size: 22pt; }
+  .folio-section { padding: 12pt 0 8pt; border-bottom: 1pt solid #999; scroll-margin-top: 0; }
+  .folio-section + .folio-section { page-break-before: always; break-before: page; }
+  .folio-section-title { font-size: 16pt; }
+  .folio-section h3, .folio-section h4 { break-after: avoid; page-break-after: avoid; }
+  .folio-section p, .folio-section li { orphans: 3; widows: 3; }
+  .folio-callout, .folio-section pre, .folio-section table { break-inside: avoid; page-break-inside: avoid; }
+  a { color: #000; text-decoration: underline; border: 0 !important; }
+  a[href^="http"]::after { content: " (" attr(href) ")"; font-size: 9pt; color: #555; word-break: break-all; }
+  .folio-section-title::after, .folio-doc-header::after { background: #555; }
+}
+</style>
+</head>
+<body>
+<a href="#folio-main" class="folio-skip">Skip to content</a>
+
+<button class="folio-toc-toggle" type="button" aria-label="Toggle table of contents" aria-controls="folioSidebar" aria-expanded="false" id="folioTocToggle">&#9776;</button>
+<div class="folio-toc-scrim" id="folioTocScrim" aria-hidden="true"></div>
+
+<div class="folio-shell">
+  <aside class="folio-sidebar" id="folioSidebar" aria-label="Table of contents">
+    <div class="folio-sidebar-header">
+      {% if eyebrow %}<p class="folio-sidebar-eyebrow">{{ eyebrow }}</p>{% endif %}
+      <p class="folio-sidebar-title">{{ title }}</p>
+      {% if subtitle %}<p class="folio-sidebar-meta">{{ subtitle }}</p>{% endif %}
+    </div>
+    <nav class="folio-nav" aria-label="Sections">
+      {% if nav_groups %}
+        {% for group in nav_groups %}
+        <div class="folio-nav-group" data-group="{{ loop.index }}">
+          <button type="button" class="folio-nav-group-label" aria-expanded="true" aria-controls="folio-group-{{ loop.index }}">
+            <span>{{ group.label }}</span><span class="folio-nav-group-caret" aria-hidden="true"></span>
+          </button>
+          <div class="folio-nav-group-items" id="folio-group-{{ loop.index }}">
+          {% for anchor in group.sections %}
+            {% for s in sections if s.anchor == anchor %}
+            <a class="folio-nav-link" href="#{{ s.anchor }}">{{ s.title }}</a>
+            {% endfor %}
+          {% endfor %}
+          </div>
+        </div>
+        {% endfor %}
+      {% else %}
+        <div class="folio-nav-group">
+          <div class="folio-nav-group-items">
+          {% for s in sections %}
+            <a class="folio-nav-link" href="#{{ s.anchor }}">{{ s.title }}</a>
+          {% endfor %}
+          </div>
+        </div>
+      {% endif %}
+    </nav>
+  </aside>
+
+  <main class="folio-content" id="folio-main" tabindex="-1">
+    <header class="folio-doc-header">
+      {% if eyebrow %}<p class="folio-doc-eyebrow">{{ eyebrow }}</p>{% endif %}
+      <h1 class="folio-doc-title">{{ title }}</h1>
+      {% if subtitle %}<p class="folio-doc-subtitle">{{ subtitle }}</p>{% endif %}
+      {% if generated_at or author or sections %}
+      <div class="folio-doc-meta">
+        {% if generated_at %}<span>Generated {{ generated_at }}</span>{% endif %}
+        {% if author %}<span>By {{ author }}</span>{% endif %}
+        {% if sections %}<span>{{ sections | length }} section{{ '' if sections|length == 1 else 's' }}</span>{% endif %}
+      </div>
+      {% endif %}
+    </header>
+
+    {% if sections %}
+      {% for s in sections %}
+      <article class="folio-section" id="{{ s.anchor }}" aria-labelledby="title-{{ s.anchor }}">
+        {% if s.eyebrow %}<p class="folio-section-eyebrow">{{ s.eyebrow }}</p>{% endif %}
+        <h2 class="folio-section-title" id="title-{{ s.anchor }}">{{ s.title }}<a class="folio-anchor" href="#{{ s.anchor }}" aria-label="Permalink to {{ s.title }}">#</a></h2>
+        {{ s.html_content | safe }}
+      </article>
+      {% endfor %}
+    {% else %}
+      <div class="folio-empty">No sections to display.</div>
+    {% endif %}
+  </main>
+</div>
+
+<script>
+(function(){
+  "use strict";
+  var prefersReduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  /* ---- TOC: active section tracking via single IntersectionObserver ---- */
+  var links = Array.prototype.slice.call(document.querySelectorAll('.folio-nav-link'));
+  var sections = Array.prototype.slice.call(document.querySelectorAll('.folio-section'));
+  var byId = {};
+  links.forEach(function(a){
+    var hash = a.getAttribute('href');
+    if (hash && hash.charAt(0) === '#') byId[hash.slice(1)] = a;
+  });
+
+  function setActive(id) {
+    links.forEach(function(a){ a.classList.remove('is-active'); a.removeAttribute('aria-current'); });
+    var link = byId[id];
+    if (link) {
+      link.classList.add('is-active');
+      link.setAttribute('aria-current', 'location');
+      // Update URL without scrolling
+      if (history.replaceState) {
+        try { history.replaceState(null, '', '#' + id); } catch(_) {}
+      }
+    }
+  }
+
+  if ('IntersectionObserver' in window && sections.length) {
+    var visible = {}; // id -> ratio
+    var io = new IntersectionObserver(function(entries){
+      entries.forEach(function(e){
+        if (e.isIntersecting) visible[e.target.id] = e.intersectionRatio;
+        else delete visible[e.target.id];
+      });
+      // Pick the topmost visible section by document order
+      var topId = null;
+      for (var i = 0; i < sections.length; i++) {
+        if (visible[sections[i].id] !== undefined) { topId = sections[i].id; break; }
+      }
+      if (topId) setActive(topId);
+    }, { rootMargin: '-15% 0px -65% 0px', threshold: [0, 0.01] });
+    sections.forEach(function(sec){ io.observe(sec); });
+  }
+
+  /* ---- Mobile sidebar toggle ---- */
+  var toggle = document.getElementById('folioTocToggle');
+  var sidebar = document.getElementById('folioSidebar');
+  var scrim = document.getElementById('folioTocScrim');
+
+  function openSidebar() {
+    if (!sidebar) return;
+    sidebar.classList.add('is-open');
+    if (scrim) scrim.classList.add('is-visible');
+    if (toggle) toggle.setAttribute('aria-expanded', 'true');
+  }
+  function closeSidebar() {
+    if (!sidebar) return;
+    sidebar.classList.remove('is-open');
+    if (scrim) scrim.classList.remove('is-visible');
+    if (toggle) toggle.setAttribute('aria-expanded', 'false');
+  }
+  if (toggle && sidebar) {
+    toggle.addEventListener('click', function(){
+      sidebar.classList.contains('is-open') ? closeSidebar() : openSidebar();
+    });
+  }
+  if (scrim) scrim.addEventListener('click', closeSidebar);
+  if (sidebar) {
+    sidebar.addEventListener('click', function(e){
+      var t = e.target;
+      if (t && t.classList && t.classList.contains('folio-nav-link')) closeSidebar();
+    });
+  }
+  document.addEventListener('keydown', function(e){
+    if (e.key === 'Escape' && sidebar && sidebar.classList.contains('is-open')) closeSidebar();
+  });
+
+  /* ---- TOC group collapse ---- */
+  var groupLabels = document.querySelectorAll('.folio-nav-group-label[aria-expanded]');
+  groupLabels.forEach(function(btn){
+    btn.addEventListener('click', function(){
+      var group = btn.closest('.folio-nav-group');
+      var expanded = btn.getAttribute('aria-expanded') === 'true';
+      btn.setAttribute('aria-expanded', expanded ? 'false' : 'true');
+      if (group) group.setAttribute('data-collapsed', expanded ? 'true' : 'false');
+    });
+  });
+})();
+</script>
+</body>
+</html>

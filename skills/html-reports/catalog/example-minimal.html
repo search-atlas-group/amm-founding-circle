@@ -1,0 +1,1273 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Integration registry — 71 connectors</title>
+<style>
+/* ============================================================
+   Catalog — search-first faceted list view
+   Identity: "library index" — warm off-white, deep ink, moss accent,
+   brass-amber for active filters, left-rail facet panel, index-card rows.
+   ============================================================ */
+
+:root {
+  --cat-bg:          #fafaf7;
+  --cat-bg-panel:    #ffffff;
+  --cat-bg-soft:     #f1f0ea;
+  --cat-bg-sunk:     #efeee7;
+  --cat-text:        #1c1917;
+  --cat-text-2:      #44403c;
+  --cat-muted:       #78716c;
+  --cat-border:      #e7e5de;
+  --cat-border-strong:#d6d3cb;
+  --cat-rule:        #1c1917;
+
+  --cat-accent:      #3f6147;
+  --cat-accent-deep: #2c4a33;
+  --cat-accent-bg:   #eaf1eb;
+  --cat-amber:       #a16207;
+  --cat-amber-bg:    #fdf6e3;
+  --cat-amber-ink:   #6b4203;
+  --cat-highlight:   #fff3a8;
+  --cat-ring:        #3f6147;
+  --cat-ring-strong: #2c4a33;
+
+  --cat-st-active-bg:  #e2ecdf;  --cat-st-active-ink:  #2f4a34;
+  --cat-st-beta-bg:    #fdf0d2;  --cat-st-beta-ink:    #6b4203;
+  --cat-st-deprec-bg:  #f1dede;  --cat-st-deprec-ink:  #6e1f1f;
+  --cat-st-archived-bg:#ece9e2;  --cat-st-archived-ink:#57534e;
+  --cat-st-neutral-bg: #e7ebef;  --cat-st-neutral-ink: #334155;
+
+  --cat-body-font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+                   "Helvetica Neue", Arial, sans-serif;
+  --cat-mono-font: ui-monospace, SFMono-Regular, "SF Mono", Menlo,
+                   Consolas, "Liberation Mono", monospace;
+
+  --cat-rail-w:      264px;
+  --cat-drawer-w:    480px;
+  --cat-row-h:       72px;
+  --cat-row-h-card:  140px;
+  --cat-radius:      8px;
+  --cat-radius-sm:   4px;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0; padding: 0;
+  background: var(--cat-bg);
+  color: var(--cat-text);
+  font-family: var(--cat-body-font);
+  font-size: 14px;
+  line-height: 1.5;
+  font-feature-settings: "tnum" 1, "lnum" 1;
+  -webkit-font-smoothing: antialiased;
+  print-color-adjust: exact;
+  -webkit-print-color-adjust: exact;
+}
+
+.cat-skip {
+  position: absolute; left: -9999px; top: 0;
+  background: var(--cat-accent-deep); color: #fff;
+  padding: 8px 12px; border-radius: var(--cat-radius-sm);
+  font-size: 13px; font-weight: 600; z-index: 100;
+}
+.cat-skip:focus { left: 12px; top: 12px; }
+
+.sr-only {
+  position: absolute !important;
+  width: 1px; height: 1px; padding: 0; margin: -1px;
+  overflow: hidden; clip: rect(0,0,0,0);
+  white-space: nowrap; border: 0;
+}
+
+.cat-shell { max-width: 1400px; margin: 0 auto; padding: 24px 24px 96px; }
+
+.cat-header { margin-bottom: 14px; }
+.cat-header .eyebrow {
+  text-transform: uppercase; letter-spacing: 0.18em;
+  font-size: 10.5px; font-weight: 700;
+  color: var(--cat-accent); margin-bottom: 6px;
+}
+.cat-header h1 {
+  margin: 0 0 4px; font-size: 26px; font-weight: 700;
+  letter-spacing: -0.015em; color: var(--cat-text);
+}
+.cat-header .cat-subtitle {
+  color: var(--cat-text-2); font-size: 14px; max-width: 70ch;
+}
+.cat-header .cat-meta {
+  color: var(--cat-muted); font-size: 12px; margin-top: 6px;
+  font-feature-settings: "tnum" 1;
+}
+
+.cat-searchbar {
+  display: flex; align-items: center; gap: 12px;
+  margin: 12px 0 18px; padding: 10px 14px 10px 12px;
+  background: var(--cat-bg-panel);
+  border: 1px solid var(--cat-border-strong);
+  border-radius: var(--cat-radius);
+  box-shadow: 0 1px 0 rgba(28, 25, 23, 0.03);
+}
+.cat-searchbar:focus-within {
+  border-color: var(--cat-accent);
+  box-shadow: 0 0 0 3px var(--cat-accent-bg);
+}
+.cat-searchbar .cat-search-icon { width: 18px; height: 18px; flex: 0 0 auto; color: var(--cat-muted); }
+.cat-searchbar input[type="search"] {
+  flex: 1 1 auto; border: 0; outline: 0; background: transparent;
+  font: inherit; font-size: 15px; color: var(--cat-text);
+  padding: 4px 0; min-width: 0;
+}
+.cat-searchbar input[type="search"]::placeholder { color: var(--cat-muted); }
+.cat-searchbar input[type="search"]::-webkit-search-cancel-button { display: none; }
+.cat-searchbar .cat-search-kbd {
+  flex: 0 0 auto; font-family: var(--cat-mono-font);
+  font-size: 11px; color: var(--cat-muted);
+  background: var(--cat-bg-sunk); border: 1px solid var(--cat-border);
+  border-radius: 4px; padding: 2px 6px;
+}
+.cat-searchbar .cat-search-clear {
+  flex: 0 0 auto; appearance: none; background: transparent; border: 0;
+  color: var(--cat-muted); font-size: 18px; line-height: 1;
+  padding: 2px 6px; cursor: pointer; border-radius: 4px; display: none;
+}
+.cat-searchbar.has-value .cat-search-clear { display: inline-block; }
+.cat-searchbar.has-value .cat-search-kbd   { display: none; }
+.cat-searchbar .cat-search-clear:hover { background: var(--cat-bg-soft); color: var(--cat-text); }
+.cat-searchbar .cat-search-clear:focus-visible { outline: 2px solid var(--cat-ring); outline-offset: 1px; }
+
+.cat-body {
+  display: grid; grid-template-columns: var(--cat-rail-w) 1fr;
+  gap: 24px; align-items: start;
+}
+
+.cat-rail {
+  background: var(--cat-bg-panel);
+  border: 1px solid var(--cat-border);
+  border-radius: var(--cat-radius);
+  padding: 4px 0;
+  position: sticky; top: 14px;
+  max-height: calc(100vh - 28px); overflow: auto;
+}
+.cat-rail-section { padding: 14px 16px; border-bottom: 1px solid var(--cat-border); }
+.cat-rail-section:last-child { border-bottom: 0; }
+.cat-rail-section .rail-label {
+  display: flex; align-items: baseline; justify-content: space-between;
+  gap: 6px; margin-bottom: 10px;
+  text-transform: uppercase; font-size: 10.5px; letter-spacing: 0.14em;
+  color: var(--cat-text-2); font-weight: 700;
+}
+.cat-rail-section .rail-label .rail-count {
+  text-transform: none; letter-spacing: 0; font-size: 11px;
+  color: var(--cat-muted); font-weight: 500; font-feature-settings: "tnum" 1;
+}
+
+.cat-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.cat-chip {
+  appearance: none;
+  border: 1px solid var(--cat-border-strong);
+  background: var(--cat-bg-panel); color: var(--cat-text-2);
+  font: inherit; font-size: 12.5px; font-weight: 500;
+  padding: 4px 10px 4px 9px; border-radius: 999px; cursor: pointer;
+  display: inline-flex; align-items: center; gap: 6px; line-height: 1.4;
+  transition: background 120ms, color 120ms, border-color 120ms;
+}
+.cat-chip .chip-n {
+  font-feature-settings: "tnum" 1; font-size: 11px;
+  color: var(--cat-muted); font-weight: 500;
+}
+.cat-chip:hover { background: var(--cat-bg-soft); }
+.cat-chip:focus-visible { outline: 2px solid var(--cat-ring); outline-offset: 1px; }
+.cat-chip[aria-pressed="true"] {
+  background: var(--cat-amber-bg);
+  border-color: var(--cat-amber);
+  color: var(--cat-amber-ink);
+}
+.cat-chip[aria-pressed="true"] .chip-n { color: var(--cat-amber-ink); }
+.cat-chip[aria-pressed="true"]::before {
+  content: "✓"; font-size: 11px; font-weight: 700; line-height: 1;
+}
+
+.cat-rail .rail-footer {
+  padding: 12px 16px; border-top: 1px solid var(--cat-border);
+  display: flex; align-items: center; justify-content: space-between; gap: 8px;
+}
+.cat-rail .rail-active-count {
+  font-size: 12px; color: var(--cat-muted); font-feature-settings: "tnum" 1;
+}
+.cat-rail .rail-active-count strong { color: var(--cat-amber-ink); font-weight: 700; }
+.cat-clear-all {
+  appearance: none; background: transparent;
+  border: 1px solid var(--cat-border-strong); color: var(--cat-text-2);
+  font: inherit; font-size: 12px; font-weight: 600;
+  padding: 4px 10px; border-radius: 999px; cursor: pointer; display: none;
+}
+.cat-clear-all:hover { background: var(--cat-bg-soft); }
+.cat-clear-all:focus-visible { outline: 2px solid var(--cat-ring); outline-offset: 1px; }
+.cat-rail.has-active .cat-clear-all { display: inline-block; }
+
+.cat-main { min-width: 0; }
+
+.cat-toolbar {
+  display: flex; align-items: center; gap: 12px;
+  margin-bottom: 12px; flex-wrap: wrap;
+}
+.cat-count { font-size: 13px; color: var(--cat-text-2); font-feature-settings: "tnum" 1; flex: 1 1 auto; }
+.cat-count strong { color: var(--cat-text); font-weight: 700; }
+.cat-count .count-of { color: var(--cat-muted); font-weight: 400; }
+
+.cat-sort { display: inline-flex; align-items: center; gap: 6px; font-size: 12.5px; color: var(--cat-text-2); }
+.cat-sort label { color: var(--cat-muted); }
+.cat-sort select {
+  appearance: none; -webkit-appearance: none;
+  background: var(--cat-bg-panel);
+  border: 1px solid var(--cat-border-strong);
+  border-radius: var(--cat-radius-sm);
+  padding: 5px 26px 5px 9px;
+  font: inherit; font-size: 12.5px; font-weight: 500;
+  color: var(--cat-text); cursor: pointer;
+  background-image: linear-gradient(45deg, transparent 50%, var(--cat-muted) 50%),
+                    linear-gradient(135deg, var(--cat-muted) 50%, transparent 50%);
+  background-position: calc(100% - 14px) 50%, calc(100% - 9px) 50%;
+  background-size: 5px 5px, 5px 5px; background-repeat: no-repeat;
+}
+.cat-sort select:focus-visible { outline: 2px solid var(--cat-ring); outline-offset: 1px; }
+.cat-sort-dir {
+  appearance: none; background: var(--cat-bg-panel);
+  border: 1px solid var(--cat-border-strong); color: var(--cat-text-2);
+  width: 28px; height: 28px; border-radius: var(--cat-radius-sm); cursor: pointer;
+  font-size: 13px; line-height: 1;
+  display: inline-flex; align-items: center; justify-content: center;
+}
+.cat-sort-dir:hover { background: var(--cat-bg-soft); }
+.cat-sort-dir:focus-visible { outline: 2px solid var(--cat-ring); outline-offset: 1px; }
+
+.cat-viewtoggle {
+  display: inline-flex;
+  border: 1px solid var(--cat-border-strong);
+  border-radius: var(--cat-radius-sm);
+  overflow: hidden; background: var(--cat-bg-panel);
+}
+.cat-viewtoggle button {
+  appearance: none; background: transparent; border: 0;
+  padding: 4px 10px; font: inherit; font-size: 12px;
+  color: var(--cat-text-2); cursor: pointer; font-weight: 500;
+}
+.cat-viewtoggle button + button { border-left: 1px solid var(--cat-border); }
+.cat-viewtoggle button:hover { background: var(--cat-bg-soft); }
+.cat-viewtoggle button[aria-pressed="true"] {
+  background: var(--cat-accent-bg);
+  color: var(--cat-accent-deep);
+  font-weight: 700;
+}
+.cat-viewtoggle button:focus-visible { outline: 2px solid var(--cat-ring); outline-offset: -2px; }
+
+.cat-mobile-filters { display: none; }
+
+.cat-list {
+  list-style: none; padding: 0; margin: 0;
+  background: var(--cat-bg-panel);
+  border: 1px solid var(--cat-border);
+  border-radius: var(--cat-radius);
+  overflow: hidden; position: relative; min-height: 240px;
+}
+.cat-list[data-virtual="true"] {
+  height: min(calc(100vh - 220px), 78vh);
+  overflow-y: auto;
+}
+.cat-list[data-virtual="true"] .cat-list-spacer {
+  width: 1px; position: absolute; top: 0; left: 0; pointer-events: none;
+}
+.cat-row { margin: 0; padding: 0; position: relative; }
+.cat-list[data-virtual="true"] .cat-row { position: absolute; left: 0; right: 0; }
+
+.cat-row-link {
+  display: grid;
+  grid-template-columns: 36px minmax(0, 1.4fr) minmax(0, 1fr) auto auto;
+  align-items: center; gap: 14px;
+  padding: 14px 18px;
+  text-decoration: none; color: var(--cat-text);
+  border-bottom: 1px solid var(--cat-border);
+  background: var(--cat-bg-panel); cursor: pointer;
+  position: relative; min-height: var(--cat-row-h); width: 100%;
+  text-align: left; font: inherit;
+  border-left: 0; border-right: 0; border-top: 0;
+}
+.cat-row:last-child .cat-row-link { border-bottom: 0; }
+.cat-row-link:hover { background: var(--cat-bg-soft); }
+.cat-row-link:focus-visible {
+  outline: 2px solid var(--cat-ring); outline-offset: -2px;
+  background: var(--cat-bg-soft);
+}
+.cat-row-link[aria-current="true"] {
+  background: var(--cat-accent-bg);
+  box-shadow: inset 3px 0 0 var(--cat-accent);
+}
+.cat-row .cat-icon {
+  width: 36px; height: 36px; border-radius: var(--cat-radius-sm);
+  background: var(--cat-bg-soft); border: 1px solid var(--cat-border);
+  color: var(--cat-text-2);
+  display: inline-flex; align-items: center; justify-content: center;
+  font-weight: 700; font-size: 14px; letter-spacing: 0.01em;
+  font-family: var(--cat-mono-font); flex-shrink: 0;
+}
+.cat-row .cat-title { display: flex; flex-direction: column; min-width: 0; }
+.cat-row .cat-title-line {
+  display: block;
+  font-size: 14.5px; font-weight: 700;
+  color: var(--cat-text); letter-spacing: -0.005em;
+  margin: 0 0 2px;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.cat-row .cat-desc {
+  display: block;
+  font-size: 12.5px; color: var(--cat-muted); margin: 0;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.cat-row .cat-meta-block {
+  font-size: 12.5px; color: var(--cat-text-2);
+  display: flex; flex-direction: column; gap: 4px; min-width: 0;
+}
+.cat-row .cat-meta-block .cat-meta-pair {
+  display: inline-flex; align-items: baseline; gap: 6px; min-width: 0;
+}
+.cat-row .cat-meta-block .cat-meta-k {
+  font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.1em;
+  color: var(--cat-muted); font-weight: 600; flex-shrink: 0;
+}
+.cat-row .cat-meta-block .cat-meta-v {
+  font-size: 13px; color: var(--cat-text); font-weight: 500;
+  font-feature-settings: "tnum" 1;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.cat-status {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 3px 9px; border-radius: 999px;
+  font-size: 11.5px; font-weight: 600; letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+.cat-status::before {
+  content: ""; width: 6px; height: 6px; border-radius: 50%;
+  background: currentColor; opacity: 0.7;
+}
+.cat-status.st-active     { background: var(--cat-st-active-bg);   color: var(--cat-st-active-ink); }
+.cat-status.st-beta       { background: var(--cat-st-beta-bg);     color: var(--cat-st-beta-ink); }
+.cat-status.st-paused     { background: var(--cat-bg-soft);        color: var(--cat-text-2); }
+.cat-status.st-deprecated { background: var(--cat-st-deprec-bg);   color: var(--cat-st-deprec-ink); }
+.cat-status.st-archived   { background: var(--cat-st-archived-bg); color: var(--cat-st-archived-ink); }
+.cat-status.st-neutral    { background: var(--cat-st-neutral-bg);  color: var(--cat-st-neutral-ink); }
+
+.cat-row .cat-quickaction {
+  font-size: 11.5px; color: var(--cat-accent-deep);
+  font-weight: 600;
+  opacity: 0; transform: translateX(-4px);
+  transition: opacity 100ms, transform 100ms;
+}
+.cat-row-link:hover .cat-quickaction,
+.cat-row-link:focus-visible .cat-quickaction { opacity: 1; transform: translateX(0); }
+
+.cat-list.view-cards .cat-row-link {
+  grid-template-columns: 44px minmax(0, 1fr) auto;
+  grid-template-rows: auto auto;
+  gap: 12px 14px; padding: 16px 18px;
+  min-height: var(--cat-row-h-card); align-items: start;
+}
+.cat-list.view-cards .cat-icon { grid-row: 1 / 3; width: 44px; height: 44px; font-size: 15px; }
+.cat-list.view-cards .cat-title { grid-column: 2; }
+.cat-list.view-cards .cat-status { grid-column: 3; grid-row: 1; justify-self: end; }
+.cat-list.view-cards .cat-meta-block {
+  grid-column: 2 / 4; grid-row: 2;
+  flex-direction: row; flex-wrap: wrap; gap: 4px 18px;
+}
+.cat-list.view-cards .cat-meta-block .cat-meta-k::after { content: ":"; margin-right: 4px; }
+.cat-list.view-cards .cat-meta-block .cat-meta-pair { display: inline-flex; align-items: baseline; gap: 4px; }
+.cat-list.view-cards .cat-desc { white-space: normal; overflow: visible; text-overflow: clip; font-size: 13px; line-height: 1.5; color: var(--cat-text-2); }
+.cat-list.view-cards .cat-quickaction { display: none; }
+
+mark.cat-hl {
+  background: var(--cat-highlight); color: var(--cat-text);
+  padding: 0 1px; border-radius: 2px; font-weight: inherit;
+}
+
+.cat-empty { display: none; padding: 56px 24px; text-align: center; color: var(--cat-text-2); }
+.cat-list.is-empty + .cat-empty { display: block; }
+.cat-empty .empty-mark { font-size: 28px; color: var(--cat-muted); margin-bottom: 8px; }
+.cat-empty .empty-title { font-size: 15px; font-weight: 700; color: var(--cat-text); margin-bottom: 4px; }
+.cat-empty .empty-sub { font-size: 13px; color: var(--cat-muted); margin-bottom: 14px; max-width: 44ch; margin-left: auto; margin-right: auto; }
+.cat-empty .empty-cta {
+  appearance: none; background: var(--cat-accent-deep); color: #fff; border: 0;
+  padding: 8px 16px; border-radius: var(--cat-radius-sm);
+  font: inherit; font-size: 13px; font-weight: 600; cursor: pointer;
+}
+.cat-empty .empty-cta:hover { background: var(--cat-accent); }
+.cat-empty .empty-cta:focus-visible { outline: 2px solid var(--cat-ring); outline-offset: 2px; }
+
+/* Drawer */
+.cat-drawer-scrim {
+  position: fixed; inset: 0; background: rgba(28, 25, 23, 0.32);
+  opacity: 0; pointer-events: none; transition: opacity 140ms; z-index: 50;
+}
+.cat-drawer-scrim.is-open { opacity: 1; pointer-events: auto; }
+.cat-drawer {
+  position: fixed; top: 0; right: 0; height: 100vh;
+  width: min(var(--cat-drawer-w), 100vw);
+  background: var(--cat-bg-panel);
+  border-left: 1px solid var(--cat-border-strong);
+  box-shadow: -8px 0 24px rgba(28, 25, 23, 0.10);
+  transform: translateX(100%); transition: transform 160ms ease-out;
+  z-index: 60; display: flex; flex-direction: column; overflow: hidden;
+}
+.cat-drawer.is-open { transform: translateX(0); }
+.cat-drawer-head {
+  padding: 18px 22px 14px; border-bottom: 1px solid var(--cat-border);
+  display: flex; align-items: flex-start; gap: 12px;
+}
+.cat-drawer-head .drawer-icon {
+  width: 44px; height: 44px; border-radius: var(--cat-radius-sm);
+  background: var(--cat-accent-bg); border: 1px solid var(--cat-accent);
+  color: var(--cat-accent-deep);
+  display: inline-flex; align-items: center; justify-content: center;
+  font-weight: 700; font-family: var(--cat-mono-font);
+  font-size: 15px; flex-shrink: 0;
+}
+.cat-drawer-head .drawer-title-block { flex: 1 1 auto; min-width: 0; }
+.cat-drawer-head .drawer-eyebrow {
+  text-transform: uppercase; letter-spacing: 0.14em;
+  font-size: 10.5px; font-weight: 700; color: var(--cat-accent); margin-bottom: 2px;
+}
+.cat-drawer-head h2 {
+  margin: 0 0 6px; font-size: 18px; font-weight: 700;
+  color: var(--cat-text); letter-spacing: -0.01em; word-break: break-word;
+}
+.cat-drawer-head .drawer-sub { color: var(--cat-text-2); font-size: 13px; margin: 0; }
+.cat-drawer-close {
+  appearance: none; background: transparent; border: 1px solid transparent;
+  color: var(--cat-muted); width: 32px; height: 32px; border-radius: 50%;
+  font-size: 18px; line-height: 1; cursor: pointer; flex-shrink: 0;
+}
+.cat-drawer-close:hover { background: var(--cat-bg-soft); color: var(--cat-text); }
+.cat-drawer-close:focus-visible { outline: 2px solid var(--cat-ring); outline-offset: 1px; }
+
+.cat-drawer-body { padding: 16px 22px 22px; overflow: auto; flex: 1 1 auto; }
+.cat-drawer-body .drawer-section { margin-bottom: 18px; }
+.cat-drawer-body .drawer-section h3 {
+  text-transform: uppercase; letter-spacing: 0.14em;
+  font-size: 10.5px; color: var(--cat-text-2);
+  font-weight: 700; margin: 0 0 8px;
+}
+.cat-drawer-body p { margin: 0 0 10px; font-size: 13.5px; line-height: 1.55; color: var(--cat-text); }
+.cat-drawer-body .drawer-kv {
+  display: grid; grid-template-columns: 110px 1fr; gap: 6px 14px; font-size: 13px;
+}
+.cat-drawer-body .drawer-kv dt {
+  color: var(--cat-muted); font-weight: 500;
+  text-transform: uppercase; letter-spacing: 0.08em; font-size: 10.5px; padding-top: 2px;
+}
+.cat-drawer-body .drawer-kv dd {
+  margin: 0; color: var(--cat-text); font-weight: 500;
+  font-feature-settings: "tnum" 1; word-break: break-word;
+}
+.cat-drawer-body .drawer-tags { display: flex; flex-wrap: wrap; gap: 6px; }
+.cat-drawer-body .drawer-tag {
+  font-size: 11.5px; padding: 2px 8px;
+  background: var(--cat-bg-soft); color: var(--cat-text-2);
+  border-radius: 999px; border: 1px solid var(--cat-border); font-weight: 500;
+}
+.cat-drawer-foot {
+  padding: 12px 22px; border-top: 1px solid var(--cat-border);
+  display: flex; gap: 8px; justify-content: flex-end; background: var(--cat-bg-soft);
+}
+.cat-drawer-foot .btn {
+  appearance: none; background: var(--cat-bg-panel);
+  border: 1px solid var(--cat-border-strong); color: var(--cat-text);
+  padding: 6px 14px; border-radius: var(--cat-radius-sm);
+  font: inherit; font-size: 13px; font-weight: 600; cursor: pointer;
+}
+.cat-drawer-foot .btn:hover { background: var(--cat-bg-sunk); }
+.cat-drawer-foot .btn-primary {
+  background: var(--cat-accent-deep); border-color: var(--cat-accent-deep); color: #fff;
+}
+.cat-drawer-foot .btn-primary:hover { background: var(--cat-accent); border-color: var(--cat-accent); }
+.cat-drawer-foot .btn:focus-visible { outline: 2px solid var(--cat-ring); outline-offset: 1px; }
+
+/* Mobile bottom sheet */
+.cat-bottomsheet-scrim {
+  position: fixed; inset: 0; background: rgba(28, 25, 23, 0.32);
+  opacity: 0; pointer-events: none; transition: opacity 140ms; z-index: 40;
+}
+.cat-bottomsheet-scrim.is-open { opacity: 1; pointer-events: auto; }
+.cat-bottomsheet {
+  position: fixed; bottom: 0; left: 0; right: 0;
+  background: var(--cat-bg-panel);
+  border-top-left-radius: 14px; border-top-right-radius: 14px;
+  max-height: 78vh; overflow-y: auto;
+  transform: translateY(100%); transition: transform 160ms ease-out;
+  z-index: 45;
+  padding-bottom: env(safe-area-inset-bottom, 0);
+}
+.cat-bottomsheet.is-open { transform: translateY(0); }
+.cat-bottomsheet .sheet-handle {
+  width: 40px; height: 4px; background: var(--cat-border-strong);
+  border-radius: 2px; margin: 8px auto 4px;
+}
+.cat-bottomsheet .sheet-head {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 8px 18px 12px; border-bottom: 1px solid var(--cat-border);
+}
+.cat-bottomsheet .sheet-head h3 { margin: 0; font-size: 14px; font-weight: 700; color: var(--cat-text); }
+.cat-bottomsheet .sheet-close {
+  appearance: none; background: transparent; border: 0;
+  font-size: 14px; color: var(--cat-accent-deep);
+  font-weight: 600; cursor: pointer; padding: 4px 8px;
+}
+
+@media (max-width: 1024px) {
+  .cat-body { grid-template-columns: 1fr; gap: 12px; }
+  .cat-rail { position: static; max-height: none; padding: 8px; }
+  .cat-rail-section { padding: 10px 12px; }
+  .cat-rail-section .rail-label { margin-bottom: 6px; }
+}
+@media (max-width: 768px) {
+  .cat-shell { padding: 16px 14px 64px; }
+  .cat-header h1 { font-size: 22px; }
+  .cat-searchbar { padding: 8px 12px; }
+  .cat-searchbar .cat-search-kbd { display: none; }
+  .cat-body { grid-template-columns: 1fr; }
+  .cat-rail { display: none; }
+  .cat-mobile-filters {
+    display: inline-flex; align-items: center; gap: 8px;
+    appearance: none; background: var(--cat-bg-panel);
+    border: 1px solid var(--cat-border-strong); color: var(--cat-text);
+    padding: 6px 12px; border-radius: 999px;
+    font: inherit; font-size: 13px; font-weight: 600; cursor: pointer;
+  }
+  .cat-mobile-filters .mf-count {
+    font-feature-settings: "tnum" 1; background: var(--cat-amber); color: #fff;
+    border-radius: 999px; padding: 1px 7px; font-size: 11px;
+    min-width: 18px; text-align: center; display: none;
+  }
+  .cat-mobile-filters.has-active .mf-count { display: inline-block; }
+  .cat-row-link {
+    grid-template-columns: 32px minmax(0, 1fr) auto; gap: 10px; padding: 12px 14px;
+  }
+  .cat-row .cat-icon { width: 32px; height: 32px; font-size: 12px; }
+  .cat-row .cat-meta-block { display: none; }
+  .cat-row .cat-quickaction { display: none; }
+  .cat-list.view-cards .cat-row-link {
+    grid-template-columns: 36px minmax(0, 1fr);
+    grid-template-rows: auto auto auto;
+  }
+  .cat-list.view-cards .cat-status { grid-column: 2; grid-row: 1; justify-self: start; margin-top: 2px; }
+  .cat-list.view-cards .cat-meta-block { display: flex; grid-column: 2; grid-row: 3; }
+  .cat-drawer { width: 100vw; }
+  .cat-drawer-body .drawer-kv { grid-template-columns: 90px 1fr; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cat-drawer, .cat-drawer-scrim,
+  .cat-bottomsheet, .cat-bottomsheet-scrim,
+  .cat-chip, .cat-row .cat-quickaction { transition: none !important; }
+}
+
+@media (forced-colors: active) {
+  .cat-chip, .cat-row-link, .cat-drawer, .cat-bottomsheet, .cat-searchbar { border-color: CanvasText; }
+  .cat-chip[aria-pressed="true"] { background: Highlight; color: HighlightText; border-color: Highlight; }
+  .cat-status { border: 1px solid CanvasText; }
+  mark.cat-hl { background: Highlight; color: HighlightText; }
+}
+
+@media print {
+  body { font-size: 10.5px; background: #fff; color: #000; }
+  .cat-skip, .cat-searchbar, .cat-rail,
+  .cat-toolbar .cat-sort, .cat-toolbar .cat-viewtoggle,
+  .cat-mobile-filters, .cat-drawer, .cat-drawer-scrim,
+  .cat-bottomsheet, .cat-bottomsheet-scrim,
+  .cat-empty, .cat-row .cat-quickaction { display: none !important; }
+  .cat-shell { max-width: 100%; padding: 0; }
+  .cat-body { display: block; }
+  .cat-main { width: 100%; }
+  .cat-header h1 { font-size: 18px; }
+  .cat-list {
+    border: 1px solid #000; border-radius: 0; background: #fff;
+    height: auto !important; max-height: none !important; overflow: visible !important;
+    min-height: 0;
+  }
+  .cat-list[data-virtual="true"] .cat-row { position: static !important; }
+  .cat-list[data-virtual="true"] .cat-list-spacer { display: none; }
+  .cat-row-link {
+    border-bottom: 1px solid #000; page-break-inside: avoid; break-inside: avoid;
+    background: #fff !important; box-shadow: none !important;
+  }
+  .cat-row .cat-icon { background: #fff; border: 1px solid #000; color: #000; }
+  .cat-status { background: #fff !important; color: #000 !important; border: 1px solid #000; }
+  .cat-count { font-weight: 700; }
+  mark.cat-hl { background: transparent; text-decoration: underline; }
+}
+</style>
+</head>
+<body>
+<a href="#cat-list" class="cat-skip">Skip to results</a>
+
+<div class="cat-shell">
+  <header class="cat-header">
+    <div class="eyebrow">Platform · Q2 audit</div>
+    <h1>Integration registry — 71 connectors</h1>
+    <div class="cat-subtitle">Searchable catalog of every third-party integration available across the platform. Filter by status, category, or owning team; open a row for full details.</div>
+    <div class="cat-meta">Generated 2026-05-21 · 71 records</div>
+  </header>
+
+  <div class="cat-searchbar" id="cat-searchbar">
+    <svg class="cat-search-icon" viewBox="0 0 20 20" aria-hidden="true">
+      <circle cx="9" cy="9" r="6" fill="none" stroke="currentColor" stroke-width="1.6"/>
+      <line x1="13.5" y1="13.5" x2="17.5" y2="17.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+    </svg>
+    <label class="sr-only" for="cat-search">Search integrations</label>
+    <input id="cat-search" type="search" autocomplete="off" spellcheck="false"
+           placeholder="Search by name, owner, tag…">
+    <span class="cat-search-kbd" aria-hidden="true">/</span>
+    <button type="button" class="cat-search-clear" aria-label="Clear search">×</button>
+  </div>
+
+  <div class="cat-body">
+    <aside class="cat-rail" id="cat-rail" aria-label="Filters">
+      <section class="cat-rail-section" data-facet="status">
+        <div class="rail-label"><span>Status</span><span class="rail-count" data-active-count></span></div>
+        <div class="cat-chips" role="group" aria-label="Status filters">
+          <button type="button" class="cat-chip" aria-pressed="false" data-facet="status" data-value="active"><span>Active</span><span class="chip-n">38</span></button>
+          <button type="button" class="cat-chip" aria-pressed="false" data-facet="status" data-value="beta"><span>Beta</span><span class="chip-n">11</span></button>
+          <button type="button" class="cat-chip" aria-pressed="false" data-facet="status" data-value="paused"><span>Paused</span><span class="chip-n">6</span></button>
+          <button type="button" class="cat-chip" aria-pressed="false" data-facet="status" data-value="deprecated"><span>Deprecated</span><span class="chip-n">5</span></button>
+          <button type="button" class="cat-chip" aria-pressed="false" data-facet="status" data-value="archived"><span>Archived</span><span class="chip-n">4</span></button>
+        </div>
+      </section>
+      <section class="cat-rail-section" data-facet="category">
+        <div class="rail-label"><span>Category</span><span class="rail-count" data-active-count></span></div>
+        <div class="cat-chips" role="group" aria-label="Category filters">
+          <button type="button" class="cat-chip" aria-pressed="false" data-facet="category" data-value="analytics"><span>Analytics</span><span class="chip-n">12</span></button>
+          <button type="button" class="cat-chip" aria-pressed="false" data-facet="category" data-value="crm"><span>CRM</span><span class="chip-n">9</span></button>
+          <button type="button" class="cat-chip" aria-pressed="false" data-facet="category" data-value="auth"><span>Auth</span><span class="chip-n">6</span></button>
+          <button type="button" class="cat-chip" aria-pressed="false" data-facet="category" data-value="storage"><span>Storage</span><span class="chip-n">8</span></button>
+          <button type="button" class="cat-chip" aria-pressed="false" data-facet="category" data-value="messaging"><span>Messaging</span><span class="chip-n">10</span></button>
+          <button type="button" class="cat-chip" aria-pressed="false" data-facet="category" data-value="billing"><span>Billing</span><span class="chip-n">6</span></button>
+          <button type="button" class="cat-chip" aria-pressed="false" data-facet="category" data-value="search"><span>Search</span><span class="chip-n">5</span></button>
+          <button type="button" class="cat-chip" aria-pressed="false" data-facet="category" data-value="devtools"><span>DevTools</span><span class="chip-n">8</span></button>
+        </div>
+      </section>
+      <section class="cat-rail-section" data-facet="owner">
+        <div class="rail-label"><span>Owning team</span><span class="rail-count" data-active-count></span></div>
+        <div class="cat-chips" role="group" aria-label="Owner filters">
+          <button type="button" class="cat-chip" aria-pressed="false" data-facet="owner" data-value="platform"><span>Platform</span><span class="chip-n">18</span></button>
+          <button type="button" class="cat-chip" aria-pressed="false" data-facet="owner" data-value="growth"><span>Growth</span><span class="chip-n">12</span></button>
+          <button type="button" class="cat-chip" aria-pressed="false" data-facet="owner" data-value="finance"><span>Finance</span><span class="chip-n">8</span></button>
+          <button type="button" class="cat-chip" aria-pressed="false" data-facet="owner" data-value="security"><span>Security</span><span class="chip-n">9</span></button>
+          <button type="button" class="cat-chip" aria-pressed="false" data-facet="owner" data-value="data"><span>Data</span><span class="chip-n">11</span></button>
+          <button type="button" class="cat-chip" aria-pressed="false" data-facet="owner" data-value="experience"><span>Experience</span><span class="chip-n">6</span></button>
+        </div>
+      </section>
+      <div class="rail-footer">
+        <div class="rail-active-count" aria-live="polite">
+          <strong id="rail-active-n">0</strong> filter<span id="rail-active-s">s</span> active
+        </div>
+        <button type="button" class="cat-clear-all" id="cat-clear-all">Clear all</button>
+      </div>
+    </aside>
+
+    <div class="cat-main">
+      <div class="cat-toolbar">
+        <div class="cat-count" id="cat-count" aria-live="polite">
+          Showing <strong id="cat-count-shown">71</strong> <span class="count-of">of 71</span>
+        </div>
+        <button type="button" class="cat-mobile-filters" id="cat-mobile-filters" aria-haspopup="dialog">
+          Filters <span class="mf-count" id="mf-count">0</span>
+        </button>
+        <div class="cat-viewtoggle" role="group" aria-label="View density">
+          <button type="button" data-view="rows"  aria-pressed="true">Rows</button>
+          <button type="button" data-view="cards" aria-pressed="false">Cards</button>
+        </div>
+        <div class="cat-sort">
+          <label for="cat-sort">Sort</label>
+          <select id="cat-sort">
+            <option value="name" selected>Name</option>
+            <option value="updated">Last updated</option>
+            <option value="installs">Installs</option>
+            <option value="owner">Owning team</option>
+          </select>
+          <button type="button" class="cat-sort-dir" id="cat-sort-dir"
+                  aria-label="Toggle sort direction (currently ascending)" aria-pressed="false">↑</button>
+        </div>
+      </div>
+
+      <ol class="cat-list" id="cat-list" data-virtual="false" aria-label="Integrations">
+        <li class="cat-list-spacer" aria-hidden="true"></li>
+<!-- ITEMS_START -->
+<li class="cat-row" data-id="airtable" data-name="airtable" data-desc="bi-directional sync of records, views, attachments" data-meta="data andrews api-key tables" data-facet-status="active" data-facet-category="storage" data-facet-owner="data" data-sort-name="airtable" data-sort-updated="20260512" data-sort-installs="0214" data-sort-owner="data"><button type="button" class="cat-row-link" aria-label="Open Airtable"><span class="cat-icon">AT</span><span class="cat-title"><span class="cat-title-line" data-field="name">Airtable</span><span class="cat-desc" data-field="desc">Bi-directional sync of records, views, attachments.</span></span><span class="cat-meta-block"><span class="cat-meta-pair"><span class="cat-meta-k">Owner</span><span class="cat-meta-v" data-field="meta">Data</span></span><span class="cat-meta-pair"><span class="cat-meta-k">Installs</span><span class="cat-meta-v" data-field="meta">214</span></span></span><span class="cat-status st-active">Active</span><span class="cat-quickaction">View →</span></button></li>
+<li class="cat-row" data-id="algolia" data-name="algolia" data-desc="hosted search api with instant-search components" data-meta="platform shaw saas index" data-facet-status="active" data-facet-category="search" data-facet-owner="platform" data-sort-name="algolia" data-sort-updated="20260507" data-sort-installs="0481" data-sort-owner="platform"><button type="button" class="cat-row-link" aria-label="Open Algolia"><span class="cat-icon">AL</span><span class="cat-title"><span class="cat-title-line" data-field="name">Algolia</span><span class="cat-desc" data-field="desc">Hosted search API with instant-search components.</span></span><span class="cat-meta-block"><span class="cat-meta-pair"><span class="cat-meta-k">Owner</span><span class="cat-meta-v" data-field="meta">Platform</span></span><span class="cat-meta-pair"><span class="cat-meta-k">Installs</span><span class="cat-meta-v" data-field="meta">481</span></span></span><span class="cat-status st-active">Active</span><span class="cat-quickaction">View →</span></button></li>
+<li class="cat-row" data-id="amplitude" data-name="amplitude" data-desc="product analytics events, cohorts, retention curves" data-meta="growth nguyen events sdk" data-facet-status="active" data-facet-category="analytics" data-facet-owner="growth" data-sort-name="amplitude" data-sort-updated="20260518" data-sort-installs="0612" data-sort-owner="growth"><button type="button" class="cat-row-link" aria-label="Open Amplitude"><span class="cat-icon">AM</span><span class="cat-title"><span class="cat-title-line" data-field="name">Amplitude</span><span class="cat-desc" data-field="desc">Product analytics — events, cohorts, retention curves.</span></span><span class="cat-meta-block"><span class="cat-meta-pair"><span class="cat-meta-k">Owner</span><span class="cat-meta-v" data-field="meta">Growth</span></span><span class="cat-meta-pair"><span class="cat-meta-k">Installs</span><span class="cat-meta-v" data-field="meta">612</span></span></span><span class="cat-status st-active">Active</span><span class="cat-quickaction">View →</span></button></li>
+<li class="cat-row" data-id="appsflyer" data-name="appsflyer" data-desc="mobile attribution and deep linking" data-meta="growth tan mmp mobile" data-facet-status="paused" data-facet-category="analytics" data-facet-owner="growth" data-sort-name="appsflyer" data-sort-updated="20260131" data-sort-installs="0058" data-sort-owner="growth"><button type="button" class="cat-row-link" aria-label="Open AppsFlyer"><span class="cat-icon">AF</span><span class="cat-title"><span class="cat-title-line" data-field="name">AppsFlyer</span><span class="cat-desc" data-field="desc">Mobile attribution and deep linking.</span></span><span class="cat-meta-block"><span class="cat-meta-pair"><span class="cat-meta-k">Owner</span><span class="cat-meta-v" data-field="meta">Growth</span></span><span class="cat-meta-pair"><span class="cat-meta-k">Installs</span><span class="cat-meta-v" data-field="meta">58</span></span></span><span class="cat-status st-paused">Paused</span><span class="cat-quickaction">View →</span></button></li>
+<li class="cat-row" data-id="auth0" data-name="auth0" data-desc="oauth, oidc, saml; tenant-level rbac" data-meta="security okonkwo oauth saml" data-facet-status="active" data-facet-category="auth" data-facet-owner="security" data-sort-name="auth0" data-sort-updated="20260509" data-sort-installs="0903" data-sort-owner="security"><button type="button" class="cat-row-link" aria-label="Open Auth0"><span class="cat-icon">A0</span><span class="cat-title"><span class="cat-title-line" data-field="name">Auth0</span><span class="cat-desc" data-field="desc">OAuth, OIDC, SAML — tenant-level RBAC.</span></span><span class="cat-meta-block"><span class="cat-meta-pair"><span class="cat-meta-k">Owner</span><span class="cat-meta-v" data-field="meta">Security</span></span><span class="cat-meta-pair"><span class="cat-meta-k">Installs</span><span class="cat-meta-v" data-field="meta">903</span></span></span><span class="cat-status st-active">Active</span><span class="cat-quickaction">View →</span></button></li>
+<li class="cat-row" data-id="aws-s3" data-name="aws s3" data-desc="object storage; presigned uploads; lifecycle" data-meta="platform shaw aws bucket" data-facet-status="active" data-facet-category="storage" data-facet-owner="platform" data-sort-name="aws s3" data-sort-updated="20260514" data-sort-installs="1240" data-sort-owner="platform"><button type="button" class="cat-row-link" aria-label="Open AWS S3"><span class="cat-icon">S3</span><span class="cat-title"><span class="cat-title-line" data-field="name">AWS S3</span><span class="cat-desc" data-field="desc">Object storage — presigned uploads, lifecycle policies.</span></span><span class="cat-meta-block"><span class="cat-meta-pair"><span class="cat-meta-k">Owner</span><span class="cat-meta-v" data-field="meta">Platform</span></span><span class="cat-meta-pair"><span class="cat-meta-k">Installs</span><span class="cat-meta-v" data-field="meta">1,240</span></span></span><span class="cat-status st-active">Active</span><span class="cat-quickaction">View →</span></button></li>
+<li class="cat-row" data-id="braintree" data-name="braintree" data-desc="paypal-owned card and venmo payments" data-meta="finance ortiz cards paypal" data-facet-status="deprecated" data-facet-category="billing" data-facet-owner="finance" data-sort-name="braintree" data-sort-updated="20251128" data-sort-installs="0091" data-sort-owner="finance"><button type="button" class="cat-row-link" aria-label="Open Braintree"><span class="cat-icon">BT</span><span class="cat-title"><span class="cat-title-line" data-field="name">Braintree</span><span class="cat-desc" data-field="desc">PayPal-owned card and Venmo payments.</span></span><span class="cat-meta-block"><span class="cat-meta-pair"><span class="cat-meta-k">Owner</span><span class="cat-meta-v" data-field="meta">Finance</span></span><span class="cat-meta-pair"><span class="cat-meta-k">Installs</span><span class="cat-meta-v" data-field="meta">91</span></span></span><span class="cat-status st-deprecated">Deprecated</span><span class="cat-quickaction">View →</span></button></li>
+<li class="cat-row" data-id="bugsnag" data-name="bugsnag" data-desc="error monitoring and crash reporting" data-meta="platform reyes errors sentry-like" data-facet-status="archived" data-facet-category="devtools" data-facet-owner="platform" data-sort-name="bugsnag" data-sort-updated="20250920" data-sort-installs="0012" data-sort-owner="platform"><button type="button" class="cat-row-link" aria-label="Open Bugsnag"><span class="cat-icon">BG</span><span class="cat-title"><span class="cat-title-line" data-field="name">Bugsnag</span><span class="cat-desc" data-field="desc">Error monitoring and crash reporting.</span></span><span class="cat-meta-block"><span class="cat-meta-pair"><span class="cat-meta-k">Owner</span><span class="cat-meta-v" data-field="meta">Platform</span></span><span class="cat-meta-pair"><span class="cat-meta-k">Installs</span><span class="cat-meta-v" data-field="meta">12</span></span></span><span class="cat-status st-archived">Archived</span><span class="cat-quickaction">View →</span></button></li>
+<li class="cat-row" data-id="calendly" data-name="calendly" data-desc="scheduling links with availability windows" data-meta="experience li meetings widget" data-facet-status="active" data-facet-category="messaging" data-facet-owner="experience" data-sort-name="calendly" data-sort-updated="20260420" data-sort-installs="0167" data-sort-owner="experience"><button type="button" class="cat-row-link" aria-label="Open Calendly"><span class="cat-icon">CL</span><span class="cat-title"><span class="cat-title-line" data-field="name">Calendly</span><span class="cat-desc" data-field="desc">Scheduling links with availability windows.</span></span><span class="cat-meta-block"><span class="cat-meta-pair"><span class="cat-meta-k">Owner</span><span class="cat-meta-v" data-field="meta">Experience</span></span><span class="cat-meta-pair"><span class="cat-meta-k">Installs</span><span class="cat-meta-v" data-field="meta">167</span></span></span><span class="cat-status st-active">Active</span><span class="cat-quickaction">View →</span></button></li>
+<li class="cat-row" data-id="chargebee" data-name="chargebee" data-desc="subscription billing, invoicing, dunning" data-meta="finance ortiz subscriptions" data-facet-status="active" data-facet-category="billing" data-facet-owner="finance" data-sort-name="chargebee" data-sort-updated="20260516" data-sort-installs="0345" data-sort-owner="finance"><button type="button" class="cat-row-link" aria-label="Open Chargebee"><span class="cat-icon">CB</span><span class="cat-title"><span class="cat-title-line" data-field="name">Chargebee</span><span class="cat-desc" data-field="desc">Subscription billing — invoicing, dunning, revenue recognition.</span></span><span class="cat-meta-block"><span class="cat-meta-pair"><span class="cat-meta-k">Owner</span><span class="cat-meta-v" data-field="meta">Finance</span></span><span class="cat-meta-pair"><span class="cat-meta-k">Installs</span><span class="cat-meta-v" data-field="meta">345</span></span></span><span class="cat-status st-active">Active</span><span class="cat-quickaction">View →</span></button></li>
+<li class="cat-row" data-id="clearbit" data-name="clearbit" data-desc="enrichment for leads and accounts" data-meta="growth nguyen leads enrichment" data-facet-status="paused" data-facet-category="crm" data-facet-owner="growth" data-sort-name="clearbit" data-sort-updated="20260104" data-sort-installs="0072" data-sort-owner="growth"><button type="button" class="cat-row-link" aria-label="Open Clearbit"><span class="cat-icon">CR</span><span class="cat-title"><span class="cat-title-line" data-field="name">Clearbit</span><span class="cat-desc" data-field="desc">Enrichment for leads and accounts.</span></span><span class="cat-meta-block"><span class="cat-meta-pair"><span class="cat-meta-k">Owner</span><span class="cat-meta-v" data-field="meta">Growth</span></span><span class="cat-meta-pair"><span class="cat-meta-k">Installs</span><span class="cat-meta-v" data-field="meta">72</span></span></span><span class="cat-status st-paused">Paused</span><span class="cat-quickaction">View →</span></button></li>
+<li class="cat-row" data-id="cloudflare" data-name="cloudflare" data-desc="cdn, dns, waf, and r2 object storage" data-meta="platform shaw cdn edge" data-facet-status="active" data-facet-category="devtools" data-facet-owner="platform" data-sort-name="cloudflare" data-sort-updated="20260519" data-sort-installs="0958" data-sort-owner="platform"><button type="button" class="cat-row-link" aria-label="Open Cloudflare"><span class="cat-icon">CF</span><span class="cat-title"><span class="cat-title-line" data-field="name">Cloudflare</span><span class="cat-desc" data-field="desc">CDN, DNS, WAF, and R2 object storage.</span></span><span class="cat-meta-block"><span class="cat-meta-pair"><span class="cat-meta-k">Owner</span><span class="cat-meta-v" data-field="meta">Platform</span></span><span class="cat-meta-pair"><span class="cat-meta-k">Installs</span><span class="cat-meta-v" data-field="meta">958</span></span></span><span class="cat-status st-active">Active</span><span class="cat-quickaction">View →</span></button></li>
+<li class="cat-row" data-id="contentful" data-name="contentful" data-desc="headless cms with model versioning" data-meta="experience li cms content" data-facet-status="active" data-facet-category="storage" data-facet-owner="experience" data-sort-name="contentful" data-sort-updated="20260411" data-sort-installs="0184" data-sort-owner="experience"><button type="button" class="cat-row-link" aria-label="Open Contentful"><span class="cat-icon">CT</span><span class="cat-title"><span class="cat-title-line" data-field="name">Contentful</span><span class="cat-desc" data-field="desc">Headless CMS with model versioning.</span></span><span class="cat-meta-block"><span class="cat-meta-pair"><span class="cat-meta-k">Owner</span><span class="cat-meta-v" data-field="meta">Experience</span></span><span class="cat-meta-pair"><span class="cat-meta-k">Installs</span><span class="cat-meta-v" data-field="meta">184</span></span></span><span class="cat-status st-active">Active</span><span class="cat-quickaction">View →</span></button></li>
+<li class="cat-row" data-id="datadog" data-name="datadog" data-desc="apm, logs, metrics, synthetic monitoring" data-meta="platform reyes apm observability" data-facet-status="active" data-facet-category="devtools" data-facet-owner="platform" data-sort-name="datadog" data-sort-updated="20260520" data-sort-installs="1380" data-sort-owner="platform"><button type="button" class="cat-row-link" aria-label="Open Datadog"><span class="cat-icon">DD</span><span class="cat-title"><span class="cat-title-line" data-field="name">Datadog</span><span class="cat-desc" data-field="desc">APM, logs, metrics, synthetic monitoring.</span></span><span class="cat-meta-block"><span class="cat-meta-pair"><span class="cat-meta-k">Owner</span><span class="cat-meta-v" data-field="meta">Platform</span></span><span class="cat-meta-pair"><span class="cat-meta-k">Installs</span><span class="cat-meta-v" data-field="meta">1,380</span></span></span><span class="cat-status st-active">Active</span><span class="cat-quickaction">View →</span></button></li>
+<li class="cat-row" data-id="discord" data-name="discord" data-desc="community channel webhooks and bots" data-meta="experience li webhook chat" data-facet-status="beta" data-facet-category="messaging" data-facet-owner="experience" data-sort-name="discord" data-sort-updated="20260502" data-sort-installs="0142" data-sort-owner="experience"><button type="button" class="cat-row-link" aria-label="Open Discord"><span class="cat-icon">DC</span><span class="cat-title"><span class="cat-title-line" data-field="name">Discord</span><span class="cat-desc" data-field="desc">Community channel webhooks and bots.</span></span><span class="cat-meta-block"><span class="cat-meta-pair"><span class="cat-meta-k">Owner</span><span class="cat-meta-v" data-field="meta">Experience</span></span><span class="cat-meta-pair"><span class="cat-meta-k">Installs</span><span class="cat-meta-v" data-field="meta">142</span></span></span><span class="cat-status st-beta">Beta</span><span class="cat-quickaction">View →</span></button></li>
+<li class="cat-row" data-id="dropbox" data-name="dropbox" data-desc="file sync, sharing, and team folders" data-meta="data andrews files team" data-facet-status="active" data-facet-category="storage" data-facet-owner="data" data-sort-name="dropbox" data-sort-updated="20260405" data-sort-installs="0258" data-sort-owner="data"><button type="button" class="cat-row-link" aria-label="Open Dropbox"><span class="cat-icon">DB</span><span class="cat-title"><span class="cat-title-line" data-field="name">Dropbox</span><span class="cat-desc" data-field="desc">File sync, sharing, and team folders.</span></span><span class="cat-meta-block"><span class="cat-meta-pair"><span class="cat-meta-k">Owner</span><span class="cat-meta-v" data-field="meta">Data</span></span><span class="cat-meta-pair"><span class="cat-meta-k">Installs</span><span class="cat-meta-v" data-field="meta">258</span></span></span><span class="cat-status st-active">Active</span><span class="cat-quickaction">View →</span></button></li>
+<li class="cat-row" data-id="elasticsearch" data-name="elasticsearch" data-desc="full-text search and analytics engine" data-meta="data andrews lucene index" data-facet-status="active" data-facet-category="search" data-facet-owner="data" data-sort-name="elasticsearch" data-sort-updated="20260417" data-sort-installs="0392" data-sort-owner="data"><button type="button" class="cat-row-link" aria-label="Open Elasticsearch"><span class="cat-icon">ES</span><span class="cat-title"><span class="cat-title-line" data-field="name">Elasticsearch</span><span class="cat-desc" data-field="desc">Full-text search and analytics engine.</span></span><span class="cat-meta-block"><span class="cat-meta-pair"><span class="cat-meta-k">Owner</span><span class="cat-meta-v" data-field="meta">Data</span></span><span class="cat-meta-pair"><span class="cat-meta-k">Installs</span><span class="cat-meta-v" data-field="meta">392</span></span></span><span class="cat-status st-active">Active</span><span class="cat-quickaction">View →</span></button></li>
+<li class="cat-row" data-id="fastly" data-name="fastly" data-desc="edge cdn with vcl-based config" data-meta="platform shaw cdn edge" data-facet-status="active" data-facet-category="devtools" data-facet-owner="platform" data-sort-name="fastly" data-sort-updated="20260330" data-sort-installs="0114" data-sort-owner="platform"><button type="button" class="cat-row-link" aria-label="Open Fastly"><span class="cat-icon">FS</span><span class="cat-title"><span class="cat-title-line" data-field="name">Fastly</span><span class="cat-desc" data-field="desc">Edge CDN with VCL-based config.</span></span><span class="cat-meta-block"><span class="cat-meta-pair"><span class="cat-meta-k">Owner</span><span class="cat-meta-v" data-field="meta">Platform</span></span><span class="cat-meta-pair"><span class="cat-meta-k">Installs</span><span class="cat-meta-v" data-field="meta">114</span></span></span><span class="cat-status st-active">Active</span><span class="cat-quickaction">View →</span></button></li>
+<li class="cat-row" data-id="firebase-auth" data-name="firebase auth" data-desc="google-backed identity, magic links, social" data-meta="security okonkwo magic-link" data-facet-status="active" data-facet-category="auth" data-facet-owner="security" data-sort-name="firebase auth" data-sort-updated="20260408" data-sort-installs="0317" data-sort-owner="security"><button type="button" class="cat-row-link" aria-label="Open Firebase Auth"><span class="cat-icon">FB</span><span class="cat-title"><span class="cat-title-line" data-field="name">Firebase Auth</span><span class="cat-desc" data-field="desc">Google-backed identity, magic links, social login.</span></span><span class="cat-meta-block"><span class="cat-meta-pair"><span class="cat-meta-k">Owner</span><span class="cat-meta-v" data-field="meta">Security</span></span><span class="cat-meta-pair"><span class="cat-meta-k">Installs</span><span class="cat-meta-v" data-field="meta">317</span></span></span><span class="cat-status st-active">Active</span><span class="cat-quickaction">View →</span></button></li>
+<li class="cat-row" data-id="freshdesk" data-name="freshdesk" data-desc="ticketing, slas, and customer portal" data-meta="experience li tickets support" data-facet-status="archived" data-facet-category="messaging" data-facet-owner="experience" data-sort-name="freshdesk" data-sort-updated="20250612" data-sort-installs="0007" data-sort-owner="experience"><button type="button" class="cat-row-link" aria-label="Open Freshdesk"><span class="cat-icon">FD</span><span class="cat-title"><span class="cat-title-line" data-field="name">Freshdesk</span><span class="cat-desc" data-field="desc">Ticketing, SLAs, and customer portal.</span></span><span class="cat-meta-block"><span class="cat-meta-pair"><span class="cat-meta-k">Owner</span><span class="cat-meta-v" data-field="meta">Experience</span></span><span class="cat-meta-pair"><span class="cat-meta-k">Installs</span><span class="cat-meta-v" data-field="meta">7</span></span></span><span class="cat-status st-archived">Archived</span><span class="cat-quickaction">View →</span></button></li>
+<li class="cat-row" data-id="github" data-name="github" data-desc="code, ci, pull requests; org-level webhooks" data-meta="platform reyes git ci" data-facet-status="active" data-facet-category="devtools" data-facet-owner="platform" data-sort-name="github" data-sort-updated="20260520" data-sort-installs="1842" data-sort-owner="platform"><button type="button" class="cat-row-link" aria-label="Open GitHub"><span class="cat-icon">GH</span><span class="cat-title"><span class="cat-title-line" data-field="name">GitHub</span><span class="cat-desc" data-field="desc">Code, CI, pull requests — org-level webhooks.</span></span><span class="cat-meta-block"><span class="cat-meta-pair"><span class="cat-meta-k">Owner</span><span class="cat-meta-v" data-field="meta">Platform</span></span><span class="cat-meta-pair"><span class="cat-meta-k">Installs</span><span class="cat-meta-v" data-field="meta">1,842</span></span></span><span class="cat-status st-active">Active</span><span class="cat-quickaction">View →</span></button></li>
+<li class="cat-row" data-id="gitlab" data-name="gitlab" data-desc="self-hosted and saas git plus pipelines" data-meta="platform reyes git ci" data-facet-status="active" data-facet-category="devtools" data-facet-owner="platform" data-sort-name="gitlab" data-sort-updated="20260418" data-sort-installs="0612" data-sort-owner="platform"><button type="button" class="cat-row-link" aria-label="Open GitLab"><span class="cat-icon">GL</span><span class="cat-title"><span class="cat-title-line" data-field="name">GitLab</span><span class="cat-desc" data-field="desc">Self-hosted and SaaS Git plus pipelines.</span></span><span class="cat-meta-block"><span class="cat-meta-pair"><span class="cat-meta-k">Owner</span><span class="cat-meta-v" data-field="meta">Platform</span></span><span class="cat-meta-pair"><span class="cat-meta-k">Installs</span><span class="cat-meta-v" data-field="meta">612</span></span></span><span class="cat-status st-active">Active</span><span class="cat-quickaction">View →</span></button></li>
+<li class="cat-row" data-id="google-analytics" data-name="google analytics 4" data-desc="property-scoped event analytics" data-meta="growth nguyen events ga4" data-facet-status="active" data-facet-category="analytics" data-facet-owner="growth" data-sort-name="google analytics 4" data-sort-updated="20260510" data-sort-installs="1124" data-sort-owner="growth"><button type="button" class="cat-row-link" aria-label="Open Google Analytics 4"><span class="cat-icon">GA</span><span class="cat-title"><span class="cat-title-line" data-field="name">Google Analytics 4</span><span class="cat-desc" data-field="desc">Property-scoped event analytics.</span></span><span class="cat-meta-block"><span class="cat-meta-pair"><span class="cat-meta-k">Owner</span><span class="cat-meta-v" data-field="meta">Growth</span></span><span class="cat-meta-pair"><span class="cat-meta-k">Installs</span><span class="cat-meta-v" data-field="meta">1,124</span></span></span><span class="cat-status st-active">Active</span><span class="cat-quickaction">View →</span></button></li>
+<li class="cat-row" data-id="google-drive" data-name="google drive" data-desc="file storage and shared drives" data-meta="data andrews docs files" data-facet-status="active" data-facet-category="storage" data-facet-owner="data" data-sort-name="google drive" data-sort-updated="20260513" data-sort-installs="0758" data-sort-owner="data"><button type="button" class="cat-row-link" aria-label="Open Google Drive"><span class="cat-icon">GD</span><span class="cat-title"><span class="cat-title-line" data-field="name">Google Drive</span><span class="cat-desc" data-field="desc">File storage and shared drives.</span></span><span class="cat-meta-block"><span class="cat-meta-pair"><span class="cat-meta-k">Owner</span><span class="cat-meta-v" data-field="meta">Data</span></span><span class="cat-meta-pair"><span class="cat-meta-k">Installs</span><span class="cat-meta-v" data-field="meta">758</span></span></span><span class="cat-status st-active">Active</span><span class="cat-quickaction">View →</span></button></li>
+<li class="cat-row" data-id="google-workspace" data-name="google workspace sso" data-desc="saml sso and scim provisioning" data-meta="security okonkwo sso scim" data-facet-status="active" data-facet-category="auth" data-facet-owner="security" data-sort-name="google workspace sso" data-sort-updated="20260501" data-sort-installs="0488" data-sort-owner="security"><button type="button" class="cat-row-link" aria-label="Open Google Workspace SSO"><span class="cat-icon">GW</span><span class="cat-title"><span class="cat-title-line" data-field="name">Google Workspace SSO</span><span class="cat-desc" data-field="desc">SAML SSO and SCIM provisioning.</span></span><span class="cat-meta-block"><span class="cat-meta-pair"><span class="cat-meta-k">Owner</span><span class="cat-meta-v" data-field="meta">Security</span></span><span class="cat-meta-pair"><span class="cat-meta-k">Installs</span><span class="cat-meta-v" data-field="meta">488</span></span></span><span class="cat-status st-active">Active</span><span class="cat-quickaction">View →</span></button></li>
+<li class="cat-row" data-id="heap" data-name="heap" data-desc="autocapture analytics with no-instrumentation" data-meta="growth nguyen autocapture" data-facet-status="beta" data-facet-category="analytics" data-facet-owner="growth" data-sort-name="heap" data-sort-updated="20260306" data-sort-installs="0089" data-sort-owner="growth"><button type="button" class="cat-row-link" aria-label="Open Heap"><span class="cat-icon">HP</span><span class="cat-title"><span class="cat-title-line" data-field="name">Heap</span><span class="cat-desc" data-field="desc">Autocapture analytics with no-instrumentation.</span></span><span class="cat-meta-block"><span class="cat-meta-pair"><span class="cat-meta-k">Owner</span><span class="cat-meta-v" data-field="meta">Growth</span></span><span class="cat-meta-pair"><span class="cat-meta-k">Installs</span><span class="cat-meta-v" data-field="meta">89</span></span></span><span class="cat-status st-beta">Beta</span><span class="cat-quickaction">View →</span></button></li>
+<li class="cat-row" data-id="hubspot" data-name="hubspot" data-desc="contact, deal, ticket sync; lead routing" data-meta="growth tan crm leads" data-facet-status="active" data-facet-category="crm" data-facet-owner="growth" data-sort-name="hubspot" data-sort-updated="20260516" data-sort-installs="0567" data-sort-owner="growth"><button type="button" class="cat-row-link" aria-label="Open HubSpot"><span class="cat-icon">HS</span><span class="cat-title"><span class="cat-title-line" data-field="name">HubSpot</span><span class="cat-desc" data-field="desc">Contact, deal, ticket sync — lead routing.</span></span><span class="cat-meta-block"><span class="cat-meta-pair"><span class="cat-meta-k">Owner</span><span class="cat-meta-v" data-field="meta">Growth</span></span><span class="cat-meta-pair"><span class="cat-meta-k">Installs</span><span class="cat-meta-v" data-field="meta">567</span></span></span><span class="cat-status st-active">Active</span><span class="cat-quickaction">View →</span></button></li>
+<li class="cat-row" data-id="intercom" data-name="intercom" data-desc="messenger, product tours, help center" data-meta="experience li chat support" data-facet-status="active" data-facet-category="messaging" data-facet-owner="experience" data-sort-name="intercom" data-sort-updated="20260423" data-sort-installs="0245" data-sort-owner="experience"><button type="button" class="cat-row-link" aria-label="Open Intercom"><span class="cat-icon">IC</span><span class="cat-title"><span class="cat-title-line" data-field="name">Intercom</span><span class="cat-desc" data-field="desc">Messenger, product tours, help center.</span></span><span class="cat-meta-block"><span class="cat-meta-pair"><span class="cat-meta-k">Owner</span><span class="cat-meta-v" data-field="meta">Experience</span></span><span class="cat-meta-pair"><span class="cat-meta-k">Installs</span><span class="cat-meta-v" data-field="meta">245</span></span></span><span class="cat-status st-active">Active</span><span class="cat-quickaction">View →</span></button></li>
+<li class="cat-row" data-id="jira" data-name="jira" data-desc="issue tracking, sprint boards" data-meta="platform reyes issues agile" data-facet-status="active" data-facet-category="devtools" data-facet-owner="platform" data-sort-name="jira" data-sort-updated="20260512" data-sort-installs="0934" data-sort-owner="platform"><button type="button" class="cat-row-link" aria-label="Open Jira"><span class="cat-icon">JR</span><span class="cat-title"><span class="cat-title-line" data-field="name">Jira</span><span class="cat-desc" data-field="desc">Issue tracking, sprint boards.</span></span><span class="cat-meta-block"><span class="cat-meta-pair"><span class="cat-meta-k">Owner</span><span class="cat-meta-v" data-field="meta">Platform</span></span><span class="cat-meta-pair"><span class="cat-meta-k">Installs</span><span class="cat-meta-v" data-field="meta">934</span></span></span><span class="cat-status st-active">Active</span><span class="cat-quickaction">View →</span></button></li>
+<li class="cat-row" data-id="linear" data-name="linear" data-desc="issue tracking with keyboard-first ux" data-meta="platform reyes issues sprints" data-facet-status="active" data-facet-category="devtools" data-facet-owner="platform" data-sort-name="linear" data-sort-updated="20260518" data-sort-installs="0211" data-sort-owner="platform"><button type="button" class="cat-row-link" aria-label="Open Linear"><span class="cat-icon">LN</span><span class="cat-title"><span class="cat-title-line" data-field="name">Linear</span><span class="cat-desc" data-field="desc">Issue tracking with keyboard-first UX.</span></span><span class="cat-meta-block"><span class="cat-meta-pair"><span class="cat-meta-k">Owner</span><span class="cat-meta-v" data-field="meta">Platform</span></span><span class="cat-meta-pair"><span class="cat-meta-k">Installs</span><span class="cat-meta-v" data-field="meta">211</span></span></span><span class="cat-status st-active">Active</span><span class="cat-quickaction">View →</span></button></li>
+<li class="cat-row" data-id="linkedin-ads" data-name="linkedin ads" data-desc="b2b ad targeting and conversion api" data-meta="growth tan ads pixels" data-facet-status="active" data-facet-category="analytics" data-facet-owner="growth" data-sort-name="linkedin ads" data-sort-updated="20260415" data-sort-installs="0098" data-sort-owner="growth"><button type="button" class="cat-row-link" aria-label="Open LinkedIn Ads"><span class="cat-icon">LI</span><span class="cat-title"><span class="cat-title-line" data-field="name">LinkedIn Ads</span><span class="cat-desc" data-field="desc">B2B ad targeting and conversion API.</span></span><span class="cat-meta-block"><span class="cat-meta-pair"><span class="cat-meta-k">Owner</span><span class="cat-meta-v" data-field="meta">Growth</span></span><span class="cat-meta-pair"><span class="cat-meta-k">Installs</span><span class="cat-meta-v" data-field="meta">98</span></span></span><span class="cat-status st-active">Active</span><span class="cat-quickaction">View →</span></button></li>
+<li class="cat-row" data-id="loops" data-name="loops" data-desc="transactional and marketing email" data-meta="growth tan email lifecycle" data-facet-status="beta" data-facet-category="messaging" data-facet-owner="growth" data-sort-name="loops" data-sort-updated="20260319" data-sort-installs="0042" data-sort-owner="growth"><button type="button" class="cat-row-link" aria-label="Open Loops"><span class="cat-icon">LO</span><span class="cat-title"><span class="cat-title-line" data-field="name">Loops</span><span class="cat-desc" data-field="desc">Transactional and marketing email.</span></span><span class="cat-meta-block"><span class="cat-meta-pair"><span class="cat-meta-k">Owner</span><span class="cat-meta-v" data-field="meta">Growth</span></span><span class="cat-meta-pair"><span class="cat-meta-k">Installs</span><span class="cat-meta-v" data-field="meta">42</span></span></span><span class="cat-status st-beta">Beta</span><span class="cat-quickaction">View →</span></button></li>
+<li class="cat-row" data-id="mailchimp" data-name="mailchimp" data-desc="marketing email and automations" data-meta="growth tan email lifecycle" data-facet-status="deprecated" data-facet-category="messaging" data-facet-owner="growth" data-sort-name="mailchimp" data-sort-updated="20251108" data-sort-installs="0019" data-sort-owner="growth"><button type="button" class="cat-row-link" aria-label="Open Mailchimp"><span class="cat-icon">MC</span><span class="cat-title"><span class="cat-title-line" data-field="name">Mailchimp</span><span class="cat-desc" data-field="desc">Marketing email and automations.</span></span><span class="cat-meta-block"><span class="cat-meta-pair"><span class="cat-meta-k">Owner</span><span class="cat-meta-v" data-field="meta">Growth</span></span><span class="cat-meta-pair"><span class="cat-meta-k">Installs</span><span class="cat-meta-v" data-field="meta">19</span></span></span><span class="cat-status st-deprecated">Deprecated</span><span class="cat-quickaction">View →</span></button></li>
+<li class="cat-row" data-id="meilisearch" data-name="meilisearch" data-desc="open-source search; sub-50ms ranking" data-meta="data andrews search oss" data-facet-status="beta" data-facet-category="search" data-facet-owner="data" data-sort-name="meilisearch" data-sort-updated="20260411" data-sort-installs="0064" data-sort-owner="data"><button type="button" class="cat-row-link" aria-label="Open Meilisearch"><span class="cat-icon">MS</span><span class="cat-title"><span class="cat-title-line" data-field="name">Meilisearch</span><span class="cat-desc" data-field="desc">Open-source search — sub-50ms ranking.</span></span><span class="cat-meta-block"><span class="cat-meta-pair"><span class="cat-meta-k">Owner</span><span class="cat-meta-v" data-field="meta">Data</span></span><span class="cat-meta-pair"><span class="cat-meta-k">Installs</span><span class="cat-meta-v" data-field="meta">64</span></span></span><span class="cat-status st-beta">Beta</span><span class="cat-quickaction">View →</span></button></li>
+<li class="cat-row" data-id="mixpanel" data-name="mixpanel" data-desc="event analytics with funnels and flows" data-meta="growth nguyen events funnels" data-facet-status="active" data-facet-category="analytics" data-facet-owner="growth" data-sort-name="mixpanel" data-sort-updated="20260503" data-sort-installs="0418" data-sort-owner="growth"><button type="button" class="cat-row-link" aria-label="Open Mixpanel"><span class="cat-icon">MX</span><span class="cat-title"><span class="cat-title-line" data-field="name">Mixpanel</span><span class="cat-desc" data-field="desc">Event analytics with funnels and flows.</span></span><span class="cat-meta-block"><span class="cat-meta-pair"><span class="cat-meta-k">Owner</span><span class="cat-meta-v" data-field="meta">Growth</span></span><span class="cat-meta-pair"><span class="cat-meta-k">Installs</span><span class="cat-meta-v" data-field="meta">418</span></span></span><span class="cat-status st-active">Active</span><span class="cat-quickaction">View →</span></button></li>
+<li class="cat-row" data-id="notion" data-name="notion" data-desc="docs, databases, embedded blocks api" data-meta="data andrews docs blocks" data-facet-status="active" data-facet-category="storage" data-facet-owner="data" data-sort-name="notion" data-sort-updated="20260507" data-sort-installs="0327" data-sort-owner="data"><button type="button" class="cat-row-link" aria-label="Open Notion"><span class="cat-icon">NT</span><span class="cat-title"><span class="cat-title-line" data-field="name">Notion</span><span class="cat-desc" data-field="desc">Docs, databases, embedded blocks API.</span></span><span class="cat-meta-block"><span class="cat-meta-pair"><span class="cat-meta-k">Owner</span><span class="cat-meta-v" data-field="meta">Data</span></span><span class="cat-meta-pair"><span class="cat-meta-k">Installs</span><span class="cat-meta-v" data-field="meta">327</span></span></span><span class="cat-status st-active">Active</span><span class="cat-quickaction">View →</span></button></li>
+<li class="cat-row" data-id="okta" data-name="okta" data-desc="enterprise sso, mfa, lifecycle mgmt" data-meta="security okonkwo sso mfa" data-facet-status="active" data-facet-category="auth" data-facet-owner="security" data-sort-name="okta" data-sort-updated="20260516" data-sort-installs="0721" data-sort-owner="security"><button type="button" class="cat-row-link" aria-label="Open Okta"><span class="cat-icon">OK</span><span class="cat-title"><span class="cat-title-line" data-field="name">Okta</span><span class="cat-desc" data-field="desc">Enterprise SSO, MFA, lifecycle management.</span></span><span class="cat-meta-block"><span class="cat-meta-pair"><span class="cat-meta-k">Owner</span><span class="cat-meta-v" data-field="meta">Security</span></span><span class="cat-meta-pair"><span class="cat-meta-k">Installs</span><span class="cat-meta-v" data-field="meta">721</span></span></span><span class="cat-status st-active">Active</span><span class="cat-quickaction">View →</span></button></li>
+<li class="cat-row" data-id="onesignal" data-name="onesignal" data-desc="push notifications across web and mobile" data-meta="experience li push notifs" data-facet-status="active" data-facet-category="messaging" data-facet-owner="experience" data-sort-name="onesignal" data-sort-updated="20260309" data-sort-installs="0136" data-sort-owner="experience"><button type="button" class="cat-row-link" aria-label="Open OneSignal"><span class="cat-icon">OS</span><span class="cat-title"><span class="cat-title-line" data-field="name">OneSignal</span><span class="cat-desc" data-field="desc">Push notifications across web and mobile.</span></span><span class="cat-meta-block"><span class="cat-meta-pair"><span class="cat-meta-k">Owner</span><span class="cat-meta-v" data-field="meta">Experience</span></span><span class="cat-meta-pair"><span class="cat-meta-k">Installs</span><span class="cat-meta-v" data-field="meta">136</span></span></span><span class="cat-status st-active">Active</span><span class="cat-quickaction">View →</span></button></li>
+<li class="cat-row" data-id="opsgenie" data-name="opsgenie" data-desc="on-call schedules and incident alerts" data-meta="platform reyes oncall paging" data-facet-status="active" data-facet-category="devtools" data-facet-owner="platform" data-sort-name="opsgenie" data-sort-updated="20260321" data-sort-installs="0078" data-sort-owner="platform"><button type="button" class="cat-row-link" aria-label="Open Opsgenie"><span class="cat-icon">OG</span><span class="cat-title"><span class="cat-title-line" data-field="name">Opsgenie</span><span class="cat-desc" data-field="desc">On-call schedules and incident alerts.</span></span><span class="cat-meta-block"><span class="cat-meta-pair"><span class="cat-meta-k">Owner</span><span class="cat-meta-v" data-field="meta">Platform</span></span><span class="cat-meta-pair"><span class="cat-meta-k">Installs</span><span class="cat-meta-v" data-field="meta">78</span></span></span><span class="cat-status st-active">Active</span><span class="cat-quickaction">View →</span></button></li>
+<li class="cat-row" data-id="pagerduty" data-name="pagerduty" data-desc="incident response and on-call rotations" data-meta="platform reyes oncall incidents" data-facet-status="active" data-facet-category="devtools" data-facet-owner="platform" data-sort-name="pagerduty" data-sort-updated="20260514" data-sort-installs="0512" data-sort-owner="platform"><button type="button" class="cat-row-link" aria-label="Open PagerDuty"><span class="cat-icon">PD</span><span class="cat-title"><span class="cat-title-line" data-field="name">PagerDuty</span><span class="cat-desc" data-field="desc">Incident response and on-call rotations.</span></span><span class="cat-meta-block"><span class="cat-meta-pair"><span class="cat-meta-k">Owner</span><span class="cat-meta-v" data-field="meta">Platform</span></span><span class="cat-meta-pair"><span class="cat-meta-k">Installs</span><span class="cat-meta-v" data-field="meta">512</span></span></span><span class="cat-status st-active">Active</span><span class="cat-quickaction">View →</span></button></li>
+<li class="cat-row" data-id="paypal" data-name="paypal" data-desc="legacy paypal v1 payments api" data-meta="finance ortiz payments wallet" data-facet-status="deprecated" data-facet-category="billing" data-facet-owner="finance" data-sort-name="paypal" data-sort-updated="20251015" data-sort-installs="0024" data-sort-owner="finance"><button type="button" class="cat-row-link" aria-label="Open PayPal"><span class="cat-icon">PP</span><span class="cat-title"><span class="cat-title-line" data-field="name">PayPal</span><span class="cat-desc" data-field="desc">Legacy PayPal v1 payments API.</span></span><span class="cat-meta-block"><span class="cat-meta-pair"><span class="cat-meta-k">Owner</span><span class="cat-meta-v" data-field="meta">Finance</span></span><span class="cat-meta-pair"><span class="cat-meta-k">Installs</span><span class="cat-meta-v" data-field="meta">24</span></span></span><span class="cat-status st-deprecated">Deprecated</span><span class="cat-quickaction">View →</span></button></li>
+<li class="cat-row" data-id="pingdom" data-name="pingdom" data-desc="uptime monitoring with multi-region checks" data-meta="platform reyes uptime probe" data-facet-status="archived" data-facet-category="devtools" data-facet-owner="platform" data-sort-name="pingdom" data-sort-updated="20250708" data-sort-installs="0005" data-sort-owner="platform"><button type="button" class="cat-row-link" aria-label="Open Pingdom"><span class="cat-icon">PI</span><span class="cat-title"><span class="cat-title-line" data-field="name">Pingdom</span><span class="cat-desc" data-field="desc">Uptime monitoring with multi-region checks.</span></span><span class="cat-meta-block"><span class="cat-meta-pair"><span class="cat-meta-k">Owner</span><span class="cat-meta-v" data-field="meta">Platform</span></span><span class="cat-meta-pair"><span class="cat-meta-k">Installs</span><span class="cat-meta-v" data-field="meta">5</span></span></span><span class="cat-status st-archived">Archived</span><span class="cat-quickaction">View →</span></button></li>
+<li class="cat-row" data-id="pipedrive" data-name="pipedrive" data-desc="lightweight crm for small teams" data-meta="growth tan crm pipeline" data-facet-status="paused" data-facet-category="crm" data-facet-owner="growth" data-sort-name="pipedrive" data-sort-updated="20260202" data-sort-installs="0061" data-sort-owner="growth"><button type="button" class="cat-row-link" aria-label="Open Pipedrive"><span class="cat-icon">PV</span><span class="cat-title"><span class="cat-title-line" data-field="name">Pipedrive</span><span class="cat-desc" data-field="desc">Lightweight CRM for small teams.</span></span><span class="cat-meta-block"><span class="cat-meta-pair"><span class="cat-meta-k">Owner</span><span class="cat-meta-v" data-field="meta">Growth</span></span><span class="cat-meta-pair"><span class="cat-meta-k">Installs</span><span class="cat-meta-v" data-field="meta">61</span></span></span><span class="cat-status st-paused">Paused</span><span class="cat-quickaction">View →</span></button></li>
+<li class="cat-row" data-id="postgres" data-name="postgres" data-desc="primary relational store; logical replication" data-meta="data andrews sql replication" data-facet-status="active" data-facet-category="storage" data-facet-owner="data" data-sort-name="postgres" data-sort-updated="20260519" data-sort-installs="1604" data-sort-owner="data"><button type="button" class="cat-row-link" aria-label="Open Postgres"><span class="cat-icon">PG</span><span class="cat-title"><span class="cat-title-line" data-field="name">Postgres</span><span class="cat-desc" data-field="desc">Primary relational store — logical replication.</span></span><span class="cat-meta-block"><span class="cat-meta-pair"><span class="cat-meta-k">Owner</span><span class="cat-meta-v" data-field="meta">Data</span></span><span class="cat-meta-pair"><span class="cat-meta-k">Installs</span><span class="cat-meta-v" data-field="meta">1,604</span></span></span><span class="cat-status st-active">Active</span><span class="cat-quickaction">View →</span></button></li>
+<li class="cat-row" data-id="posthog" data-name="posthog" data-desc="open-source product analytics and feature flags" data-meta="growth nguyen oss flags" data-facet-status="beta" data-facet-category="analytics" data-facet-owner="growth" data-sort-name="posthog" data-sort-updated="20260428" data-sort-installs="0173" data-sort-owner="growth"><button type="button" class="cat-row-link" aria-label="Open PostHog"><span class="cat-icon">PH</span><span class="cat-title"><span class="cat-title-line" data-field="name">PostHog</span><span class="cat-desc" data-field="desc">Open-source product analytics and feature flags.</span></span><span class="cat-meta-block"><span class="cat-meta-pair"><span class="cat-meta-k">Owner</span><span class="cat-meta-v" data-field="meta">Growth</span></span><span class="cat-meta-pair"><span class="cat-meta-k">Installs</span><span class="cat-meta-v" data-field="meta">173</span></span></span><span class="cat-status st-beta">Beta</span><span class="cat-quickaction">View →</span></button></li>
+<li class="cat-row" data-id="quickbooks" data-name="quickbooks" data-desc="general ledger sync; invoice export" data-meta="finance ortiz ledger gl" data-facet-status="active" data-facet-category="billing" data-facet-owner="finance" data-sort-name="quickbooks" data-sort-updated="20260321" data-sort-installs="0142" data-sort-owner="finance"><button type="button" class="cat-row-link" aria-label="Open QuickBooks"><span class="cat-icon">QB</span><span class="cat-title"><span class="cat-title-line" data-field="name">QuickBooks</span><span class="cat-desc" data-field="desc">General ledger sync — invoice export.</span></span><span class="cat-meta-block"><span class="cat-meta-pair"><span class="cat-meta-k">Owner</span><span class="cat-meta-v" data-field="meta">Finance</span></span><span class="cat-meta-pair"><span class="cat-meta-k">Installs</span><span class="cat-meta-v" data-field="meta">142</span></span></span><span class="cat-status st-active">Active</span><span class="cat-quickaction">View →</span></button></li>
+<li class="cat-row" data-id="redis" data-name="redis" data-desc="in-memory cache and pub/sub" data-meta="platform shaw cache pubsub" data-facet-status="active" data-facet-category="storage" data-facet-owner="platform" data-sort-name="redis" data-sort-updated="20260515" data-sort-installs="1278" data-sort-owner="platform"><button type="button" class="cat-row-link" aria-label="Open Redis"><span class="cat-icon">RD</span><span class="cat-title"><span class="cat-title-line" data-field="name">Redis</span><span class="cat-desc" data-field="desc">In-memory cache and pub/sub.</span></span><span class="cat-meta-block"><span class="cat-meta-pair"><span class="cat-meta-k">Owner</span><span class="cat-meta-v" data-field="meta">Platform</span></span><span class="cat-meta-pair"><span class="cat-meta-k">Installs</span><span class="cat-meta-v" data-field="meta">1,278</span></span></span><span class="cat-status st-active">Active</span><span class="cat-quickaction">View →</span></button></li>
+<li class="cat-row" data-id="salesforce" data-name="salesforce" data-desc="enterprise crm; bulk and rest apis" data-meta="growth tan crm enterprise" data-facet-status="active" data-facet-category="crm" data-facet-owner="growth" data-sort-name="salesforce" data-sort-updated="20260518" data-sort-installs="0892" data-sort-owner="growth"><button type="button" class="cat-row-link" aria-label="Open Salesforce"><span class="cat-icon">SF</span><span class="cat-title"><span class="cat-title-line" data-field="name">Salesforce</span><span class="cat-desc" data-field="desc">Enterprise CRM — Bulk and REST APIs.</span></span><span class="cat-meta-block"><span class="cat-meta-pair"><span class="cat-meta-k">Owner</span><span class="cat-meta-v" data-field="meta">Growth</span></span><span class="cat-meta-pair"><span class="cat-meta-k">Installs</span><span class="cat-meta-v" data-field="meta">892</span></span></span><span class="cat-status st-active">Active</span><span class="cat-quickaction">View →</span></button></li>
+<li class="cat-row" data-id="segment" data-name="segment" data-desc="event pipeline; fan-out to 100+ destinations" data-meta="growth nguyen cdp pipeline" data-facet-status="active" data-facet-category="analytics" data-facet-owner="growth" data-sort-name="segment" data-sort-updated="20260420" data-sort-installs="0612" data-sort-owner="growth"><button type="button" class="cat-row-link" aria-label="Open Segment"><span class="cat-icon">SG</span><span class="cat-title"><span class="cat-title-line" data-field="name">Segment</span><span class="cat-desc" data-field="desc">Event pipeline — fan-out to 100+ destinations.</span></span><span class="cat-meta-block"><span class="cat-meta-pair"><span class="cat-meta-k">Owner</span><span class="cat-meta-v" data-field="meta">Growth</span></span><span class="cat-meta-pair"><span class="cat-meta-k">Installs</span><span class="cat-meta-v" data-field="meta">612</span></span></span><span class="cat-status st-active">Active</span><span class="cat-quickaction">View →</span></button></li>
+<li class="cat-row" data-id="sendgrid" data-name="sendgrid" data-desc="transactional email; deliverability tooling" data-meta="growth tan email transactional" data-facet-status="active" data-facet-category="messaging" data-facet-owner="growth" data-sort-name="sendgrid" data-sort-updated="20260509" data-sort-installs="0468" data-sort-owner="growth"><button type="button" class="cat-row-link" aria-label="Open SendGrid"><span class="cat-icon">SG</span><span class="cat-title"><span class="cat-title-line" data-field="name">SendGrid</span><span class="cat-desc" data-field="desc">Transactional email — deliverability tooling.</span></span><span class="cat-meta-block"><span class="cat-meta-pair"><span class="cat-meta-k">Owner</span><span class="cat-meta-v" data-field="meta">Growth</span></span><span class="cat-meta-pair"><span class="cat-meta-k">Installs</span><span class="cat-meta-v" data-field="meta">468</span></span></span><span class="cat-status st-active">Active</span><span class="cat-quickaction">View →</span></button></li>
+<li class="cat-row" data-id="sentry" data-name="sentry" data-desc="error monitoring with release tracking" data-meta="platform reyes errors release" data-facet-status="active" data-facet-category="devtools" data-facet-owner="platform" data-sort-name="sentry" data-sort-updated="20260520" data-sort-installs="1102" data-sort-owner="platform"><button type="button" class="cat-row-link" aria-label="Open Sentry"><span class="cat-icon">SN</span><span class="cat-title"><span class="cat-title-line" data-field="name">Sentry</span><span class="cat-desc" data-field="desc">Error monitoring with release tracking.</span></span><span class="cat-meta-block"><span class="cat-meta-pair"><span class="cat-meta-k">Owner</span><span class="cat-meta-v" data-field="meta">Platform</span></span><span class="cat-meta-pair"><span class="cat-meta-k">Installs</span><span class="cat-meta-v" data-field="meta">1,102</span></span></span><span class="cat-status st-active">Active</span><span class="cat-quickaction">View →</span></button></li>
+<li class="cat-row" data-id="slack" data-name="slack" data-desc="channels, threads, slash commands, bots" data-meta="experience li chat webhook" data-facet-status="active" data-facet-category="messaging" data-facet-owner="experience" data-sort-name="slack" data-sort-updated="20260519" data-sort-installs="1456" data-sort-owner="experience"><button type="button" class="cat-row-link" aria-label="Open Slack"><span class="cat-icon">SL</span><span class="cat-title"><span class="cat-title-line" data-field="name">Slack</span><span class="cat-desc" data-field="desc">Channels, threads, slash commands, bots.</span></span><span class="cat-meta-block"><span class="cat-meta-pair"><span class="cat-meta-k">Owner</span><span class="cat-meta-v" data-field="meta">Experience</span></span><span class="cat-meta-pair"><span class="cat-meta-k">Installs</span><span class="cat-meta-v" data-field="meta">1,456</span></span></span><span class="cat-status st-active">Active</span><span class="cat-quickaction">View →</span></button></li>
+<li class="cat-row" data-id="snowflake" data-name="snowflake" data-desc="warehouse for analytics; reverse-etl source" data-meta="data andrews warehouse sql" data-facet-status="active" data-facet-category="storage" data-facet-owner="data" data-sort-name="snowflake" data-sort-updated="20260514" data-sort-installs="0512" data-sort-owner="data"><button type="button" class="cat-row-link" aria-label="Open Snowflake"><span class="cat-icon">SF</span><span class="cat-title"><span class="cat-title-line" data-field="name">Snowflake</span><span class="cat-desc" data-field="desc">Warehouse for analytics — reverse-ETL source.</span></span><span class="cat-meta-block"><span class="cat-meta-pair"><span class="cat-meta-k">Owner</span><span class="cat-meta-v" data-field="meta">Data</span></span><span class="cat-meta-pair"><span class="cat-meta-k">Installs</span><span class="cat-meta-v" data-field="meta">512</span></span></span><span class="cat-status st-active">Active</span><span class="cat-quickaction">View →</span></button></li>
+<li class="cat-row" data-id="stripe" data-name="stripe" data-desc="payments, billing, invoicing, tax" data-meta="finance ortiz payments cards" data-facet-status="active" data-facet-category="billing" data-facet-owner="finance" data-sort-name="stripe" data-sort-updated="20260520" data-sort-installs="1681" data-sort-owner="finance"><button type="button" class="cat-row-link" aria-label="Open Stripe"><span class="cat-icon">ST</span><span class="cat-title"><span class="cat-title-line" data-field="name">Stripe</span><span class="cat-desc" data-field="desc">Payments, billing, invoicing, tax.</span></span><span class="cat-meta-block"><span class="cat-meta-pair"><span class="cat-meta-k">Owner</span><span class="cat-meta-v" data-field="meta">Finance</span></span><span class="cat-meta-pair"><span class="cat-meta-k">Installs</span><span class="cat-meta-v" data-field="meta">1,681</span></span></span><span class="cat-status st-active">Active</span><span class="cat-quickaction">View →</span></button></li>
+<li class="cat-row" data-id="supabase" data-name="supabase" data-desc="postgres + auth + realtime; oss firebase" data-meta="data andrews postgres realtime" data-facet-status="beta" data-facet-category="storage" data-facet-owner="data" data-sort-name="supabase" data-sort-updated="20260417" data-sort-installs="0124" data-sort-owner="data"><button type="button" class="cat-row-link" aria-label="Open Supabase"><span class="cat-icon">SB</span><span class="cat-title"><span class="cat-title-line" data-field="name">Supabase</span><span class="cat-desc" data-field="desc">Postgres + auth + realtime — OSS Firebase.</span></span><span class="cat-meta-block"><span class="cat-meta-pair"><span class="cat-meta-k">Owner</span><span class="cat-meta-v" data-field="meta">Data</span></span><span class="cat-meta-pair"><span class="cat-meta-k">Installs</span><span class="cat-meta-v" data-field="meta">124</span></span></span><span class="cat-status st-beta">Beta</span><span class="cat-quickaction">View →</span></button></li>
+<li class="cat-row" data-id="taboola" data-name="taboola" data-desc="content discovery ad network" data-meta="growth tan ads native" data-facet-status="archived" data-facet-category="analytics" data-facet-owner="growth" data-sort-name="taboola" data-sort-updated="20250622" data-sort-installs="0003" data-sort-owner="growth"><button type="button" class="cat-row-link" aria-label="Open Taboola"><span class="cat-icon">TB</span><span class="cat-title"><span class="cat-title-line" data-field="name">Taboola</span><span class="cat-desc" data-field="desc">Content discovery ad network.</span></span><span class="cat-meta-block"><span class="cat-meta-pair"><span class="cat-meta-k">Owner</span><span class="cat-meta-v" data-field="meta">Growth</span></span><span class="cat-meta-pair"><span class="cat-meta-k">Installs</span><span class="cat-meta-v" data-field="meta">3</span></span></span><span class="cat-status st-archived">Archived</span><span class="cat-quickaction">View →</span></button></li>
+<li class="cat-row" data-id="tableau" data-name="tableau" data-desc="bi dashboards; embedded analytics" data-meta="data andrews bi dashboards" data-facet-status="active" data-facet-category="analytics" data-facet-owner="data" data-sort-name="tableau" data-sort-updated="20260326" data-sort-installs="0289" data-sort-owner="data"><button type="button" class="cat-row-link" aria-label="Open Tableau"><span class="cat-icon">TL</span><span class="cat-title"><span class="cat-title-line" data-field="name">Tableau</span><span class="cat-desc" data-field="desc">BI dashboards — embedded analytics.</span></span><span class="cat-meta-block"><span class="cat-meta-pair"><span class="cat-meta-k">Owner</span><span class="cat-meta-v" data-field="meta">Data</span></span><span class="cat-meta-pair"><span class="cat-meta-k">Installs</span><span class="cat-meta-v" data-field="meta">289</span></span></span><span class="cat-status st-active">Active</span><span class="cat-quickaction">View →</span></button></li>
+<li class="cat-row" data-id="twilio" data-name="twilio" data-desc="sms, voice, whatsapp, verify" data-meta="experience li sms voice" data-facet-status="active" data-facet-category="messaging" data-facet-owner="experience" data-sort-name="twilio" data-sort-updated="20260513" data-sort-installs="0734" data-sort-owner="experience"><button type="button" class="cat-row-link" aria-label="Open Twilio"><span class="cat-icon">TW</span><span class="cat-title"><span class="cat-title-line" data-field="name">Twilio</span><span class="cat-desc" data-field="desc">SMS, voice, WhatsApp, Verify.</span></span><span class="cat-meta-block"><span class="cat-meta-pair"><span class="cat-meta-k">Owner</span><span class="cat-meta-v" data-field="meta">Experience</span></span><span class="cat-meta-pair"><span class="cat-meta-k">Installs</span><span class="cat-meta-v" data-field="meta">734</span></span></span><span class="cat-status st-active">Active</span><span class="cat-quickaction">View →</span></button></li>
+<li class="cat-row" data-id="typesense" data-name="typesense" data-desc="open-source typo-tolerant search" data-meta="data andrews search oss" data-facet-status="beta" data-facet-category="search" data-facet-owner="data" data-sort-name="typesense" data-sort-updated="20260322" data-sort-installs="0048" data-sort-owner="data"><button type="button" class="cat-row-link" aria-label="Open Typesense"><span class="cat-icon">TS</span><span class="cat-title"><span class="cat-title-line" data-field="name">Typesense</span><span class="cat-desc" data-field="desc">Open-source typo-tolerant search.</span></span><span class="cat-meta-block"><span class="cat-meta-pair"><span class="cat-meta-k">Owner</span><span class="cat-meta-v" data-field="meta">Data</span></span><span class="cat-meta-pair"><span class="cat-meta-k">Installs</span><span class="cat-meta-v" data-field="meta">48</span></span></span><span class="cat-status st-beta">Beta</span><span class="cat-quickaction">View →</span></button></li>
+<li class="cat-row" data-id="vercel" data-name="vercel" data-desc="next.js hosting; edge functions" data-meta="platform shaw edge ssr" data-facet-status="active" data-facet-category="devtools" data-facet-owner="platform" data-sort-name="vercel" data-sort-updated="20260517" data-sort-installs="0476" data-sort-owner="platform"><button type="button" class="cat-row-link" aria-label="Open Vercel"><span class="cat-icon">VC</span><span class="cat-title"><span class="cat-title-line" data-field="name">Vercel</span><span class="cat-desc" data-field="desc">Next.js hosting — edge functions.</span></span><span class="cat-meta-block"><span class="cat-meta-pair"><span class="cat-meta-k">Owner</span><span class="cat-meta-v" data-field="meta">Platform</span></span><span class="cat-meta-pair"><span class="cat-meta-k">Installs</span><span class="cat-meta-v" data-field="meta">476</span></span></span><span class="cat-status st-active">Active</span><span class="cat-quickaction">View →</span></button></li>
+<li class="cat-row" data-id="webflow" data-name="webflow" data-desc="visual web builder; cms api" data-meta="experience li builder cms" data-facet-status="beta" data-facet-category="storage" data-facet-owner="experience" data-sort-name="webflow" data-sort-updated="20260314" data-sort-installs="0067" data-sort-owner="experience"><button type="button" class="cat-row-link" aria-label="Open Webflow"><span class="cat-icon">WF</span><span class="cat-title"><span class="cat-title-line" data-field="name">Webflow</span><span class="cat-desc" data-field="desc">Visual web builder — CMS API.</span></span><span class="cat-meta-block"><span class="cat-meta-pair"><span class="cat-meta-k">Owner</span><span class="cat-meta-v" data-field="meta">Experience</span></span><span class="cat-meta-pair"><span class="cat-meta-k">Installs</span><span class="cat-meta-v" data-field="meta">67</span></span></span><span class="cat-status st-beta">Beta</span><span class="cat-quickaction">View →</span></button></li>
+<li class="cat-row" data-id="workday" data-name="workday" data-desc="hris source of truth; scim feed" data-meta="security okonkwo hr scim" data-facet-status="active" data-facet-category="auth" data-facet-owner="security" data-sort-name="workday" data-sort-updated="20260418" data-sort-installs="0184" data-sort-owner="security"><button type="button" class="cat-row-link" aria-label="Open Workday"><span class="cat-icon">WD</span><span class="cat-title"><span class="cat-title-line" data-field="name">Workday</span><span class="cat-desc" data-field="desc">HRIS source of truth — SCIM feed.</span></span><span class="cat-meta-block"><span class="cat-meta-pair"><span class="cat-meta-k">Owner</span><span class="cat-meta-v" data-field="meta">Security</span></span><span class="cat-meta-pair"><span class="cat-meta-k">Installs</span><span class="cat-meta-v" data-field="meta">184</span></span></span><span class="cat-status st-active">Active</span><span class="cat-quickaction">View →</span></button></li>
+<li class="cat-row" data-id="xero" data-name="xero" data-desc="small business accounting and invoicing" data-meta="finance ortiz accounting" data-facet-status="paused" data-facet-category="billing" data-facet-owner="finance" data-sort-name="xero" data-sort-updated="20260111" data-sort-installs="0036" data-sort-owner="finance"><button type="button" class="cat-row-link" aria-label="Open Xero"><span class="cat-icon">XR</span><span class="cat-title"><span class="cat-title-line" data-field="name">Xero</span><span class="cat-desc" data-field="desc">Small-business accounting and invoicing.</span></span><span class="cat-meta-block"><span class="cat-meta-pair"><span class="cat-meta-k">Owner</span><span class="cat-meta-v" data-field="meta">Finance</span></span><span class="cat-meta-pair"><span class="cat-meta-k">Installs</span><span class="cat-meta-v" data-field="meta">36</span></span></span><span class="cat-status st-paused">Paused</span><span class="cat-quickaction">View →</span></button></li>
+<li class="cat-row" data-id="zendesk" data-name="zendesk" data-desc="ticketing, knowledge base, chat" data-meta="experience li tickets kb" data-facet-status="active" data-facet-category="messaging" data-facet-owner="experience" data-sort-name="zendesk" data-sort-updated="20260512" data-sort-installs="0398" data-sort-owner="experience"><button type="button" class="cat-row-link" aria-label="Open Zendesk"><span class="cat-icon">ZD</span><span class="cat-title"><span class="cat-title-line" data-field="name">Zendesk</span><span class="cat-desc" data-field="desc">Ticketing, knowledge base, chat.</span></span><span class="cat-meta-block"><span class="cat-meta-pair"><span class="cat-meta-k">Owner</span><span class="cat-meta-v" data-field="meta">Experience</span></span><span class="cat-meta-pair"><span class="cat-meta-k">Installs</span><span class="cat-meta-v" data-field="meta">398</span></span></span><span class="cat-status st-active">Active</span><span class="cat-quickaction">View →</span></button></li>
+<li class="cat-row" data-id="zoom" data-name="zoom" data-desc="meetings, webinars, recordings api" data-meta="experience li video meetings" data-facet-status="active" data-facet-category="messaging" data-facet-owner="experience" data-sort-name="zoom" data-sort-updated="20260318" data-sort-installs="0162" data-sort-owner="experience"><button type="button" class="cat-row-link" aria-label="Open Zoom"><span class="cat-icon">ZM</span><span class="cat-title"><span class="cat-title-line" data-field="name">Zoom</span><span class="cat-desc" data-field="desc">Meetings, webinars, recordings API.</span></span><span class="cat-meta-block"><span class="cat-meta-pair"><span class="cat-meta-k">Owner</span><span class="cat-meta-v" data-field="meta">Experience</span></span><span class="cat-meta-pair"><span class="cat-meta-k">Installs</span><span class="cat-meta-v" data-field="meta">162</span></span></span><span class="cat-status st-active">Active</span><span class="cat-quickaction">View →</span></button></li>
+<li class="cat-row" data-id="duo" data-name="duo security" data-desc="mfa with push, totp, fido2" data-meta="security okonkwo mfa fido2" data-facet-status="active" data-facet-category="auth" data-facet-owner="security" data-sort-name="duo security" data-sort-updated="20260507" data-sort-installs="0322" data-sort-owner="security"><button type="button" class="cat-row-link" aria-label="Open Duo Security"><span class="cat-icon">DU</span><span class="cat-title"><span class="cat-title-line" data-field="name">Duo Security</span><span class="cat-desc" data-field="desc">MFA with push, TOTP, FIDO2.</span></span><span class="cat-meta-block"><span class="cat-meta-pair"><span class="cat-meta-k">Owner</span><span class="cat-meta-v" data-field="meta">Security</span></span><span class="cat-meta-pair"><span class="cat-meta-k">Installs</span><span class="cat-meta-v" data-field="meta">322</span></span></span><span class="cat-status st-active">Active</span><span class="cat-quickaction">View →</span></button></li>
+<li class="cat-row" data-id="onelogin" data-name="onelogin" data-desc="sso and provisioning; midmarket sweet spot" data-meta="security okonkwo sso provisioning" data-facet-status="paused" data-facet-category="auth" data-facet-owner="security" data-sort-name="onelogin" data-sort-updated="20260214" data-sort-installs="0029" data-sort-owner="security"><button type="button" class="cat-row-link" aria-label="Open OneLogin"><span class="cat-icon">OL</span><span class="cat-title"><span class="cat-title-line" data-field="name">OneLogin</span><span class="cat-desc" data-field="desc">SSO and provisioning — midmarket sweet spot.</span></span><span class="cat-meta-block"><span class="cat-meta-pair"><span class="cat-meta-k">Owner</span><span class="cat-meta-v" data-field="meta">Security</span></span><span class="cat-meta-pair"><span class="cat-meta-k">Installs</span><span class="cat-meta-v" data-field="meta">29</span></span></span><span class="cat-status st-paused">Paused</span><span class="cat-quickaction">View →</span></button></li>
+<li class="cat-row" data-id="bigquery" data-name="bigquery" data-desc="serverless warehouse; gcp-native" data-meta="data andrews warehouse gcp" data-facet-status="active" data-facet-category="storage" data-facet-owner="data" data-sort-name="bigquery" data-sort-updated="20260511" data-sort-installs="0421" data-sort-owner="data"><button type="button" class="cat-row-link" aria-label="Open BigQuery"><span class="cat-icon">BQ</span><span class="cat-title"><span class="cat-title-line" data-field="name">BigQuery</span><span class="cat-desc" data-field="desc">Serverless warehouse — GCP-native.</span></span><span class="cat-meta-block"><span class="cat-meta-pair"><span class="cat-meta-k">Owner</span><span class="cat-meta-v" data-field="meta">Data</span></span><span class="cat-meta-pair"><span class="cat-meta-k">Installs</span><span class="cat-meta-v" data-field="meta">421</span></span></span><span class="cat-status st-active">Active</span><span class="cat-quickaction">View →</span></button></li>
+<li class="cat-row" data-id="adyen" data-name="adyen" data-desc="unified payments across 250+ methods" data-meta="finance ortiz payments global" data-facet-status="beta" data-facet-category="billing" data-facet-owner="finance" data-sort-name="adyen" data-sort-updated="20260413" data-sort-installs="0118" data-sort-owner="finance"><button type="button" class="cat-row-link" aria-label="Open Adyen"><span class="cat-icon">AY</span><span class="cat-title"><span class="cat-title-line" data-field="name">Adyen</span><span class="cat-desc" data-field="desc">Unified payments across 250+ methods.</span></span><span class="cat-meta-block"><span class="cat-meta-pair"><span class="cat-meta-k">Owner</span><span class="cat-meta-v" data-field="meta">Finance</span></span><span class="cat-meta-pair"><span class="cat-meta-k">Installs</span><span class="cat-meta-v" data-field="meta">118</span></span></span><span class="cat-status st-beta">Beta</span><span class="cat-quickaction">View →</span></button></li>
+<li class="cat-row" data-id="figma" data-name="figma" data-desc="design files and dev mode; webhooks" data-meta="experience li design webhooks" data-facet-status="active" data-facet-category="devtools" data-facet-owner="experience" data-sort-name="figma" data-sort-updated="20260515" data-sort-installs="0623" data-sort-owner="experience"><button type="button" class="cat-row-link" aria-label="Open Figma"><span class="cat-icon">FG</span><span class="cat-title"><span class="cat-title-line" data-field="name">Figma</span><span class="cat-desc" data-field="desc">Design files and dev mode — webhooks.</span></span><span class="cat-meta-block"><span class="cat-meta-pair"><span class="cat-meta-k">Owner</span><span class="cat-meta-v" data-field="meta">Experience</span></span><span class="cat-meta-pair"><span class="cat-meta-k">Installs</span><span class="cat-meta-v" data-field="meta">623</span></span></span><span class="cat-status st-active">Active</span><span class="cat-quickaction">View →</span></button></li>
+<li class="cat-row" data-id="recurly" data-name="recurly" data-desc="subscription billing with revenue recognition" data-meta="finance ortiz subscriptions rev-rec" data-facet-status="beta" data-facet-category="billing" data-facet-owner="finance" data-sort-name="recurly" data-sort-updated="20260330" data-sort-installs="0054" data-sort-owner="finance"><button type="button" class="cat-row-link" aria-label="Open Recurly"><span class="cat-icon">RC</span><span class="cat-title"><span class="cat-title-line" data-field="name">Recurly</span><span class="cat-desc" data-field="desc">Subscription billing with revenue recognition.</span></span><span class="cat-meta-block"><span class="cat-meta-pair"><span class="cat-meta-k">Owner</span><span class="cat-meta-v" data-field="meta">Finance</span></span><span class="cat-meta-pair"><span class="cat-meta-k">Installs</span><span class="cat-meta-v" data-field="meta">54</span></span></span><span class="cat-status st-beta">Beta</span><span class="cat-quickaction">View →</span></button></li>
+<!-- ITEMS_END -->
+      </ol>
+
+      <div class="cat-empty" id="cat-empty" role="status">
+        <div class="empty-mark" aria-hidden="true">∅</div>
+        <div class="empty-title">No integrations match</div>
+        <div class="empty-sub">Try a different search term or clear some filters.</div>
+        <button type="button" class="empty-cta" id="empty-clear">Clear filters</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="cat-drawer-scrim" id="cat-drawer-scrim" tabindex="-1"></div>
+<aside class="cat-drawer" id="cat-drawer" role="dialog" aria-modal="true" aria-labelledby="drawer-title" hidden>
+  <div class="cat-drawer-head">
+    <div class="drawer-icon" aria-hidden="true" id="drawer-icon">··</div>
+    <div class="drawer-title-block">
+      <div class="drawer-eyebrow" id="drawer-eyebrow"></div>
+      <h2 id="drawer-title">—</h2>
+      <p class="drawer-sub" id="drawer-sub"></p>
+    </div>
+    <button type="button" class="cat-drawer-close" id="cat-drawer-close" aria-label="Close detail">×</button>
+  </div>
+  <div class="cat-drawer-body" id="cat-drawer-body"></div>
+  <div class="cat-drawer-foot">
+    <button type="button" class="btn" id="cat-drawer-prev">← Previous</button>
+    <button type="button" class="btn" id="cat-drawer-next">Next →</button>
+    <button type="button" class="btn btn-primary" id="cat-drawer-open">Open record</button>
+  </div>
+</aside>
+
+<div class="cat-bottomsheet-scrim" id="cat-sheet-scrim"></div>
+<div class="cat-bottomsheet" id="cat-sheet" role="dialog" aria-modal="true" aria-label="Filters">
+  <div class="sheet-handle" aria-hidden="true"></div>
+  <div class="sheet-head">
+    <h3>Filters</h3>
+    <button type="button" class="sheet-close" id="cat-sheet-close">Done</button>
+  </div>
+  <div id="cat-sheet-body"></div>
+</div>
+
+<!-- Item detail payloads — populated for a handful as examples; rest fall back to in-row data -->
+<script type="application/json" id="item-stripe">
+{
+  "title": "Stripe",
+  "eyebrow": "Billing · Finance",
+  "subtitle": "Payments, billing, invoicing, tax — primary revenue rail.",
+  "monogram": "ST",
+  "kv": [
+    {"k": "Owner",    "v": "Finance · Ortiz"},
+    {"k": "Category", "v": "Billing"},
+    {"k": "Status",   "v": "Active since 2019-04"},
+    {"k": "API ver",  "v": "2026-04-30"},
+    {"k": "Installs", "v": "1,681 workspaces"},
+    {"k": "SLA",      "v": "99.995% (last 90d: 99.998%)"}
+  ],
+  "tags": ["payments", "subscriptions", "tax", "webhooks", "PCI-DSS"],
+  "body_html": "<p>Stripe is the primary payment processor for card and bank-debit flows across all geos. Webhooks are signature-verified at the edge; subscription state is mirrored into Postgres for reporting.</p><p>Owner is on-call for incidents and gates schema changes to <code>subscriptions</code>.</p>",
+  "href": "#stripe"
+}
+</script>
+<script type="application/json" id="item-mailchimp">
+{
+  "title": "Mailchimp",
+  "eyebrow": "Messaging · Growth",
+  "subtitle": "Marketing email and automations — replaced by Loops + SendGrid.",
+  "monogram": "MC",
+  "kv": [
+    {"k": "Owner",    "v": "Growth · Tan"},
+    {"k": "Category", "v": "Messaging"},
+    {"k": "Status",   "v": "Deprecated — removal scheduled 2026-08-01"},
+    {"k": "Last edit","v": "2025-11-08"},
+    {"k": "Installs", "v": "19 workspaces (legacy)"}
+  ],
+  "tags": ["email", "marketing", "deprecated"],
+  "body_html": "<p>Marked deprecated 2025-11-08. New workspaces should adopt <strong>Loops</strong> (lifecycle email) and <strong>SendGrid</strong> (transactional). Existing workspaces have until 2026-08-01 to migrate; after that the integration will be removed.</p>",
+  "href": "#mailchimp"
+}
+</script>
+<script type="application/json" id="item-postgres">
+{
+  "title": "Postgres",
+  "eyebrow": "Storage · Data",
+  "subtitle": "Primary relational store — logical replication to warehouse.",
+  "monogram": "PG",
+  "kv": [
+    {"k": "Owner",    "v": "Data · Andrews"},
+    {"k": "Category", "v": "Storage"},
+    {"k": "Status",   "v": "Active — load-bearing"},
+    {"k": "Version",  "v": "16.3 (managed RDS)"},
+    {"k": "Installs", "v": "1,604 workspaces"}
+  ],
+  "tags": ["sql", "rdbms", "replication", "warehouse-source", "load-bearing"],
+  "body_html": "<p>Postgres is the platform's primary write store. Logical replication slots feed Snowflake for analytics. Schema migrations require Data team review.</p>",
+  "href": "#postgres"
+}
+</script>
+<script type="application/json" id="item-algolia">
+{
+  "title": "Algolia",
+  "eyebrow": "Search · Platform",
+  "subtitle": "Hosted search API with instant-search components.",
+  "monogram": "AL",
+  "kv": [
+    {"k": "Owner",    "v": "Platform · Shaw"},
+    {"k": "Category", "v": "Search"},
+    {"k": "Status",   "v": "Active"},
+    {"k": "Index",    "v": "12 indices, 2.4M records"},
+    {"k": "Installs", "v": "481 workspaces"}
+  ],
+  "tags": ["search", "saas", "instant-search", "ranked"],
+  "body_html": "<p>Drives the in-app product search across catalog, docs, and help center. Re-indexed nightly from Postgres + Notion + Contentful.</p>",
+  "href": "#algolia"
+}
+</script>
+<script>
+(function () {
+  // Tiny module — same code as template, slimmed for the example.
+  var ROW_H = 72, ROW_H_CARD = 140, OVERSCAN = 6;
+  var list      = document.getElementById('cat-list');
+  var spacer    = list.querySelector('.cat-list-spacer');
+  var rows      = Array.prototype.slice.call(list.querySelectorAll('.cat-row'));
+  var rail      = document.getElementById('cat-rail');
+  var searchBar = document.getElementById('cat-searchbar');
+  var searchEl  = document.getElementById('cat-search');
+  var searchClr = searchBar.querySelector('.cat-search-clear');
+  var countEl   = document.getElementById('cat-count-shown');
+  var clearAll  = document.getElementById('cat-clear-all');
+  var emptyEl   = document.getElementById('cat-empty');
+  var emptyClr  = document.getElementById('empty-clear');
+  var activeN   = document.getElementById('rail-active-n');
+  var activeS   = document.getElementById('rail-active-s');
+  var mfBtn     = document.getElementById('cat-mobile-filters');
+  var mfCount   = document.getElementById('mf-count');
+  var sortSel   = document.getElementById('cat-sort');
+  var sortDir   = document.getElementById('cat-sort-dir');
+  var view      = 'rows';
+  var viewBtns  = list.parentNode.querySelectorAll('.cat-viewtoggle button');
+
+  var drawer       = document.getElementById('cat-drawer');
+  var drawerScrim  = document.getElementById('cat-drawer-scrim');
+  var drawerClose  = document.getElementById('cat-drawer-close');
+  var drawerBody   = document.getElementById('cat-drawer-body');
+  var drawerTitle  = document.getElementById('drawer-title');
+  var drawerEye    = document.getElementById('drawer-eyebrow');
+  var drawerSub    = document.getElementById('drawer-sub');
+  var drawerIcon   = document.getElementById('drawer-icon');
+  var drawerPrev   = document.getElementById('cat-drawer-prev');
+  var drawerNext   = document.getElementById('cat-drawer-next');
+  var drawerOpen   = document.getElementById('cat-drawer-open');
+
+  var sheet       = document.getElementById('cat-sheet');
+  var sheetScrim  = document.getElementById('cat-sheet-scrim');
+  var sheetClose  = document.getElementById('cat-sheet-close');
+  var sheetBody   = document.getElementById('cat-sheet-body');
+
+  var state = { q: '', facets: {}, sort: sortSel.value, dir: 'asc',
+                visibleIds: rows.map(function (r) { return r.dataset.id; }) };
+
+  var rowIndex = rows.map(function (r) {
+    var idx = { el: r, id: r.dataset.id, name: r.dataset.name || '',
+                desc: r.dataset.desc || '', meta: r.dataset.meta || '',
+                facets: {}, sortKeys: { name: r.dataset.sortName || r.dataset.name || '' } };
+    for (var k in r.dataset) {
+      if (k.indexOf('facet') === 0 && k !== 'facet') {
+        var fk = k.slice(5).toLowerCase();
+        idx.facets[fk] = (r.dataset[k] || '').split('|').filter(Boolean);
+      }
+      if (k.indexOf('sort') === 0 && k !== 'sort') {
+        var sk = k.slice(4).toLowerCase();
+        idx.sortKeys[sk] = r.dataset[k] || '';
+      }
+    }
+    return idx;
+  });
+
+  var searchTimer = null;
+  function onSearchInput() {
+    if (searchTimer) clearTimeout(searchTimer);
+    searchTimer = setTimeout(function () {
+      state.q = (searchEl.value || '').toLowerCase().trim();
+      searchBar.classList.toggle('has-value', state.q.length > 0);
+      schedule();
+    }, 200);
+  }
+  searchEl.addEventListener('input', onSearchInput);
+  searchEl.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape') {
+      searchEl.value = ''; state.q = '';
+      searchBar.classList.remove('has-value'); schedule();
+    }
+  });
+  searchClr.addEventListener('click', function () {
+    searchEl.value = ''; state.q = '';
+    searchBar.classList.remove('has-value');
+    searchEl.focus(); schedule();
+  });
+  document.addEventListener('keydown', function (e) {
+    if (e.key === '/' && !e.metaKey && !e.ctrlKey && !e.altKey &&
+        document.activeElement && document.activeElement.tagName !== 'INPUT' &&
+        document.activeElement.tagName !== 'TEXTAREA' &&
+        document.activeElement.tagName !== 'SELECT' &&
+        !drawer.classList.contains('is-open')) {
+      e.preventDefault(); searchEl.focus(); searchEl.select();
+    }
+  });
+
+  rail.addEventListener('click', function (e) {
+    var btn = e.target.closest('.cat-chip'); if (btn) toggleFacet(btn);
+  });
+  function toggleFacet(btn) {
+    var fk = btn.dataset.facet, v = (btn.dataset.value || '').toLowerCase();
+    if (!state.facets[fk]) state.facets[fk] = {};
+    if (state.facets[fk][v]) {
+      delete state.facets[fk][v];
+      btn.setAttribute('aria-pressed', 'false');
+    } else {
+      state.facets[fk][v] = true;
+      btn.setAttribute('aria-pressed', 'true');
+    }
+    syncTwins(fk, v, btn.getAttribute('aria-pressed') === 'true');
+    updateActiveCount(); schedule();
+  }
+  function syncTwins(fk, v, pressed) {
+    var twins = document.querySelectorAll(
+      '.cat-chip[data-facet="' + fk + '"][data-value="' + cssEscape(v) + '"]');
+    twins.forEach(function (b) { b.setAttribute('aria-pressed', pressed ? 'true' : 'false'); });
+  }
+  function cssEscape(s) { return String(s).replace(/[^a-zA-Z0-9_-]/g, function (c) { return '\\' + c; }); }
+  function updateActiveCount() {
+    var total = 0, perFacet = {};
+    for (var fk in state.facets) {
+      var n = Object.keys(state.facets[fk]).length;
+      perFacet[fk] = n; total += n;
+    }
+    activeN.textContent = String(total);
+    activeS.textContent = total === 1 ? '' : 's';
+    rail.classList.toggle('has-active', total > 0);
+    mfBtn.classList.toggle('has-active', total > 0);
+    if (mfCount) mfCount.textContent = String(total);
+    document.querySelectorAll('.cat-rail-section').forEach(function (s) {
+      var fk = s.dataset.facet, n = perFacet[fk] || 0;
+      var el = s.querySelector('[data-active-count]');
+      if (el) el.textContent = n === 0 ? '' : (n + ' active');
+    });
+  }
+  clearAll.addEventListener('click', clearAllFilters);
+  emptyClr.addEventListener('click', clearAllFilters);
+  function clearAllFilters() {
+    state.facets = {}; state.q = '';
+    searchEl.value = ''; searchBar.classList.remove('has-value');
+    document.querySelectorAll('.cat-chip[aria-pressed="true"]').forEach(function (b) {
+      b.setAttribute('aria-pressed', 'false');
+    });
+    updateActiveCount(); schedule(); searchEl.focus();
+  }
+
+  sortSel.addEventListener('change', function () { state.sort = sortSel.value; schedule(); });
+  sortDir.addEventListener('click', function () {
+    state.dir = state.dir === 'asc' ? 'desc' : 'asc';
+    sortDir.setAttribute('aria-pressed', state.dir === 'desc' ? 'true' : 'false');
+    sortDir.setAttribute('aria-label',
+      'Toggle sort direction (currently ' + (state.dir === 'asc' ? 'ascending' : 'descending') + ')');
+    sortDir.textContent = state.dir === 'asc' ? '↑' : '↓';
+    schedule();
+  });
+  viewBtns.forEach(function (b) {
+    b.addEventListener('click', function () {
+      view = b.dataset.view;
+      viewBtns.forEach(function (x) { x.setAttribute('aria-pressed', x === b ? 'true' : 'false'); });
+      list.classList.toggle('view-cards', view === 'cards');
+      schedule();
+    });
+  });
+
+  var raf = null;
+  function schedule() { if (raf) return; raf = requestAnimationFrame(function () { raf = null; render(); }); }
+  function matchSearch(idx, q) {
+    if (!q) return true;
+    return (idx.name + ' ' + idx.desc + ' ' + idx.meta).indexOf(q) !== -1;
+  }
+  function matchFacets(idx, facets) {
+    for (var fk in facets) {
+      var sel = facets[fk], selKeys = Object.keys(sel);
+      if (selKeys.length === 0) continue;
+      var rowVals = idx.facets[fk] || [], hit = false;
+      for (var i = 0; i < selKeys.length; i++) {
+        if (rowVals.indexOf(selKeys[i]) !== -1) { hit = true; break; }
+      }
+      if (!hit) return false;
+    }
+    return true;
+  }
+  function compare(a, b) {
+    var ak = (a.sortKeys[state.sort] || '').toString();
+    var bk = (b.sortKeys[state.sort] || '').toString();
+    var an = parseFloat(ak), bn = parseFloat(bk), cmp;
+    if (!isNaN(an) && !isNaN(bn) && ak.match(/^-?\d/) && bk.match(/^-?\d/)) cmp = an - bn;
+    else cmp = ak.localeCompare(bk, undefined, { numeric: true, sensitivity: 'base' });
+    return state.dir === 'asc' ? cmp : -cmp;
+  }
+  function render() {
+    var q = state.q;
+    var matched = rowIndex.filter(function (r) { return matchSearch(r, q) && matchFacets(r, state.facets); });
+    matched.sort(compare);
+    state.visibleIds = matched.map(function (r) { return r.id; });
+    countEl.textContent = String(matched.length);
+    var of = countEl.parentNode.querySelector('.count-of');
+    if (of) of.textContent = 'of ' + rowIndex.length;
+    list.classList.toggle('is-empty', matched.length === 0);
+
+    var virtual = list.dataset.virtual === 'true';
+    var rowH = view === 'cards' ? ROW_H_CARD : ROW_H;
+    if (virtual) {
+      spacer.style.height = (matched.length * rowH) + 'px';
+      placeRows(matched, rowH);
+    } else {
+      var matchedSet = {}; matched.forEach(function (r, i) { matchedSet[r.id] = i; });
+      rowIndex.forEach(function (r) {
+        if (r.id in matchedSet) { r.el.hidden = false; r.el.style.top = ''; }
+        else r.el.hidden = true;
+      });
+      var frag = document.createDocumentFragment();
+      matched.forEach(function (r) { frag.appendChild(r.el); });
+      list.appendChild(frag);
+    }
+    applyHighlight(matched, q);
+  }
+
+  var currentMatched = [], currentRowH = ROW_H, placeRaf = null, listScrollWired = false;
+  function placeRows(matched, rowH) {
+    currentMatched = matched; currentRowH = rowH;
+    if (!listScrollWired) {
+      list.addEventListener('scroll', function () { if (placeRaf) return; placeRaf = requestAnimationFrame(function () { placeRaf = null; placeRows(currentMatched, currentRowH); }); }, { passive: true });
+      listScrollWired = true;
+    }
+    var scrollTop = list.scrollTop, clientH = list.clientHeight || 600;
+    var firstIdx = Math.max(0, Math.floor(scrollTop / rowH) - OVERSCAN);
+    var lastIdx  = Math.min(matched.length, Math.ceil((scrollTop + clientH) / rowH) + OVERSCAN);
+    rowIndex.forEach(function (r) { r.el.hidden = true; r.el.style.top = ''; });
+    for (var i = firstIdx; i < lastIdx; i++) {
+      var r = matched[i]; r.el.hidden = false; r.el.style.top = (i * rowH) + 'px';
+    }
+  }
+
+  function applyHighlight(matched, q) {
+    matched.forEach(function (r) {
+      var fields = r.el.querySelectorAll('[data-field]');
+      fields.forEach(function (f) {
+        if (f.dataset.original !== undefined) f.textContent = f.dataset.original;
+        else f.dataset.original = f.textContent;
+      });
+    });
+    if (!q) return;
+    var re = new RegExp(escapeRe(q), 'gi');
+    matched.forEach(function (r) {
+      var fields = r.el.querySelectorAll('[data-field]');
+      fields.forEach(function (f) {
+        var orig = f.dataset.original || f.textContent;
+        if (orig.toLowerCase().indexOf(q) === -1) return;
+        var html = '', last = 0, m;
+        re.lastIndex = 0;
+        while ((m = re.exec(orig)) !== null) {
+          html += escapeHtml(orig.slice(last, m.index));
+          html += '<mark class="cat-hl">' + escapeHtml(m[0]) + '</mark>';
+          last = m.index + m[0].length;
+          if (m[0].length === 0) re.lastIndex++;
+        }
+        html += escapeHtml(orig.slice(last));
+        f.innerHTML = html;
+      });
+    });
+  }
+  function escapeRe(s) { return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }
+  function escapeHtml(s) {
+    return s.replace(/[&<>"']/g, function (c) {
+      return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c];
+    });
+  }
+
+  var lastFocus = null;
+  list.addEventListener('click', function (e) {
+    var btn = e.target.closest('.cat-row-link'); if (!btn) return;
+    var li = btn.closest('.cat-row'); if (li) openDrawer(li.dataset.id);
+  });
+  function openDrawer(id) {
+    var idx = rowIndex.find(function (r) { return r.id === id; }); if (!idx) return;
+    lastFocus = document.activeElement;
+    var payload = readPayload(id);
+    drawerTitle.textContent = payload.title || idx.el.querySelector('.cat-title-line').textContent;
+    drawerEye.textContent   = payload.eyebrow || '';
+    var descEl = idx.el.querySelector('.cat-desc');
+    drawerSub.textContent   = payload.subtitle || (descEl ? descEl.textContent : '');
+    drawerIcon.textContent  = payload.monogram || idx.el.querySelector('.cat-icon').textContent;
+    drawerBody.innerHTML = '';
+    if (payload.body_html) {
+      var s = document.createElement('div'); s.className = 'drawer-section';
+      s.innerHTML = payload.body_html; drawerBody.appendChild(s);
+    } else {
+      var s = document.createElement('div'); s.className = 'drawer-section';
+      s.innerHTML = '<p style="color:var(--cat-muted);font-style:italic">Detail payload not provided for this record.</p>';
+      drawerBody.appendChild(s);
+    }
+    if (payload.kv && payload.kv.length) {
+      var sec = document.createElement('div'); sec.className = 'drawer-section';
+      sec.innerHTML = '<h3>Details</h3>';
+      var dl = document.createElement('dl'); dl.className = 'drawer-kv';
+      payload.kv.forEach(function (pair) {
+        var dt = document.createElement('dt'); dt.textContent = pair.k;
+        var dd = document.createElement('dd'); dd.textContent = pair.v;
+        dl.appendChild(dt); dl.appendChild(dd);
+      });
+      sec.appendChild(dl); drawerBody.appendChild(sec);
+    }
+    if (payload.tags && payload.tags.length) {
+      var ts = document.createElement('div'); ts.className = 'drawer-section';
+      ts.innerHTML = '<h3>Tags</h3>';
+      var wrap = document.createElement('div'); wrap.className = 'drawer-tags';
+      payload.tags.forEach(function (t) {
+        var sp = document.createElement('span'); sp.className = 'drawer-tag'; sp.textContent = t; wrap.appendChild(sp);
+      });
+      ts.appendChild(wrap); drawerBody.appendChild(ts);
+    }
+    document.querySelectorAll('.cat-row-link[aria-current="true"]').forEach(function (x) { x.removeAttribute('aria-current'); });
+    var rowBtn = idx.el.querySelector('.cat-row-link');
+    if (rowBtn) rowBtn.setAttribute('aria-current', 'true');
+    drawer.hidden = false; void drawer.offsetWidth;
+    drawer.classList.add('is-open'); drawerScrim.classList.add('is-open');
+    document.body.style.overflow = 'hidden';
+    setTimeout(function () { drawerClose.focus(); }, 50);
+    drawer.dataset.currentId = id;
+  }
+  function readPayload(id) {
+    var sc = document.getElementById('item-' + id); if (!sc) return {};
+    try { return JSON.parse(sc.textContent); } catch (e) { return {}; }
+  }
+  function closeDrawer() {
+    drawer.classList.remove('is-open'); drawerScrim.classList.remove('is-open');
+    document.body.style.overflow = '';
+    setTimeout(function () { drawer.hidden = true; }, 200);
+    document.querySelectorAll('.cat-row-link[aria-current="true"]').forEach(function (x) { x.removeAttribute('aria-current'); });
+    if (lastFocus && lastFocus.focus) lastFocus.focus();
+  }
+  drawerClose.addEventListener('click', closeDrawer);
+  drawerScrim.addEventListener('click', closeDrawer);
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape') {
+      if (drawer.classList.contains('is-open')) { e.preventDefault(); closeDrawer(); return; }
+      if (sheet.classList.contains('is-open')) { e.preventDefault(); closeSheet(); return; }
+    }
+  });
+  drawer.addEventListener('keydown', function (e) {
+    if (e.key !== 'Tab') return;
+    var f = drawer.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])');
+    if (!f.length) return;
+    var first = f[0], last = f[f.length - 1];
+    if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+    else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+  });
+  drawerPrev.addEventListener('click', function () { stepDrawer(-1); });
+  drawerNext.addEventListener('click', function () { stepDrawer(1); });
+  drawerOpen.addEventListener('click', function () {
+    var p = readPayload(drawer.dataset.currentId || '');
+    if (p && p.href) window.location.href = p.href;
+  });
+  function stepDrawer(dir) {
+    var id = drawer.dataset.currentId; if (!id) return;
+    var i = state.visibleIds.indexOf(id); if (i === -1) return;
+    var j = i + dir; if (j < 0 || j >= state.visibleIds.length) return;
+    openDrawer(state.visibleIds[j]);
+  }
+
+  mfBtn.addEventListener('click', openSheet);
+  sheetClose.addEventListener('click', closeSheet);
+  sheetScrim.addEventListener('click', closeSheet);
+  function openSheet() {
+    if (!sheetBody.firstChild) {
+      var cloned = rail.cloneNode(true); cloned.removeAttribute('id');
+      sheetBody.appendChild(cloned);
+    }
+    sheetBody.querySelectorAll('.cat-chip').forEach(function (b) {
+      var fk = b.dataset.facet, v = (b.dataset.value || '').toLowerCase();
+      var on = state.facets[fk] && state.facets[fk][v];
+      b.setAttribute('aria-pressed', on ? 'true' : 'false');
+    });
+    sheet.classList.add('is-open'); sheetScrim.classList.add('is-open');
+  }
+  function closeSheet() { sheet.classList.remove('is-open'); sheetScrim.classList.remove('is-open'); }
+  sheetBody.addEventListener('click', function (e) {
+    var btn = e.target.closest('.cat-chip'); if (btn) toggleFacet(btn);
+  });
+
+  updateActiveCount(); render();
+})();
+</script>
+</body>
+</html>

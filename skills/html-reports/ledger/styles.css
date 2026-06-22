@@ -1,0 +1,681 @@
+/* ============================================================
+   Ledger — side-by-side comparative report
+   Identity: "bonded slate" — cool neutrals, ruled lines,
+   tabular numerals, colorblind-safe semantic tints.
+   Light mode only. Self-contained. No external deps.
+   ============================================================ */
+
+:root {
+  /* Surfaces */
+  --ledger-bg: #ffffff;
+  --ledger-bg-soft: #f6f7f9;
+  --ledger-bg-rule: #fbfcfd;          /* alternating row tint */
+  --ledger-text: #0f172a;             /* slate-900 */
+  --ledger-muted: #64748b;             /* slate-500 */
+  --ledger-border: #e2e8f0;            /* slate-200 */
+  --ledger-border-strong: #cbd5e1;     /* slate-300 */
+  --ledger-divider: #94a3b8;           /* slate-400, between option groups */
+
+  /* Semantic tints — colorblind-safe (deuteranopia/protanopia tested).
+     Each tone pairs a tinted bg with an ink + a dark accent for the leading rule.
+     Always rendered WITH a text label so color is never alone. */
+  --ledger-good-bg:  #e6f4ea;          /* desaturated green */
+  --ledger-good-ink: #134e2b;
+  --ledger-good-rule:#1f7a45;
+  --ledger-ok-bg:    #fdf3d3;          /* warm yellow (not amber) — distinct from red for CVD */
+  --ledger-ok-ink:   #6b4a00;
+  --ledger-ok-rule:  #b88600;
+  --ledger-bad-bg:   #f9e0e0;          /* desaturated red */
+  --ledger-bad-ink:  #7a1010;
+  --ledger-bad-rule: #c0392b;
+  --ledger-neutral-bg:  #f1f5f9;
+  --ledger-neutral-ink: #334155;
+  --ledger-neutral-rule:#94a3b8;
+
+  /* Accent / interactive */
+  --ledger-accent:    #1e3a8a;         /* deep slate-blue */
+  --ledger-accent-bg: #eef2ff;
+  --ledger-ring:      #2563eb;
+  --ledger-winner:    #b45309;         /* warm amber ring for "winner" cell */
+  --ledger-winner-bg: #fff7ed;
+
+  /* Typography */
+  --ledger-body-font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+                      "Helvetica Neue", Arial, sans-serif;
+  --ledger-mono-font: ui-monospace, SFMono-Regular, "SF Mono", Menlo,
+                      Consolas, "Liberation Mono", monospace;
+
+  /* Layout knobs */
+  --ledger-row-min: 240px;             /* min-width of first column */
+  --ledger-cell-pad-y: 11px;
+  --ledger-cell-pad-x: 14px;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  background: var(--ledger-bg);
+  color: var(--ledger-text);
+  font-family: var(--ledger-body-font);
+  font-size: 14px;
+  line-height: 1.5;
+  font-feature-settings: "tnum" 1, "lnum" 1, "ss01" 1;
+  -webkit-font-smoothing: antialiased;
+  print-color-adjust: exact;
+  -webkit-print-color-adjust: exact;
+}
+
+/* Skip link — appears on focus, jumps to recommendation */
+.ledger-skip {
+  position: absolute;
+  left: -9999px;
+  top: 0;
+  background: var(--ledger-accent);
+  color: #fff;
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  z-index: 10;
+}
+.ledger-skip:focus { left: 12px; top: 12px; }
+
+/* ---------- Shell + header ---------- */
+
+.ledger-shell {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 32px 24px 96px;
+}
+
+.ledger-header { margin-bottom: 20px; }
+.ledger-header .eyebrow {
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--ledger-accent);
+  margin-bottom: 8px;
+}
+.ledger-header h1 {
+  margin: 0 0 8px;
+  font-size: 28px;
+  font-weight: 700;
+  letter-spacing: -0.015em;
+  color: var(--ledger-text);
+}
+.ledger-header .ledger-subtitle {
+  color: var(--ledger-muted);
+  font-size: 14.5px;
+  max-width: 70ch;
+}
+.ledger-header .ledger-meta {
+  color: var(--ledger-muted);
+  font-size: 12px;
+  margin-top: 8px;
+  font-feature-settings: "tnum" 1;
+}
+
+/* ---------- Toolbar ---------- */
+
+.ledger-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 16px 0 12px;
+  flex-wrap: wrap;
+}
+.ledger-toggle {
+  appearance: none;
+  border: 1px solid var(--ledger-border-strong);
+  background: var(--ledger-bg);
+  color: var(--ledger-text);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  padding: 7px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+.ledger-toggle:hover { background: var(--ledger-bg-soft); }
+.ledger-toggle:focus-visible {
+  outline: 2px solid var(--ledger-ring);
+  outline-offset: 2px;
+}
+.ledger-toggle[aria-pressed="true"] {
+  border-color: var(--ledger-ring);
+  color: var(--ledger-ring);
+  background: var(--ledger-accent-bg);
+}
+.ledger-toggle .dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: var(--ledger-border-strong);
+}
+.ledger-toggle[aria-pressed="true"] .dot { background: var(--ledger-ring); }
+
+.ledger-legend {
+  display: inline-flex; align-items: center; gap: 12px;
+  font-size: 12px;
+  color: var(--ledger-muted);
+  margin-left: auto;
+}
+.ledger-legend .swatch { display: inline-flex; align-items: center; gap: 6px; }
+.ledger-legend .chip {
+  display: inline-block;
+  width: 14px; height: 14px;
+  border-radius: 3px;
+  border: 1px solid var(--ledger-border);
+}
+.ledger-legend .chip.good { background: var(--ledger-good-bg); border-left: 3px solid var(--ledger-good-rule); }
+.ledger-legend .chip.ok   { background: var(--ledger-ok-bg);   border-left: 3px solid var(--ledger-ok-rule); }
+.ledger-legend .chip.bad  { background: var(--ledger-bad-bg);  border-left: 3px solid var(--ledger-bad-rule); }
+
+/* ---------- Table ---------- */
+
+.ledger-table-wrap {
+  border: 1px solid var(--ledger-border-strong);
+  border-radius: 10px;
+  overflow: auto;
+  max-height: 78vh;
+  background: var(--ledger-bg);
+  box-shadow: 0 1px 0 rgba(15, 23, 42, 0.03);
+}
+
+table.ledger-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: 14px;
+}
+
+.sr-only {
+  position: absolute !important;
+  width: 1px; height: 1px;
+  padding: 0; margin: -1px;
+  overflow: hidden;
+  clip: rect(0,0,0,0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Column headers (sticky top) */
+.ledger-table thead th {
+  position: sticky;
+  top: 0;
+  z-index: 3;
+  background: var(--ledger-bg);
+  border-bottom: 2px solid var(--ledger-border-strong);
+  padding: 12px var(--ledger-cell-pad-x);
+  text-align: left;
+  vertical-align: bottom;
+  font-weight: 700;
+  font-size: 13px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ledger-text);
+  white-space: normal;
+  max-width: 220px;
+}
+.ledger-table thead th .opt-sub {
+  display: block;
+  font-weight: 400;
+  font-size: 11px;
+  letter-spacing: 0.02em;
+  text-transform: none;
+  color: var(--ledger-muted);
+  margin-top: 3px;
+  font-feature-settings: "tnum" 1;
+}
+.ledger-table thead th.row-corner {
+  left: 0;
+  z-index: 4;
+  border-right: 1px solid var(--ledger-border-strong);
+  min-width: var(--ledger-row-min);
+  background: var(--ledger-bg);
+}
+
+/* Row labels (sticky left) — criterion column */
+.ledger-table tbody th[scope="row"] {
+  position: sticky;
+  left: 0;
+  z-index: 2;
+  background: var(--ledger-bg);
+  text-align: left;
+  font-weight: 600;
+  font-size: 14px;
+  padding: var(--ledger-cell-pad-y) var(--ledger-cell-pad-x);
+  border-right: 1px solid var(--ledger-border-strong);
+  border-bottom: 1px solid var(--ledger-border);
+  min-width: var(--ledger-row-min);
+  max-width: 320px;
+  vertical-align: middle;
+  line-height: 1.35;
+  word-break: break-word;
+}
+.ledger-table tbody th[scope="row"] .row-weight {
+  display: inline-block;
+  margin-left: 8px;
+  padding: 1px 7px;
+  background: var(--ledger-bg-soft);
+  border: 1px solid var(--ledger-border);
+  border-radius: 999px;
+  font-size: 10.5px;
+  font-weight: 600;
+  color: var(--ledger-muted);
+  letter-spacing: 0.04em;
+  font-feature-settings: "tnum" 1;
+  vertical-align: middle;
+}
+
+/* Alternating row tint (ruled-ledger feel) — applied to ALL cells in odd rows */
+.ledger-table tbody tr.crit-row:nth-of-type(odd) > th[scope="row"],
+.ledger-table tbody tr.crit-row:nth-of-type(odd) > td {
+  background: var(--ledger-bg-rule);
+}
+/* The sticky col still needs an opaque bg so cells scroll under it cleanly,
+   so we paint the sticky col bg on a pseudo to win against tone tints. */
+
+/* Data cells */
+.ledger-table tbody td {
+  padding: var(--ledger-cell-pad-y) var(--ledger-cell-pad-x);
+  border-bottom: 1px solid var(--ledger-border);
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1, "lnum" 1;
+  vertical-align: middle;
+  background: var(--ledger-bg);
+}
+.ledger-table tbody td .cell-value {
+  font-weight: 700;
+  font-size: 15px;
+  letter-spacing: 0;
+}
+.ledger-table tbody td .cell-sub {
+  display: block;
+  font-size: 11px;
+  color: var(--ledger-muted);
+  font-weight: 500;
+  margin-top: 2px;
+  letter-spacing: 0.01em;
+}
+.ledger-table tbody td .cell-rich {
+  display: block;
+  font-weight: 500;
+  font-size: 13px;
+  text-align: left;
+  line-height: 1.45;
+}
+.ledger-table tbody td .cell-pill {
+  display: inline-block;
+  padding: 2px 9px;
+  border-radius: 999px;
+  font-weight: 600;
+  font-size: 12px;
+  letter-spacing: 0.02em;
+}
+.ledger-table tbody td.kind-rich { text-align: left; }
+.ledger-table tbody td.kind-pill { text-align: center; }
+
+/* Tone tints — each carries a left-rule for double-encoding (color + shape) */
+.ledger-table .tone-good {
+  background: var(--ledger-good-bg);
+  color: var(--ledger-good-ink);
+  box-shadow: inset 3px 0 0 var(--ledger-good-rule);
+}
+.ledger-table .tone-ok {
+  background: var(--ledger-ok-bg);
+  color: var(--ledger-ok-ink);
+  box-shadow: inset 3px 0 0 var(--ledger-ok-rule);
+}
+.ledger-table .tone-bad {
+  background: var(--ledger-bad-bg);
+  color: var(--ledger-bad-ink);
+  box-shadow: inset 3px 0 0 var(--ledger-bad-rule);
+}
+.ledger-table .tone-neutral {
+  background: var(--ledger-neutral-bg);
+  color: var(--ledger-neutral-ink);
+}
+
+/* Missing-data cell */
+.ledger-table tbody td.is-missing {
+  background: repeating-linear-gradient(
+    135deg,
+    var(--ledger-bg) 0,
+    var(--ledger-bg) 6px,
+    var(--ledger-bg-soft) 6px,
+    var(--ledger-bg-soft) 12px
+  );
+  color: var(--ledger-muted);
+  font-style: italic;
+}
+.ledger-table tbody td.is-missing .cell-value { font-weight: 500; }
+
+/* Group header row */
+.ledger-table tbody tr.group-row th {
+  background: var(--ledger-text);
+  color: #fff;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 8px var(--ledger-cell-pad-x);
+  border-bottom: 1px solid var(--ledger-border-strong);
+  border-top: 1px solid var(--ledger-border-strong);
+  position: sticky;
+  left: 0;
+  z-index: 1;
+  cursor: pointer;
+}
+.ledger-table tbody tr.group-row th:focus-visible {
+  outline: 2px solid var(--ledger-ring);
+  outline-offset: -2px;
+}
+.ledger-table tbody tr.group-row .group-caret {
+  display: inline-block;
+  width: 0; height: 0;
+  border-left: 5px solid transparent;
+  border-right: 5px solid transparent;
+  border-top: 6px solid #fff;
+  margin-right: 8px;
+  vertical-align: middle;
+  transition: transform 120ms;
+}
+.ledger-table tbody tr.group-row[aria-expanded="false"] .group-caret {
+  transform: rotate(-90deg);
+}
+.ledger-table tbody tr.group-row[aria-expanded="false"] + tr.crit-row,
+.ledger-table tbody tr.group-row[aria-expanded="false"] ~ tr.crit-row {
+  /* Collapsing handled by JS toggling .is-collapsed on each row in the group */
+}
+.ledger-table tbody tr.crit-row.is-collapsed { display: none; }
+
+/* Heavy divider between option groups (e.g. top half vs bottom half) */
+.ledger-table .col-divider {
+  border-right: 2px solid var(--ledger-divider) !important;
+}
+
+/* Winner ring — subtle gold ring on the cell judged the best per row */
+.ledger-table tbody td.is-winner {
+  position: relative;
+}
+.ledger-table tbody td.is-winner::after {
+  content: "";
+  position: absolute;
+  inset: 3px;
+  border-radius: 4px;
+  border: 1.5px solid var(--ledger-winner);
+  pointer-events: none;
+}
+
+/* Diff mode — pure CSS class swap, no DOM rebuild */
+.ledger-table[data-diff-mode="true"] tbody td:not(.diff-hit):not(.is-missing) {
+  opacity: 0.32;
+}
+.ledger-table[data-diff-mode="true"] tbody td.diff-hit {
+  box-shadow: inset 3px 0 0 var(--ledger-ring), inset 0 0 0 2px var(--ledger-ring);
+  z-index: 1;
+}
+
+/* Reduced motion — respect user preference (no transitions, no animated indicators) */
+@media (prefers-reduced-motion: reduce) {
+  .ledger-table tbody tr.group-row .group-caret { transition: none; }
+  .ledger-toggle { transition: none; }
+}
+
+/* ---------- Recommendation band ---------- */
+
+.ledger-recommendation {
+  margin-top: 36px;
+  padding: 26px 28px;
+  border: 1px solid var(--ledger-border-strong);
+  border-left: 6px solid var(--ledger-accent);
+  border-radius: 10px;
+  background: linear-gradient(180deg, var(--ledger-accent-bg) 0%, #ffffff 60%);
+  position: relative;
+}
+.ledger-recommendation .reco-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  text-transform: uppercase;
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  color: var(--ledger-accent);
+  margin-bottom: 8px;
+  font-weight: 700;
+}
+.ledger-recommendation .reco-eyebrow .reco-icon {
+  display: inline-block;
+  width: 16px; height: 16px;
+  background: var(--ledger-accent);
+  color: #fff;
+  border-radius: 50%;
+  text-align: center;
+  line-height: 16px;
+  font-size: 11px;
+  font-weight: 700;
+}
+.ledger-recommendation .reco-winner {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--ledger-text);
+  margin: 0 0 12px;
+  letter-spacing: -0.015em;
+  line-height: 1.25;
+}
+.ledger-recommendation .reco-winner em {
+  font-style: normal;
+  color: var(--ledger-accent);
+}
+.ledger-recommendation .reco-rationale {
+  font-size: 14.5px;
+  line-height: 1.6;
+  color: var(--ledger-text);
+  margin: 0 0 14px;
+  max-width: 75ch;
+}
+.ledger-recommendation .reco-tradeoff {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  padding: 12px 14px;
+  background: #fff7ed;
+  border: 1px solid #fed7aa;
+  border-radius: 8px;
+  font-size: 13.5px;
+  color: #7c2d12;
+  line-height: 1.5;
+}
+.ledger-recommendation .reco-tradeoff strong {
+  color: #7c2d12;
+  white-space: nowrap;
+}
+
+/* ---------- Mobile card view ---------- */
+
+.ledger-cards {
+  display: none;
+  flex-direction: column;
+  gap: 16px;
+  margin-top: 8px;
+}
+.ledger-card {
+  border: 1px solid var(--ledger-border-strong);
+  border-radius: 10px;
+  padding: 16px 18px;
+  background: var(--ledger-bg);
+}
+.ledger-card.is-winner {
+  border-color: var(--ledger-winner);
+  box-shadow: 0 0 0 2px var(--ledger-winner-bg);
+}
+.ledger-card .card-head {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  margin-bottom: 4px;
+}
+.ledger-card h2 {
+  margin: 0;
+  font-size: 17px;
+  letter-spacing: -0.01em;
+  font-weight: 700;
+}
+.ledger-card .card-tag {
+  font-size: 10.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 999px;
+  background: var(--ledger-winner-bg);
+  color: var(--ledger-winner);
+}
+.ledger-card .card-sub {
+  color: var(--ledger-muted);
+  font-size: 12px;
+  margin-bottom: 12px;
+  font-feature-settings: "tnum" 1;
+}
+.ledger-card dl {
+  margin: 0;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  row-gap: 8px;
+  column-gap: 12px;
+  align-items: center;
+}
+.ledger-card dt {
+  font-size: 13px;
+  color: var(--ledger-text);
+  font-weight: 500;
+}
+.ledger-card dt .row-weight {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 1px 6px;
+  background: var(--ledger-bg-soft);
+  border: 1px solid var(--ledger-border);
+  border-radius: 999px;
+  font-size: 10px;
+  color: var(--ledger-muted);
+  font-feature-settings: "tnum" 1;
+}
+.ledger-card dd {
+  margin: 0;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1;
+  padding: 3px 9px;
+  border-radius: 6px;
+  text-align: right;
+  font-size: 14px;
+}
+.ledger-card dd.tone-good    { background: var(--ledger-good-bg);    color: var(--ledger-good-ink);
+  border-left: 3px solid var(--ledger-good-rule); padding-left: 6px; }
+.ledger-card dd.tone-ok      { background: var(--ledger-ok-bg);      color: var(--ledger-ok-ink);
+  border-left: 3px solid var(--ledger-ok-rule); padding-left: 6px; }
+.ledger-card dd.tone-bad     { background: var(--ledger-bad-bg);     color: var(--ledger-bad-ink);
+  border-left: 3px solid var(--ledger-bad-rule); padding-left: 6px; }
+.ledger-card dd.tone-neutral { background: var(--ledger-neutral-bg); color: var(--ledger-neutral-ink); }
+.ledger-card dd.is-missing   {
+  background: transparent;
+  color: var(--ledger-muted);
+  font-style: italic;
+  font-weight: 500;
+}
+.ledger-card .group-sep {
+  grid-column: 1 / -1;
+  margin: 10px 0 2px;
+  padding: 4px 0 4px;
+  border-bottom: 1px solid var(--ledger-border);
+  text-transform: uppercase;
+  font-size: 10.5px;
+  letter-spacing: 0.1em;
+  color: var(--ledger-text);
+  font-weight: 700;
+}
+
+/* ---------- Responsive ---------- */
+
+/* Tablet — tighter table, smaller font */
+@media (max-width: 1100px) {
+  .ledger-table { font-size: 13px; }
+  .ledger-table thead th { font-size: 12px; padding: 10px 10px; }
+  .ledger-table tbody th[scope="row"] { font-size: 13px; padding: 9px 10px; min-width: 200px; }
+  .ledger-table tbody td { padding: 9px 10px; }
+  .ledger-table tbody td .cell-value { font-size: 14px; }
+  .ledger-shell { padding: 28px 18px 80px; }
+}
+
+/* Mobile — table hidden, cards shown (pure CSS switch, no JS) */
+@media (max-width: 768px) {
+  .ledger-shell { padding: 20px 14px 64px; }
+  .ledger-header h1 { font-size: 22px; }
+  .ledger-table-wrap { display: none; }
+  .ledger-toolbar    { display: none; }
+  .ledger-cards      { display: flex; }
+  .ledger-recommendation { padding: 20px; margin-top: 24px; }
+  .ledger-recommendation .reco-winner { font-size: 19px; }
+}
+
+/* ---------- Print ---------- */
+
+@media print {
+  body { font-size: 10.5px; background: #fff; color: #000; }
+  .ledger-skip,
+  .ledger-toolbar,
+  .ledger-cards { display: none !important; }
+  .ledger-shell { max-width: 100%; padding: 0; }
+  .ledger-header h1 { font-size: 18px; }
+  .ledger-table-wrap {
+    max-height: none;
+    overflow: visible;
+    border-radius: 0;
+    border: 1px solid #000;
+    box-shadow: none;
+  }
+  /* Sticky breaks print — disable */
+  .ledger-table thead th,
+  .ledger-table tbody th[scope="row"],
+  .ledger-table tbody tr.group-row th {
+    position: static !important;
+  }
+  .ledger-table tbody tr { break-inside: avoid; page-break-inside: avoid; }
+  .ledger-table tbody tr.group-row { break-after: avoid; page-break-after: avoid; }
+  .ledger-table tbody td,
+  .ledger-table tbody th[scope="row"] { background: #fff !important; }
+  /* Keep tone-tinted cells legible without flooding the printer */
+  .ledger-table .tone-good,
+  .ledger-table .tone-ok,
+  .ledger-table .tone-bad,
+  .ledger-table .tone-neutral {
+    background: #fff !important;
+    box-shadow: none !important;
+    color: #000 !important;
+  }
+  .ledger-table .tone-good    { border-left: 3px solid #000; }
+  .ledger-table .tone-ok      { border-left: 3px dashed #000; }
+  .ledger-table .tone-bad     { border-left: 3px double #000; }
+  .ledger-table .tone-neutral { border-left: 1px solid #888; }
+  .ledger-table tbody td.is-winner::after { border-color: #000; }
+  .ledger-recommendation {
+    page-break-inside: avoid;
+    break-inside: avoid;
+    border: 1px solid #000;
+    border-left: 4px solid #000;
+    background: #fff;
+    margin-top: 18px;
+  }
+  .ledger-recommendation .reco-tradeoff {
+    background: #fff;
+    border: 1px dashed #000;
+    color: #000;
+  }
+}

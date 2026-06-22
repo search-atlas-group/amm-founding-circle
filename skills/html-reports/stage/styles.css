@@ -1,0 +1,637 @@
+/* =============================================================
+   Stage — horizontal snap-scroll slide deck.
+   Light mode. Self-contained. No external dependencies.
+   Identity: paper-warm cream slides on a soft beige void,
+   monochrome ink, one orange accent reserved for numerals.
+   ============================================================= */
+
+:root {
+  /* ---- ink ramp ---- */
+  --ink:        #0f172a;   /* primary text */
+  --ink-soft:   #2e3a4d;   /* body */
+  --muted:      #5a6470;   /* AA-compliant secondary on warm paper */
+  --hairline:   rgba(15, 23, 42, 0.08);
+
+  /* ---- surfaces ---- */
+  --paper:      #fcfcf9;   /* warm 3% cream — the slide */
+  --void:       #e8e6df;   /* warmer grey behind slides (overview) */
+  --rule:       #d8d6cf;
+
+  /* ---- accents ---- */
+  --accent:     #1d4ed8;   /* deep blue — restrained, wayfinder only */
+  --stat:       #c2410c;   /* burnt-orange — AA on paper, numerals */
+  --stat-soft:  #fff1e8;   /* tint for quote/stat backgrounds */
+
+  /* ---- presenter palette ---- */
+  --notes-bg:   #f5efde;
+  --notes-ink:  #4a3a13;
+  --notes-rule: #e7dcb8;
+
+  /* ---- type ---- */
+  --font:       -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-serif: ui-serif, Georgia, "Times New Roman", serif;
+  --font-mono:  ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  background: var(--void);
+  color: var(--ink);
+  font-family: var(--font);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  overflow: hidden;
+}
+
+/* Skip link — keyboard focus only ---------------------------------- */
+.skip-link {
+  position: fixed;
+  top: 8px; left: 8px;
+  z-index: 1000;
+  background: var(--ink);
+  color: var(--paper);
+  padding: 8px 12px;
+  border-radius: 4px;
+  font-size: 13px;
+  text-decoration: none;
+  transform: translateY(-200%);
+  transition: transform 150ms ease;
+}
+.skip-link:focus { transform: translateY(0); outline: 2px solid var(--stat); outline-offset: 2px; }
+
+/* Progress bar ----------------------------------------------------- */
+.stage-progress {
+  position: fixed;
+  top: 0; left: 0;
+  height: 3px;
+  width: 0;
+  background: var(--stat);
+  z-index: 50;
+  transition: width 220ms ease;
+  pointer-events: none;
+}
+
+/* The deck = horizontal flex with x snap --------------------------- */
+.stage-deck {
+  display: flex;
+  flex-direction: row;
+  width: 100vw;
+  height: 100vh;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scroll-snap-type: x mandatory;
+  scroll-behavior: smooth;
+  scrollbar-width: none;
+  background: var(--void);
+}
+.stage-deck::-webkit-scrollbar { display: none; }
+
+/* A slide --------------------------------------------------------- */
+.slide {
+  flex: 0 0 100vw;
+  height: 100vh;
+  scroll-snap-align: start;
+  scroll-snap-stop: always;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 64px 96px;
+  background: var(--paper);
+  position: relative;
+  border-top: 1px solid var(--hairline);
+  border-bottom: 1px solid var(--hairline);
+}
+
+.slide-inner {
+  width: 100%;
+  max-width: 1100px;
+}
+
+/* Eyebrow + subtitle vocabulary ------------------------------------ */
+.eyebrow {
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--stat);
+  margin: 0 0 22px;
+}
+
+.slide h1, .slide h2 {
+  margin: 0 0 28px;
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+  color: var(--ink);
+  font-weight: 700;
+  text-wrap: balance;
+}
+.slide h1 { font-size: clamp(56px, 6.4vw, 72px); }
+.slide h2 { font-size: clamp(44px, 5vw, 56px); }
+
+.slide .subtitle {
+  font-size: clamp(20px, 1.9vw, 26px);
+  color: var(--muted);
+  margin: -10px 0 32px;
+  line-height: 1.4;
+  font-weight: 400;
+  text-wrap: balance;
+}
+
+.slide .body {
+  font-size: clamp(20px, 1.85vw, 28px);
+  line-height: 1.5;
+  color: var(--ink-soft);
+  max-width: 60ch;
+}
+.slide .body p { margin: 0 0 16px; }
+.slide .body p:last-child { margin-bottom: 0; }
+.slide .body ul, .slide .body ol { margin: 16px 0; padding-left: 1.4em; }
+.slide .body li { margin: 10px 0; }
+.slide .body li::marker { color: var(--stat); }
+.slide .body strong { color: var(--ink); font-weight: 600; }
+.slide .body em { font-style: italic; color: var(--ink); }
+.slide .body code {
+  background: #efece4;
+  padding: 2px 7px;
+  border-radius: 4px;
+  font-family: var(--font-mono);
+  font-size: 0.82em;
+}
+.slide .body a { color: var(--accent); text-decoration-thickness: 1px; text-underline-offset: 3px; }
+
+/* TITLE slide ------------------------------------------------------ */
+.slide.title-slide {
+  background: linear-gradient(180deg, #fcfcf9 0%, #f6f3eb 100%);
+}
+.slide.title-slide .slide-inner {
+  border-left: 3px solid var(--stat);
+  padding-left: 28px;
+}
+.slide.title-slide h1 {
+  font-size: clamp(64px, 7.6vw, 88px);
+  margin-bottom: 20px;
+}
+.slide.title-slide .subtitle {
+  font-size: clamp(22px, 2.2vw, 30px);
+  margin-top: 12px;
+}
+
+/* BIG-STAT slide --------------------------------------------------- */
+.slide.big-stat { text-align: center; }
+.slide.big-stat .slide-inner { display: flex; flex-direction: column; align-items: center; }
+.slide.big-stat .eyebrow { color: var(--muted); }
+.slide.big-stat .stat-context {
+  font-size: clamp(22px, 2vw, 28px);
+  color: var(--ink-soft);
+  margin: 0 0 24px;
+  font-weight: 500;
+  max-width: 24ch;
+}
+.slide.big-stat .stat-number {
+  font-size: clamp(96px, 14vw, 168px);
+  font-weight: 800;
+  color: var(--stat);
+  line-height: 0.95;
+  letter-spacing: -0.055em;
+  font-variant-numeric: tabular-nums lining-nums;
+  margin: 8px 0;
+}
+.slide.big-stat .stat-label {
+  font-size: clamp(20px, 1.9vw, 26px);
+  color: var(--muted);
+  margin-top: 18px;
+  font-weight: 500;
+  max-width: 32ch;
+}
+.slide.big-stat .body {
+  margin: 32px auto 0;
+  text-align: left;
+  max-width: 48ch;
+}
+
+/* QUOTE slide ------------------------------------------------------ */
+.slide.quote-slide { background: linear-gradient(180deg, var(--paper) 0%, var(--stat-soft) 100%); }
+.slide.quote-slide .slide-inner { max-width: 980px; }
+.slide.quote-slide .quote-body {
+  font-family: var(--font-serif);
+  font-size: clamp(32px, 4.4vw, 56px);
+  line-height: 1.2;
+  font-style: italic;
+  color: var(--ink);
+  letter-spacing: -0.01em;
+  margin: 0 0 28px;
+  text-wrap: balance;
+}
+.slide.quote-slide .quote-body::before { content: "\201C"; margin-right: 4px; color: var(--stat); }
+.slide.quote-slide .quote-body::after  { content: "\201D"; margin-left: 4px;  color: var(--stat); }
+.slide.quote-slide .quote-attr {
+  font-size: clamp(15px, 1.3vw, 18px);
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+  max-width: 60ch;
+}
+
+/* Inline pull-quote (on content slides) ---------------------------- */
+.pull-quote {
+  margin: 28px 0 0;
+  padding: 24px 28px;
+  background: var(--stat-soft);
+  border-left: 4px solid var(--stat);
+  border-radius: 4px;
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-size: clamp(22px, 2.2vw, 30px);
+  line-height: 1.35;
+  color: var(--ink);
+  max-width: 80ch;
+}
+.pull-quote .attr {
+  display: block;
+  margin-top: 14px;
+  font-size: 13px;
+  font-style: normal;
+  font-family: var(--font);
+  color: var(--muted);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+/* IMAGE slide ------------------------------------------------------ */
+.slide.image-slide { padding: 48px 60px; }
+.slide.image-slide .slide-inner { display: flex; flex-direction: column; align-items: center; max-width: 1300px; }
+.slide.image-slide figure { margin: 0; width: 100%; text-align: center; }
+.slide.image-slide img {
+  display: block;
+  max-width: 100%;
+  max-height: 70vh;
+  height: auto;
+  margin: 0 auto;
+  border-radius: 6px;
+  box-shadow: 0 12px 32px rgba(15, 23, 42, 0.12);
+  background: #fff;
+}
+.slide.image-slide figcaption {
+  margin-top: 20px;
+  font-size: clamp(15px, 1.3vw, 18px);
+  color: var(--muted);
+  text-align: center;
+  max-width: 70ch;
+}
+
+/* CLOSING slide ---------------------------------------------------- */
+.slide.closing { background: #0f172a; color: #f8fafc; border-color: rgba(255,255,255,0.06); }
+.slide.closing h1, .slide.closing h2 { color: #fcfcf9; }
+.slide.closing h2 { font-size: clamp(48px, 5.6vw, 64px); }
+.slide.closing .body { color: #cbd5e1; }
+.slide.closing .body strong { color: #fcfcf9; }
+.slide.closing .eyebrow { color: #fdba74; }
+.slide.closing .subtitle { color: #94a3b8; }
+
+/* Generic image inside any slide (Round 4 robustness) -------------- */
+.slide img:not(.image-slide img) {
+  max-width: 100%;
+  max-height: 60vh;
+  height: auto;
+  display: block;
+  margin: 18px auto;
+  border-radius: 4px;
+}
+
+/* Counter (slide N / total) --------------------------------------- */
+.stage-counter {
+  position: fixed;
+  right: 22px; bottom: 18px;
+  z-index: 40;
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+  color: var(--muted);
+  background: rgba(252, 252, 249, 0.92);
+  padding: 7px 14px;
+  border: 1px solid var(--rule);
+  border-radius: 999px;
+  letter-spacing: 0.06em;
+  user-select: none;
+  backdrop-filter: blur(4px);
+}
+
+/* Presenter badge (shown only in presenter mode) ----------------- */
+.presenter-badge {
+  position: fixed;
+  top: 14px; right: 22px;
+  z-index: 45;
+  display: none;
+  background: var(--stat);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  padding: 5px 11px;
+  border-radius: 3px;
+}
+body.presenter .presenter-badge { display: block; }
+
+/* Elapsed timer (T toggle) --------------------------------------- */
+.stage-timer {
+  position: fixed;
+  top: 14px; left: 22px;
+  z-index: 45;
+  display: none;
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--ink);
+  background: rgba(252, 252, 249, 0.92);
+  padding: 6px 14px;
+  border: 1px solid var(--rule);
+  border-radius: 4px;
+  letter-spacing: 0.04em;
+  backdrop-filter: blur(4px);
+}
+body.timer .stage-timer { display: block; }
+
+/* Speaker notes pane (N toggle, hidden by default) --------------- */
+.speaker-notes {
+  display: none;
+  position: fixed;
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: 24px;
+  width: min(720px, calc(100vw - 48px));
+  background: var(--notes-bg);
+  border: 1px solid var(--notes-rule);
+  border-radius: 8px;
+  padding: 18px 22px;
+  font-size: 19px;
+  line-height: 1.55;
+  color: var(--notes-ink);
+  box-shadow: 0 8px 28px rgba(15, 23, 42, 0.15);
+  z-index: 42;
+}
+.speaker-notes-label {
+  display: block;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: #8a6d2e;
+  margin-bottom: 8px;
+}
+body.presenter .speaker-notes.is-current { display: block; }
+body.presenter .slide { padding-bottom: 200px; }
+
+/* Blackout / whiteout overlays ----------------------------------- */
+.stage-veil {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  background: #000;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 200ms ease;
+}
+body.blackout .stage-veil { opacity: 1; pointer-events: auto; background: #000; }
+body.whiteout .stage-veil { opacity: 1; pointer-events: auto; background: #fff; }
+
+/* Help overlay (? toggle) --------------------------------------- */
+.stage-help {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 110;
+  background: rgba(15, 23, 42, 0.88);
+  align-items: center;
+  justify-content: center;
+  padding: 40px;
+}
+body.help .stage-help { display: flex; }
+.stage-help-panel {
+  background: var(--paper);
+  color: var(--ink);
+  border-radius: 10px;
+  padding: 32px 40px;
+  max-width: 520px;
+  width: 100%;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.4);
+}
+.stage-help-panel h3 { margin: 0 0 18px; font-size: 22px; letter-spacing: -0.01em; }
+.stage-help-panel dl { display: grid; grid-template-columns: max-content 1fr; gap: 10px 22px; margin: 0; font-size: 15px; line-height: 1.4; }
+.stage-help-panel dt {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  background: #efece4;
+  padding: 3px 9px;
+  border-radius: 4px;
+  align-self: start;
+  color: var(--ink);
+}
+.stage-help-panel dd { margin: 0; color: var(--ink-soft); align-self: center; }
+.stage-help-hint { margin-top: 20px; font-size: 12px; color: var(--muted); text-align: center; }
+
+/* Overview (Esc / O toggle) ------------------------------------- */
+body.overview { overflow: auto; }
+body.overview .stage-deck {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 22px;
+  padding: 48px 32px;
+  width: 100vw;
+  height: 100vh;
+  overflow: auto;
+  scroll-snap-type: none;
+  background: var(--void);
+}
+body.overview .slide {
+  flex: initial;
+  width: 100%;
+  height: 220px;
+  padding: 18px;
+  border-radius: 8px;
+  border: 2px solid transparent;
+  cursor: pointer;
+  overflow: hidden;
+  align-items: flex-start;
+  justify-content: flex-start;
+  box-shadow: 0 4px 16px rgba(15, 23, 42, 0.08);
+  transition: transform 120ms ease, border-color 120ms ease;
+  position: relative;
+}
+body.overview .slide:hover { border-color: var(--accent); transform: translateY(-2px); }
+body.overview .slide.is-current { border-color: var(--stat); }
+body.overview .slide.is-next::after {
+  content: "NEXT";
+  position: absolute;
+  top: 8px; right: 8px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  background: var(--accent);
+  color: #fff;
+  padding: 3px 7px;
+  border-radius: 3px;
+}
+body.overview .slide-inner {
+  transform: scale(0.42);
+  transform-origin: top left;
+  width: 240%;
+  will-change: transform;
+  pointer-events: none;
+}
+body.overview .speaker-notes,
+body.overview .stage-counter,
+body.overview .stage-progress,
+body.overview .stage-timer,
+body.overview .presenter-badge { display: none !important; }
+
+/* Empty deck fallback ------------------------------------------- */
+.slide.empty-deck {
+  background: var(--paper);
+  text-align: center;
+}
+.slide.empty-deck h2 { font-size: 36px; color: var(--muted); font-weight: 500; }
+.slide.empty-deck .body { color: var(--muted); }
+
+/* =================================================================
+   Responsive — three breakpoints, distinct snap axes
+   ================================================================= */
+
+/* Tablet (portrait/landscape): horizontal snap kept, type drops a stop */
+@media (max-width: 1024px) and (min-width: 641px) {
+  .slide { padding: 48px 56px; }
+  .slide h1 { font-size: 56px; }
+  .slide h2 { font-size: 44px; }
+  .slide .body { font-size: 22px; }
+  .slide.big-stat .stat-number { font-size: clamp(80px, 18vw, 130px); }
+  .slide.title-slide h1 { font-size: 64px; }
+  .slide.quote-slide .quote-body { font-size: 40px; }
+  .stage-help-panel dl { grid-template-columns: 1fr; }
+}
+
+/* Phone: vertical snap, one slide per small-viewport height */
+@media (max-width: 640px) {
+  html, body { overflow: auto; }
+  .stage-deck {
+    flex-direction: column;
+    height: auto;
+    overflow-x: hidden;
+    overflow-y: auto;
+    scroll-snap-type: y mandatory;
+  }
+  .slide {
+    flex: 0 0 100svh;
+    width: 100vw;
+    height: 100svh;
+    padding: 32px 22px;
+  }
+  .slide h1 { font-size: 38px; }
+  .slide h2 { font-size: 28px; }
+  .slide .body { font-size: 17px; line-height: 1.5; }
+  .slide.title-slide h1 { font-size: 44px; }
+  .slide.title-slide .slide-inner { padding-left: 16px; border-left-width: 2px; }
+  .slide.big-stat .stat-number { font-size: clamp(72px, 24vw, 110px); }
+  .slide.big-stat .stat-label { font-size: 17px; }
+  .slide.quote-slide .quote-body { font-size: 24px; }
+  .pull-quote { font-size: 17px; padding: 16px 18px; }
+  .slide.closing h2 { font-size: 32px; }
+  .stage-counter { right: 12px; bottom: 12px; font-size: 12px; padding: 5px 10px; }
+  .stage-timer { left: 12px; top: 10px; font-size: 14px; }
+  body.presenter .slide { padding-bottom: 160px; }
+  .speaker-notes { font-size: 15px; padding: 12px 16px; }
+}
+
+/* =================================================================
+   Accessibility — reduced motion
+   ================================================================= */
+@media (prefers-reduced-motion: reduce) {
+  .stage-deck { scroll-behavior: auto; scroll-snap-type: none; }
+  .stage-progress, .stage-veil, .speaker-notes { transition: none; }
+  body.overview .slide { transition: none; }
+}
+
+/* =================================================================
+   Print — each slide becomes one landscape page
+   Speaker notes printed (handout mode)
+   ================================================================= */
+@media print {
+  @page { size: landscape; margin: 14mm; }
+  html, body { height: auto; overflow: visible; background: #fff; }
+  .skip-link, .stage-progress, .stage-counter, .stage-timer,
+  .presenter-badge, .stage-veil, .stage-help { display: none !important; }
+  .stage-deck {
+    display: block;
+    width: auto;
+    height: auto;
+    overflow: visible;
+    background: #fff;
+  }
+  .slide {
+    width: 100%;
+    height: auto;
+    min-height: calc(100vh - 28mm);
+    page-break-after: always;
+    break-after: page;
+    padding: 24px 32px;
+    border: none;
+    background: #fff;
+    box-shadow: none;
+    display: block;
+  }
+  .slide:last-child { page-break-after: auto; break-after: auto; }
+  .slide.closing {
+    background: #0f172a !important;
+    color: #f8fafc !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+    color-adjust: exact;
+  }
+  .slide-inner { max-width: 100%; }
+  .slide h1 { font-size: 44pt; }
+  .slide h2 { font-size: 32pt; }
+  .slide .body { font-size: 14pt; max-width: none; }
+  .slide.big-stat .stat-number { font-size: 96pt; }
+  .slide.quote-slide .quote-body { font-size: 28pt; }
+  .speaker-notes {
+    display: block !important;
+    position: static;
+    transform: none;
+    width: 100%;
+    margin: 32px 0 0;
+    background: #fff;
+    border: 1px solid #999;
+    border-radius: 0;
+    padding: 12px 16px;
+    font-size: 11pt;
+    color: #333;
+    box-shadow: none;
+  }
+  .speaker-notes-label { color: #666; }
+  body.overview .stage-deck { display: block; }
+  body.overview .slide { transform: none; height: auto; }
+  body.overview .slide-inner { transform: none; width: 100%; pointer-events: auto; }
+}
+
+/* =================================================================
+   No-JS fallback — deck remains linearly readable
+   ================================================================= */
+noscript {
+  display: block;
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  background: var(--stat);
+  color: #fff;
+  text-align: center;
+  padding: 8px 16px;
+  font-size: 13px;
+  font-weight: 600;
+  z-index: 200;
+}

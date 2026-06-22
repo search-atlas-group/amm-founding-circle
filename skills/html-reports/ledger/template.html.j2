@@ -1,0 +1,212 @@
+{# =============================================================
+   Ledger — side-by-side comparative report (Jinja template)
+   Self-contained: CSS inlined, one tiny JS block, no external deps.
+   Light mode only.
+   ============================================================= #}
+<!doctype html>
+<html lang="{{ lang | default('en') }}">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{ title }}</title>
+<style>
+{% include "styles.css" %}
+</style>
+</head>
+<body>
+<a href="#ledger-reco" class="ledger-skip">Skip to recommendation</a>
+
+<div class="ledger-shell">
+  <header class="ledger-header">
+    {% if eyebrow %}<div class="eyebrow">{{ eyebrow }}</div>{% endif %}
+    <h1>{{ title }}</h1>
+    {% if subtitle %}<div class="ledger-subtitle">{{ subtitle }}</div>{% endif %}
+    {% if generated_at %}<div class="ledger-meta">Generated {{ generated_at }}</div>{% endif %}
+  </header>
+
+  <div class="ledger-toolbar">
+    <button class="ledger-toggle" id="diff-toggle" type="button" aria-pressed="false"
+            aria-label="Highlight cells where options differ by {{ diff_threshold | default(2) }} or more on a row"
+            data-threshold="{{ diff_threshold | default(2) }}">
+      <span class="dot" aria-hidden="true"></span>
+      Show big differences (≥ {{ diff_threshold | default(2) }})
+    </button>
+    <div class="ledger-legend" role="list" aria-label="Score legend">
+      <span class="swatch" role="listitem"><span class="chip good" aria-hidden="true"></span>Good</span>
+      <span class="swatch" role="listitem"><span class="chip ok"   aria-hidden="true"></span>Okay</span>
+      <span class="swatch" role="listitem"><span class="chip bad"  aria-hidden="true"></span>Weak</span>
+    </div>
+  </div>
+
+  <div class="ledger-table-wrap" role="region" aria-label="Comparison matrix" tabindex="0">
+    <table class="ledger-table" id="ledger-table">
+      <caption class="sr-only">
+        {{ title }}{% if subtitle %} — {{ subtitle }}{% endif %}.
+        Comparison of {{ options | length }} option{{ '' if options|length == 1 else 's' }}
+        across {{ criteria | length }} criteri{{ 'on' if criteria|length == 1 else 'a' }}.
+      </caption>
+      <thead>
+        <tr>
+          <th scope="col" class="row-corner">Criterion</th>
+          {% for opt in options %}
+          <th scope="col"
+              class="opt opt-group-{{ opt.group | default('') }}{% if opt.divider_after %} col-divider{% endif %}"
+              {% if opt.is_winner %}data-winner="true"{% endif %}>
+            {{ opt.name }}
+            {% if opt.subtitle %}<span class="opt-sub">{{ opt.subtitle }}</span>{% endif %}
+          </th>
+          {% endfor %}
+        </tr>
+      </thead>
+      <tbody>
+        {% set ns = namespace(current_group=None, group_idx=0) %}
+        {% for crit in criteria %}
+          {% if crit.group and crit.group != ns.current_group %}
+            {% set ns.current_group = crit.group %}
+            {% set ns.group_idx = ns.group_idx + 1 %}
+            <tr class="group-row" role="row" data-group="g{{ ns.group_idx }}" aria-expanded="true">
+              <th scope="rowgroup" colspan="{{ options | length + 1 }}" tabindex="0"
+                  aria-controls="g{{ ns.group_idx }}-rows">
+                <span class="group-caret" aria-hidden="true"></span>{{ crit.group }}
+              </th>
+            </tr>
+          {% endif %}
+          <tr class="crit-row" data-in-group="g{{ ns.group_idx }}">
+            <th scope="row">
+              {{ crit.label }}
+              {% if crit.weight %}<span class="row-weight" aria-label="weight {{ crit.weight }} percent">{{ crit.weight }}%</span>{% endif %}
+            </th>
+            {% for opt in options %}
+              {% set cell = scores[crit.key][opt.name] if scores[crit.key] and opt.name in scores[crit.key] else None %}
+              {% set kind = (cell.kind if cell and cell.kind else 'numeric') %}
+              {% if cell and (cell.value is not none or cell.label) %}
+                <td class="tone-{{ cell.tone | default('neutral') }} kind-{{ kind }}{% if opt.divider_after %} col-divider{% endif %}{% if cell.is_winner %} is-winner{% endif %}"
+                    data-value="{{ cell.value if cell.value is not none else '' }}"
+                    aria-label="{{ opt.name }} — {{ crit.label }}: {{ (cell.tone | default('neutral')) | capitalize }} {{ cell.label }}">
+                  {% if kind == 'rich_html' %}
+                    <span class="cell-rich">{{ cell.label | safe }}</span>
+                  {% elif kind == 'pill' %}
+                    <span class="cell-pill">{{ cell.label }}</span>
+                  {% else %}
+                    <span class="cell-value">{{ cell.label }}</span>
+                    {% if cell.sub %}<span class="cell-sub">{{ cell.sub }}</span>{% endif %}
+                  {% endif %}
+                </td>
+              {% else %}
+                <td class="is-missing{% if opt.divider_after %} col-divider{% endif %}"
+                    data-value=""
+                    aria-label="no data">
+                  <span class="cell-value" aria-hidden="true">—</span>
+                </td>
+              {% endif %}
+            {% endfor %}
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  {# Mobile card fallback (CSS-shown ≤768px) #}
+  <div class="ledger-cards" aria-label="Comparison cards (mobile)">
+    {% for opt in options %}
+    <article class="ledger-card group-{{ opt.group | default('') }}{% if opt.is_winner %} is-winner{% endif %}"
+             aria-labelledby="card-{{ loop.index }}-h">
+      <div class="card-head">
+        <h2 id="card-{{ loop.index }}-h">{{ opt.name }}</h2>
+        {% if opt.is_winner %}<span class="card-tag">Winner</span>{% endif %}
+      </div>
+      {% if opt.subtitle %}<div class="card-sub">{{ opt.subtitle }}</div>{% endif %}
+      <dl>
+        {% set ns2 = namespace(current_group=None) %}
+        {% for crit in criteria %}
+          {% if crit.group and crit.group != ns2.current_group %}
+            {% set ns2.current_group = crit.group %}
+            <div class="group-sep">{{ crit.group }}</div>
+          {% endif %}
+          {% set cell = scores[crit.key][opt.name] if scores[crit.key] and opt.name in scores[crit.key] else None %}
+          <dt>{{ crit.label }}{% if crit.weight %}<span class="row-weight">{{ crit.weight }}%</span>{% endif %}</dt>
+          {% if cell and (cell.value is not none or cell.label) %}
+            <dd class="tone-{{ cell.tone | default('neutral') }}"
+                aria-label="{{ (cell.tone | default('neutral')) | capitalize }} {{ cell.label }}">{{ cell.label }}</dd>
+          {% else %}
+            <dd class="is-missing" aria-label="no data">—</dd>
+          {% endif %}
+        {% endfor %}
+      </dl>
+    </article>
+    {% endfor %}
+  </div>
+
+  {% if recommendation %}
+  <section class="ledger-recommendation" id="ledger-reco" aria-labelledby="reco-h">
+    <div class="reco-eyebrow"><span class="reco-icon" aria-hidden="true">★</span>Recommendation</div>
+    <h2 class="reco-winner" id="reco-h">
+      {% if recommendation.lead %}{{ recommendation.lead }} <em>{{ recommendation.winner }}</em>
+      {% else %}<em>{{ recommendation.winner }}</em>
+      {% endif %}
+    </h2>
+    {% if recommendation.rationale %}<p class="reco-rationale">{{ recommendation.rationale }}</p>{% endif %}
+    {% if recommendation.tradeoff %}
+    <div class="reco-tradeoff"><strong>Tradeoff:</strong> <span>{{ recommendation.tradeoff }}</span></div>
+    {% endif %}
+  </section>
+  {% endif %}
+</div>
+
+<script>
+(function () {
+  var table = document.getElementById('ledger-table');
+  if (!table) return;
+  var btn = document.getElementById('diff-toggle');
+
+  // ----- Diff highlights: precompute per row, cell-level -----
+  if (btn) {
+    var threshold = parseFloat(btn.getAttribute('data-threshold') || '2');
+    var rows = table.tBodies[0].rows;
+    for (var i = 0; i < rows.length; i++) {
+      var r = rows[i];
+      if (r.className.indexOf('crit-row') === -1) continue;
+      var cells = r.querySelectorAll('td[data-value]');
+      var vals = [];
+      cells.forEach(function (c) {
+        var v = parseFloat(c.getAttribute('data-value'));
+        if (!isNaN(v)) vals.push({ cell: c, v: v });
+      });
+      if (vals.length < 2) continue;
+      var nums = vals.map(function (x) { return x.v; });
+      var mn = Math.min.apply(null, nums);
+      var mx = Math.max.apply(null, nums);
+      if (mx - mn >= threshold) {
+        vals.forEach(function (x) {
+          if (x.v === mn || x.v === mx) x.cell.classList.add('diff-hit');
+        });
+      }
+    }
+    btn.addEventListener('click', function () {
+      var on = btn.getAttribute('aria-pressed') !== 'true';
+      btn.setAttribute('aria-pressed', on ? 'true' : 'false');
+      table.setAttribute('data-diff-mode', on ? 'true' : 'false');
+    });
+  }
+
+  // ----- Group expand/collapse -----
+  var groupRows = table.querySelectorAll('tr.group-row');
+  groupRows.forEach(function (gr) {
+    var key = gr.getAttribute('data-group');
+    var trigger = gr.querySelector('th');
+    function toggle() {
+      var open = gr.getAttribute('aria-expanded') !== 'false';
+      var next = !open;
+      gr.setAttribute('aria-expanded', next ? 'true' : 'false');
+      var members = table.querySelectorAll('tr.crit-row[data-in-group="' + key + '"]');
+      members.forEach(function (m) { m.classList.toggle('is-collapsed', !next); });
+    }
+    trigger.addEventListener('click', toggle);
+    trigger.addEventListener('keydown', function (e) {
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggle(); }
+    });
+  });
+})();
+</script>
+</body>
+</html>

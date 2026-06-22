@@ -1,0 +1,233 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{ title }}</title>
+<style>
+{# Renderer should inline styles.css here. If not, paste it inline. #}
+{% include "styles.css" ignore missing %}
+</style>
+</head>
+<body class="atlas">
+<div class="atlas-shell">
+
+  <header class="atlas-header">
+    <h1>{{ title }}</h1>
+    {% if subtitle %}<div class="atlas-subtitle">{{ subtitle }}</div>{% endif %}
+  </header>
+
+  {% if kpis %}
+  <section class="atlas-kpis" aria-label="Key performance indicators">
+    {% for k in kpis %}
+    <div class="atlas-kpi" data-trend="{{ k.trend or 'flat' }}">
+      <div class="label">{{ k.label }}</div>
+      <div class="value" title="{{ k.value }}">{{ k.value }}</div>
+      {% if k.delta %}
+      <div class="delta">
+        <span class="arrow" aria-hidden="true">{% if k.trend == 'up' %}▲{% elif k.trend == 'down' %}▼{% else %}■{% endif %}</span>
+        {{ k.delta }}{% if k.vs %} <span class="vs">{{ k.vs }}</span>{% endif %}
+      </div>
+      {% endif %}
+    </div>
+    {% endfor %}
+  </section>
+  {% endif %}
+
+  {% if filters or has_search %}
+  <section class="atlas-filterbar" aria-label="Filter cards">
+    {% if has_search %}
+    <div class="atlas-search">
+      <label class="sr-only" for="atlas-search">Search cards</label>
+      <input id="atlas-search" type="search" placeholder="Search cards…" autocomplete="off">
+    </div>
+    {% endif %}
+
+    {# Desktop chip groups #}
+    {% for group in filters %}
+    <span class="atlas-chip-group-label">{{ group.label }}</span>
+    <div class="atlas-chips" role="group" aria-label="Filter by {{ group.label }}" data-group="{{ group.label|lower }}">
+      {% for opt in group.options %}
+      <button type="button" class="atlas-chip" aria-pressed="false" data-tag="{{ opt|lower }}">{{ opt }}</button>
+      {% endfor %}
+    </div>
+    {% endfor %}
+
+    {# Mobile-only disclosure (CSS toggles via @media) #}
+    {% if filters %}
+    <details class="atlas-filter-disclosure">
+      <summary>Filters</summary>
+      {% for group in filters %}
+      <div style="margin-top:8px">
+        <span class="atlas-chip-group-label">{{ group.label }}</span>
+        <div class="atlas-chips" role="group" aria-label="Filter by {{ group.label }}" data-group="{{ group.label|lower }}-m">
+          {% for opt in group.options %}
+          <button type="button" class="atlas-chip" aria-pressed="false" data-tag="{{ opt|lower }}">{{ opt }}</button>
+          {% endfor %}
+        </div>
+      </div>
+      {% endfor %}
+    </details>
+    {% endif %}
+
+    <button type="button" class="atlas-clear" id="atlas-clear">Clear filters</button>
+    <div class="atlas-counter" aria-live="polite" id="atlas-counter">Showing {{ cards|length }} of {{ cards|length }}</div>
+  </section>
+  {% endif %}
+
+  <section class="atlas-grid">
+    {% for c in cards %}
+    <article class="atlas-card"
+             data-span="{{ c.span or 1 }}"
+             data-tags="{{ (c.tags or []) | join(',') | lower }}">
+      <div class="atlas-card-head">
+        <h3 title="{{ c.title }}">{{ c.title }}</h3>
+        {% if c.meta %}<span class="meta">{{ c.meta }}</span>{% endif %}
+      </div>
+      <div class="atlas-card-body">
+        {{ c.body_html|safe }}
+      </div>
+    </article>
+    {% endfor %}
+  </section>
+
+  {% if footer_note %}
+  <div class="atlas-footer">{{ footer_note }}</div>
+  {% endif %}
+
+</div>
+
+<script>
+(function(){
+  'use strict';
+
+  // ---- Sortable tables ----------------------------------------------------
+  // Each sortable <th> hosts a <button class="sort"> for keyboard access.
+  // aria-sort is the source of truth for current direction.
+  document.querySelectorAll('table[data-sortable]').forEach(function(table){
+    var headers = Array.from(table.querySelectorAll('thead th'));
+    headers.forEach(function(th, idx){
+      // Wrap existing text in a button if not already wrapped.
+      if (!th.querySelector('button.sort')) {
+        var btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'sort';
+        btn.innerHTML = th.innerHTML;
+        th.innerHTML = '';
+        th.appendChild(btn);
+      }
+      th.setAttribute('aria-sort', 'none');
+      th.querySelector('button.sort').addEventListener('click', function(){
+        var dir = th.getAttribute('aria-sort');
+        var asc = dir !== 'ascending'; // toggle
+        headers.forEach(function(h){ h.setAttribute('aria-sort', 'none'); });
+        th.setAttribute('aria-sort', asc ? 'ascending' : 'descending');
+        var tbody = table.tBodies[0];
+        var rows  = Array.from(tbody.rows);
+        rows.sort(function(a, b){
+          var av = (a.cells[idx].dataset.sort != null ? a.cells[idx].dataset.sort : a.cells[idx].innerText).trim();
+          var bv = (b.cells[idx].dataset.sort != null ? b.cells[idx].dataset.sort : b.cells[idx].innerText).trim();
+          var an = parseFloat(av.replace(/[,%$\s]/g, ''));
+          var bn = parseFloat(bv.replace(/[,%$\s]/g, ''));
+          if (!isNaN(an) && !isNaN(bn)) return asc ? an - bn : bn - an;
+          return asc ? av.localeCompare(bv) : bv.localeCompare(av);
+        });
+        var frag = document.createDocumentFragment();
+        rows.forEach(function(r){ frag.appendChild(r); });
+        tbody.appendChild(frag);
+      });
+    });
+  });
+
+  // ---- Filter chips + text search ----------------------------------------
+  var cards      = Array.from(document.querySelectorAll('.atlas-card'));
+  var chipGroups = Array.from(document.querySelectorAll('.atlas-chips'));
+  var searchEl   = document.getElementById('atlas-search');
+  var clearBtn   = document.getElementById('atlas-clear');
+  var counterEl  = document.getElementById('atlas-counter');
+  var totalCards = cards.length;
+  var rafId = null;
+
+  function activesByGroup(){
+    // Group chips by trailing -m suffix (mobile mirror) so toggling one
+    // surface keeps the other in sync.
+    var byKey = {};
+    chipGroups.forEach(function(g){
+      var key = (g.dataset.group || '').replace(/-m$/, '');
+      var actives = Array.from(g.querySelectorAll('.atlas-chip[aria-pressed="true"]'))
+                         .map(function(c){ return c.dataset.tag; });
+      byKey[key] = byKey[key] ? byKey[key].concat(actives) : actives;
+    });
+    return byKey;
+  }
+
+  function apply(){
+    var actives = activesByGroup();
+    var hasActiveChip = Object.keys(actives).some(function(k){ return actives[k].length > 0; });
+    var q = (searchEl && searchEl.value || '').trim().toLowerCase();
+    var shown = 0;
+    cards.forEach(function(card){
+      var tags = (card.dataset.tags || '').split(',').filter(Boolean);
+      var groupMatch = Object.keys(actives).every(function(k){
+        var as = actives[k];
+        if (!as.length) return true;             // group inactive → no constraint
+        return as.some(function(a){ return tags.indexOf(a) !== -1; }); // OR within group
+      });
+      var textMatch = !q || card.innerText.toLowerCase().indexOf(q) !== -1;
+      var visible = groupMatch && textMatch;
+      card.classList.toggle('is-hidden', !visible);
+      if (visible) shown++;
+    });
+    if (counterEl) counterEl.textContent = 'Showing ' + shown + ' of ' + totalCards;
+    if (clearBtn) clearBtn.classList.toggle('is-shown', hasActiveChip || q.length > 0);
+  }
+
+  function applyDebounced(){
+    if (rafId) cancelAnimationFrame(rafId);
+    rafId = requestAnimationFrame(apply);
+  }
+
+  // Mirror chip state across desktop/mobile copies that share a tag value
+  // within the same logical group.
+  function syncChips(srcChip){
+    var srcGroup = srcChip.parentElement.dataset.group.replace(/-m$/, '');
+    var pressed  = srcChip.getAttribute('aria-pressed') === 'true';
+    chipGroups.forEach(function(g){
+      var key = (g.dataset.group || '').replace(/-m$/, '');
+      if (key !== srcGroup) return;
+      g.querySelectorAll('.atlas-chip').forEach(function(c){
+        if (c === srcChip) return;
+        if (c.dataset.tag === srcChip.dataset.tag) {
+          c.setAttribute('aria-pressed', pressed ? 'true' : 'false');
+        }
+      });
+    });
+  }
+
+  chipGroups.forEach(function(g){
+    g.querySelectorAll('.atlas-chip').forEach(function(chip){
+      chip.addEventListener('click', function(){
+        var next = chip.getAttribute('aria-pressed') !== 'true';
+        chip.setAttribute('aria-pressed', next ? 'true' : 'false');
+        syncChips(chip);
+        apply();
+      });
+    });
+  });
+
+  if (searchEl) searchEl.addEventListener('input', applyDebounced);
+
+  if (clearBtn) clearBtn.addEventListener('click', function(){
+    document.querySelectorAll('.atlas-chip[aria-pressed="true"]').forEach(function(c){
+      c.setAttribute('aria-pressed', 'false');
+    });
+    if (searchEl) searchEl.value = '';
+    apply();
+  });
+
+  // Initialize counter on load
+  if (counterEl) counterEl.textContent = 'Showing ' + totalCards + ' of ' + totalCards;
+})();
+</script>
+</body>
+</html>

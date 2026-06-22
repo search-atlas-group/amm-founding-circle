@@ -1,0 +1,615 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Atlas — Q2 Weekly Pulse (Example)</title>
+<style>
+/* ============================================================================
+ * Atlas — leadership BI dashboard archetype (inlined canonical styles)
+ * ============================================================================ */
+:root{
+  --atlas-bg:#f4f6f9;--atlas-surface:#ffffff;--atlas-surface-alt:#fafbfc;
+  --atlas-border:#e3e6eb;--atlas-border-strong:#d1d6de;--atlas-rule:#ecedf1;
+  --atlas-text:#14181f;--atlas-muted:#525a68;--atlas-subtle:#7a8290;
+  --atlas-accent:#2453d6;--atlas-accent-soft:#e7edfc;
+  --atlas-good:#117a3d;--atlas-good-soft:#e4f3eb;
+  --atlas-warn:#92590a;--atlas-warn-soft:#fbeed1;
+  --atlas-bad:#b8302a;--atlas-bad-soft:#fbe3e1;
+  --atlas-radius:6px;--atlas-radius-sm:4px;
+  --atlas-font:-apple-system,BlinkMacSystemFont,"Segoe UI","Inter",Roboto,Helvetica,Arial,sans-serif;
+}
+*,*::before,*::after{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body.atlas{background:var(--atlas-bg);color:var(--atlas-text);font-family:var(--atlas-font);font-size:13.5px;line-height:1.5;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+button{font-family:inherit}
+.atlas-shell{max-width:1440px;margin:0 auto;padding:28px 32px 48px}
+.atlas-header{margin-bottom:18px}
+.atlas-header h1{margin:0;font-size:22px;font-weight:600;letter-spacing:-.01em}
+.atlas-subtitle{margin-top:4px;color:var(--atlas-muted);font-size:13px}
+
+.atlas-kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));background:var(--atlas-surface);border:1px solid var(--atlas-border);border-radius:var(--atlas-radius);margin-bottom:18px;overflow:hidden}
+.atlas-kpi{position:relative;padding:16px 18px 18px;border-right:1px solid var(--atlas-rule);border-bottom:1px solid var(--atlas-rule);min-width:0}
+.atlas-kpi::before{content:"";position:absolute;left:0;top:12px;bottom:12px;width:3px;background:var(--atlas-subtle);border-radius:0 2px 2px 0}
+.atlas-kpi[data-trend="up"]::before{background:var(--atlas-good)}
+.atlas-kpi[data-trend="down"]::before{background:var(--atlas-bad)}
+.atlas-kpi[data-trend="flat"]::before{background:var(--atlas-subtle)}
+.atlas-kpi .label{font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--atlas-subtle)}
+.atlas-kpi .value{margin-top:6px;font-size:40px;font-weight:600;font-variant-numeric:tabular-nums;letter-spacing:-.02em;line-height:1.05;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.atlas-kpi .delta{display:inline-flex;align-items:baseline;gap:4px;margin-top:8px;font-size:12px;font-weight:600;font-variant-numeric:tabular-nums}
+.atlas-kpi .delta .arrow{font-size:10px}
+.atlas-kpi[data-trend="up"] .delta{color:var(--atlas-good)}
+.atlas-kpi[data-trend="down"] .delta{color:var(--atlas-bad)}
+.atlas-kpi[data-trend="flat"] .delta{color:var(--atlas-muted)}
+.atlas-kpi .delta .vs{color:var(--atlas-subtle);font-weight:500}
+
+.atlas-filterbar{display:flex;flex-wrap:wrap;gap:10px 14px;align-items:center;background:var(--atlas-surface);border:1px solid var(--atlas-border);border-radius:var(--atlas-radius);padding:10px 12px;margin-bottom:16px}
+.atlas-search{flex:1 1 220px;min-width:200px}
+.atlas-search input{width:100%;height:32px;border:1px solid var(--atlas-border-strong);border-radius:var(--atlas-radius-sm);padding:0 10px;font-size:13px;font-family:inherit;background:#fff;color:var(--atlas-text)}
+.atlas-search input:focus{outline:none;border-color:var(--atlas-accent);box-shadow:0 0 0 3px rgba(36,83,214,.15)}
+.atlas-chip-group-label{font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--atlas-subtle)}
+.atlas-chips{display:flex;flex-wrap:wrap;gap:6px}
+.atlas-chip{position:relative;display:inline-flex;align-items:center;gap:4px;border:1px solid var(--atlas-border-strong);background:#fff;color:var(--atlas-muted);border-radius:var(--atlas-radius-sm);padding:4px 10px;font-size:12px;font-weight:500;cursor:pointer;transition:background .12s ease,color .12s ease,border-color .12s ease}
+.atlas-chip::before{content:"";width:0;overflow:hidden;transition:width .12s ease}
+.atlas-chip:hover{border-color:var(--atlas-accent);color:var(--atlas-accent)}
+.atlas-chip:focus-visible{outline:none;box-shadow:0 0 0 3px rgba(36,83,214,.2)}
+.atlas-chip[aria-pressed="true"]{background:var(--atlas-accent);border-color:var(--atlas-accent);color:#fff}
+.atlas-chip[aria-pressed="true"]::before{content:"✓";width:auto;font-size:10px;font-weight:700;margin-right:2px}
+.atlas-clear{border:1px solid transparent;background:transparent;color:var(--atlas-accent);font-size:12px;font-weight:600;padding:4px 8px;border-radius:var(--atlas-radius-sm);cursor:pointer;display:none}
+.atlas-clear.is-shown{display:inline-block}
+.atlas-clear:hover{background:var(--atlas-accent-soft)}
+.atlas-counter{margin-left:auto;font-size:11.5px;color:var(--atlas-subtle);font-variant-numeric:tabular-nums}
+.atlas-filter-disclosure{display:none}
+
+.atlas-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:14px;min-height:80px}
+.atlas-grid:empty::before{content:"No cards match the current filters.";display:grid;place-items:center;grid-column:1/-1;padding:32px;color:var(--atlas-subtle);font-size:13px;border:1px dashed var(--atlas-border-strong);border-radius:var(--atlas-radius)}
+.atlas-card{background:var(--atlas-surface);border:1px solid var(--atlas-border);border-radius:var(--atlas-radius);display:flex;flex-direction:column;min-width:0;overflow:hidden}
+.atlas-card[data-span="2"]{grid-column:span 2}
+.atlas-card[data-span="3"]{grid-column:span 3}
+.atlas-card.is-hidden{display:none}
+.atlas-card:only-child{max-width:640px}
+.atlas-card-head{display:flex;align-items:baseline;justify-content:space-between;gap:8px;padding:12px 14px 8px;border-bottom:1px solid var(--atlas-rule);min-width:0}
+.atlas-card-head h3{margin:0;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--atlas-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0;flex:1 1 auto}
+.atlas-card-head .meta{font-size:11px;color:var(--atlas-subtle);white-space:nowrap;flex:0 0 auto}
+.atlas-card-body{padding:12px 14px 14px;flex:1;min-width:0}
+
+.atlas-pill{display:inline-flex;align-items:center;gap:4px;font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;padding:2px 7px 2px 5px;border-radius:999px;line-height:1.4;white-space:nowrap}
+.atlas-pill::before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor;opacity:.85;flex:0 0 auto}
+.atlas-pill.good{background:var(--atlas-good-soft);color:var(--atlas-good)}
+.atlas-pill.warn{background:var(--atlas-warn-soft);color:var(--atlas-warn)}
+.atlas-pill.bad{background:var(--atlas-bad-soft);color:var(--atlas-bad)}
+.atlas-pill.neutral{background:var(--atlas-bg);color:var(--atlas-muted)}
+.atlas-pill.accent{background:var(--atlas-accent-soft);color:var(--atlas-accent)}
+
+.atlas-scroll-x{overflow-x:auto;margin:-2px -4px;padding:2px 4px}
+.atlas-table{width:100%;border-collapse:collapse;font-size:12.5px}
+.atlas-table caption{text-align:left;font-size:11px;color:var(--atlas-subtle);padding-bottom:6px}
+.atlas-table th,.atlas-table td{text-align:left;padding:7px 8px;border-bottom:1px solid var(--atlas-rule);vertical-align:middle}
+.atlas-table th{font-weight:700;font-size:10.5px;text-transform:uppercase;letter-spacing:.06em;color:var(--atlas-subtle);white-space:nowrap;background:var(--atlas-surface-alt)}
+.atlas-table th button.sort{all:unset;cursor:pointer;display:inline-flex;align-items:center;gap:3px;width:100%}
+.atlas-table th button.sort:focus-visible{outline:2px solid var(--atlas-accent);outline-offset:1px}
+.atlas-table th[aria-sort="ascending"] button.sort::after{content:"▲";font-size:8px;color:var(--atlas-accent)}
+.atlas-table th[aria-sort="descending"] button.sort::after{content:"▼";font-size:8px;color:var(--atlas-accent)}
+.atlas-table th[aria-sort="none"] button.sort::after{content:"⇅";font-size:9px;color:var(--atlas-subtle);opacity:.6}
+.atlas-table td.num,.atlas-table th.num{text-align:right;font-variant-numeric:tabular-nums}
+.atlas-table tbody tr:hover{background:var(--atlas-surface-alt)}
+.atlas-table tbody tr:last-child td{border-bottom:0}
+
+.atlas-bar-row{display:grid;grid-template-columns:32px 1fr 48px;gap:8px;align-items:center;margin:5px 0;font-size:12px}
+.atlas-bar-row .key{font-weight:600}
+.atlas-bar-row .count{text-align:right;color:var(--atlas-muted);font-variant-numeric:tabular-nums}
+.atlas-bar-track{height:8px;background:var(--atlas-bg);border-radius:999px;overflow:hidden}
+.atlas-bar-fill{height:100%;background:var(--atlas-accent);border-radius:999px}
+.atlas-bar-fill.good{background:var(--atlas-good)}
+.atlas-bar-fill.warn{background:var(--atlas-warn)}
+.atlas-bar-fill.bad{background:var(--atlas-bad)}
+
+.atlas-figure{margin:0;position:relative}
+.atlas-spark{width:100%;height:64px;display:block;overflow:visible}
+.atlas-spark .spark-area{fill-opacity:.12;stroke:none}
+.atlas-spark .spark-line{fill:none;stroke-width:1.5;stroke-linejoin:round;stroke-linecap:round}
+.atlas-spark .spark-baseline{stroke:var(--atlas-border-strong);stroke-width:1;stroke-dasharray:2 3;opacity:.6}
+.atlas-spark .spark-dot{r:3}
+.atlas-spark.trend-up .spark-line,.atlas-spark.trend-up .spark-dot{stroke:var(--atlas-good);fill:var(--atlas-good)}
+.atlas-spark.trend-up .spark-area{fill:var(--atlas-good)}
+.atlas-spark.trend-down .spark-line,.atlas-spark.trend-down .spark-dot{stroke:var(--atlas-bad);fill:var(--atlas-bad)}
+.atlas-spark.trend-down .spark-area{fill:var(--atlas-bad)}
+.atlas-spark.trend-flat .spark-line,.atlas-spark.trend-flat .spark-dot{stroke:var(--atlas-muted);fill:var(--atlas-muted)}
+.atlas-spark.trend-flat .spark-area{fill:var(--atlas-muted)}
+.atlas-spark.trend-accent .spark-line,.atlas-spark.trend-accent .spark-dot{stroke:var(--atlas-accent);fill:var(--atlas-accent)}
+.atlas-spark.trend-accent .spark-area{fill:var(--atlas-accent)}
+.atlas-figure figcaption{margin-top:6px;font-size:11.5px;font-weight:500;color:var(--atlas-muted);display:flex;align-items:center;gap:8px}
+.atlas-figure figcaption .sub{color:var(--atlas-subtle);font-weight:400}
+
+.atlas-scatter{width:100%;height:160px;display:block;background:linear-gradient(to right,var(--atlas-rule) 1px,transparent 1px) 0 0/25% 100%,linear-gradient(to top,var(--atlas-rule) 1px,transparent 1px) 0 0/100% 25%;border-bottom:1px solid var(--atlas-border);border-left:1px solid var(--atlas-border)}
+.atlas-scatter circle{fill:var(--atlas-accent);fill-opacity:.55}
+.atlas-scatter .axis-label{font-size:10.5px;fill:var(--atlas-subtle);text-transform:uppercase;letter-spacing:.08em;font-weight:700}
+
+.atlas-histogram{display:grid;grid-template-columns:repeat(var(--cols,12),1fr);gap:3px;height:90px;align-items:end}
+.atlas-histogram .bar{background:var(--atlas-accent);border-radius:2px 2px 0 0;min-height:2px;position:relative}
+.atlas-histogram .bar.good{background:var(--atlas-good)}
+.atlas-histogram .bar.warn{background:var(--atlas-warn)}
+.atlas-histogram .bar.bad{background:var(--atlas-bad)}
+
+.atlas-mini-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:8px}
+.atlas-mini{background:var(--atlas-surface-alt);border:1px solid var(--atlas-rule);border-radius:var(--atlas-radius-sm);padding:10px 12px;min-width:0}
+.atlas-mini .name{font-weight:600;font-size:12.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.atlas-mini .meta{font-size:11px;color:var(--atlas-subtle);margin-top:2px}
+.atlas-mini .score{font-size:22px;font-weight:600;font-variant-numeric:tabular-nums;letter-spacing:-.01em;margin-top:4px}
+
+.atlas-callout{padding:2px 0}
+.atlas-callout .big{font-size:36px;font-weight:600;letter-spacing:-.02em;font-variant-numeric:tabular-nums;line-height:1.1}
+.atlas-callout .sub{color:var(--atlas-muted);font-size:12px;margin-top:4px}
+
+.atlas-empty{padding:24px;text-align:center;color:var(--atlas-subtle);font-size:13px;border:1px dashed var(--atlas-border-strong);border-radius:var(--atlas-radius-sm)}
+
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+.atlas-footer{margin-top:24px;color:var(--atlas-subtle);font-size:11px;text-align:center}
+
+@media (max-width:1099px){.atlas-card[data-span="3"]{grid-column:span 2}}
+@media (max-width:768px){
+  .atlas-shell{padding:16px}
+  .atlas-header h1{font-size:19px}
+  .atlas-kpis{grid-template-columns:repeat(2,1fr)}
+  .atlas-kpi .value{font-size:28px}
+  .atlas-kpi{padding:12px 14px 14px}
+  .atlas-grid{grid-template-columns:1fr}
+  .atlas-card[data-span="2"],.atlas-card[data-span="3"]{grid-column:span 1}
+  .atlas-filter-disclosure{display:block;width:100%}
+  .atlas-filter-disclosure summary{list-style:none;cursor:pointer;padding:10px 0;min-height:44px;font-size:13px;font-weight:600;color:var(--atlas-muted);display:flex;align-items:center;gap:6px}
+  .atlas-filter-disclosure summary::-webkit-details-marker{display:none}
+  .atlas-filter-disclosure summary::before{content:"▸";font-size:10px;color:var(--atlas-subtle);transition:transform .15s ease}
+  .atlas-filter-disclosure[open] summary::before{transform:rotate(90deg)}
+  .atlas-filterbar{flex-direction:column;align-items:stretch}
+  .atlas-filterbar>.atlas-search,.atlas-filterbar>.atlas-filter-disclosure{width:100%}
+  .atlas-search{flex:1 1 auto}
+  .atlas-chip{min-height:32px;padding:6px 12px}
+  .atlas-counter{margin-left:0;margin-top:4px}
+  .atlas-table th button.sort{min-height:28px}
+  /* Hide desktop chip groups on mobile (use disclosure instead) */
+  .atlas-filterbar>.atlas-chip-group-label,
+  .atlas-filterbar>.atlas-chips{display:none}
+}
+@media print{
+  body.atlas{background:#fff;font-size:11px;color:#000}
+  .atlas-shell{max-width:none;padding:0}
+  .atlas-filterbar,.atlas-clear,.atlas-counter,.atlas-filter-disclosure{display:none!important}
+  .atlas-kpis,.atlas-card{box-shadow:none}
+  .atlas-kpis{break-inside:avoid}
+  .atlas-grid{grid-template-columns:1fr 1fr!important;gap:8px}
+  .atlas-card,.atlas-card[data-span="2"],.atlas-card[data-span="3"]{grid-column:span 1!important;break-inside:avoid;page-break-inside:avoid}
+  .atlas-table th{background:transparent}
+  .atlas-table th button.sort{all:unset}
+  .atlas-table th button.sort::after{content:""!important}
+  .atlas-table tbody tr:hover{background:transparent}
+  @page{margin:12mm}
+}
+@media (prefers-reduced-motion:reduce){
+  .atlas-chip,.atlas-chip::before,.atlas-filter-disclosure summary::before{transition:none!important}
+}
+</style>
+</head>
+<body class="atlas">
+<div class="atlas-shell">
+
+  <header class="atlas-header">
+    <h1>Q2 Weekly Pulse</h1>
+    <div class="atlas-subtitle">Cross-team operating dashboard — generated 2026-05-20 · 2,030 source records</div>
+  </header>
+
+  <!-- =================== KPI strip (5 metrics) =================== -->
+  <section class="atlas-kpis" aria-label="Key performance indicators">
+    <div class="atlas-kpi" data-trend="up">
+      <div class="label">Revenue MTD</div>
+      <div class="value">$1.42M</div>
+      <div class="delta"><span class="arrow" aria-hidden="true">▲</span> +12.4% <span class="vs">vs. prior month</span></div>
+    </div>
+    <div class="atlas-kpi" data-trend="up">
+      <div class="label">Active customers</div>
+      <div class="value">1,248</div>
+      <div class="delta"><span class="arrow" aria-hidden="true">▲</span> +37 <span class="vs">net new</span></div>
+    </div>
+    <div class="atlas-kpi" data-trend="down">
+      <div class="label">Churn (30d)</div>
+      <div class="value">2.1%</div>
+      <div class="delta"><span class="arrow" aria-hidden="true">▼</span> +0.4 pp <span class="vs">worse</span></div>
+    </div>
+    <div class="atlas-kpi" data-trend="up">
+      <div class="label">NPS</div>
+      <div class="value">62</div>
+      <div class="delta"><span class="arrow" aria-hidden="true">▲</span> +4 <span class="vs">vs. Q1</span></div>
+    </div>
+    <div class="atlas-kpi" data-trend="flat">
+      <div class="label">P0 incidents</div>
+      <div class="value">0</div>
+      <div class="delta"><span class="arrow" aria-hidden="true">■</span> 14d clean</div>
+    </div>
+  </section>
+
+  <!-- =================== Filter bar =================== -->
+  <section class="atlas-filterbar" aria-label="Filter cards">
+    <div class="atlas-search">
+      <label class="sr-only" for="atlas-search">Search cards</label>
+      <input id="atlas-search" type="search" placeholder="Search cards…" autocomplete="off">
+    </div>
+
+    <span class="atlas-chip-group-label">Team</span>
+    <div class="atlas-chips" role="group" aria-label="Filter by team" data-group="team">
+      <button type="button" class="atlas-chip" aria-pressed="false" data-tag="sales">Sales</button>
+      <button type="button" class="atlas-chip" aria-pressed="false" data-tag="success">Success</button>
+      <button type="button" class="atlas-chip" aria-pressed="false" data-tag="eng">Engineering</button>
+      <button type="button" class="atlas-chip" aria-pressed="false" data-tag="product">Product</button>
+    </div>
+
+    <span class="atlas-chip-group-label">Tier</span>
+    <div class="atlas-chips" role="group" aria-label="Filter by tier" data-group="tier">
+      <button type="button" class="atlas-chip" aria-pressed="false" data-tag="enterprise">Enterprise</button>
+      <button type="button" class="atlas-chip" aria-pressed="false" data-tag="growth">Growth</button>
+    </div>
+
+    <details class="atlas-filter-disclosure">
+      <summary>Filters</summary>
+      <div style="margin-top:8px">
+        <span class="atlas-chip-group-label">Team</span>
+        <div class="atlas-chips" role="group" aria-label="Filter by team" data-group="team-m">
+          <button type="button" class="atlas-chip" aria-pressed="false" data-tag="sales">Sales</button>
+          <button type="button" class="atlas-chip" aria-pressed="false" data-tag="success">Success</button>
+          <button type="button" class="atlas-chip" aria-pressed="false" data-tag="eng">Engineering</button>
+          <button type="button" class="atlas-chip" aria-pressed="false" data-tag="product">Product</button>
+        </div>
+      </div>
+      <div style="margin-top:8px">
+        <span class="atlas-chip-group-label">Tier</span>
+        <div class="atlas-chips" role="group" aria-label="Filter by tier" data-group="tier-m">
+          <button type="button" class="atlas-chip" aria-pressed="false" data-tag="enterprise">Enterprise</button>
+          <button type="button" class="atlas-chip" aria-pressed="false" data-tag="growth">Growth</button>
+        </div>
+      </div>
+    </details>
+
+    <button type="button" class="atlas-clear" id="atlas-clear">Clear filters</button>
+    <div class="atlas-counter" aria-live="polite" id="atlas-counter">Showing 9 of 9</div>
+  </section>
+
+  <!-- =================== Card grid (9 kinds) =================== -->
+  <section class="atlas-grid">
+
+    <!-- 1. Sparkline card: Pipeline 60d (line + area, up trend) -->
+    <article class="atlas-card" data-tags="sales,enterprise">
+      <div class="atlas-card-head">
+        <h3>Pipeline trend</h3>
+        <span class="meta">60 days</span>
+      </div>
+      <div class="atlas-card-body">
+        <figure class="atlas-figure">
+          <svg class="atlas-spark trend-up" viewBox="0 0 300 64" preserveAspectRatio="none"
+               role="img" aria-labelledby="spark1-cap">
+            <title>Pipeline value over the last 60 days, up 18%, currently $1.42M</title>
+            <line class="spark-baseline" x1="0" y1="60" x2="300" y2="60"/>
+            <path class="spark-area" d="M0,52 L30,46 L60,42 L90,44 L120,34 L150,30 L180,24 L210,22 L240,26 L270,12 L300,8 L300,60 L0,60 Z"/>
+            <polyline class="spark-line" points="0,52 30,46 60,42 90,44 120,34 150,30 180,24 210,22 240,26 270,12 300,8"/>
+            <circle class="spark-dot" cx="300" cy="8"/>
+          </svg>
+          <figcaption id="spark1-cap">
+            <span class="atlas-pill good">▲ +18%</span>
+            <span class="sub">vs. prior 60d · now $1.42M</span>
+          </figcaption>
+        </figure>
+      </div>
+    </article>
+
+    <!-- 2. Sortable table card: Top reps (4 columns, status pills, spans 2) -->
+    <article class="atlas-card" data-span="2" data-tags="sales,enterprise,growth">
+      <div class="atlas-card-head">
+        <h3>Top reps by closed-won</h3>
+        <span class="meta">Q2 to date</span>
+      </div>
+      <div class="atlas-card-body">
+        <div class="atlas-scroll-x">
+          <table class="atlas-table" data-sortable>
+            <caption class="sr-only">Top sales reps by closed-won revenue, win rate, and pipeline status.</caption>
+            <thead>
+              <tr>
+                <th scope="col">Rep</th>
+                <th scope="col" class="num">Closed</th>
+                <th scope="col" class="num">Win %</th>
+                <th scope="col" class="num">Open</th>
+                <th scope="col">Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><th scope="row">Avery Chen</th>  <td class="num" data-sort="420000">$420K</td><td class="num">62%</td><td class="num">$1.10M</td><td><span class="atlas-pill good">On track</span></td></tr>
+              <tr><th scope="row">Sam Patel</th>   <td class="num" data-sort="310000">$310K</td><td class="num">54%</td><td class="num">$870K</td> <td><span class="atlas-pill good">On track</span></td></tr>
+              <tr><th scope="row">Jordan Lee</th>  <td class="num" data-sort="240000">$240K</td><td class="num">48%</td><td class="num">$640K</td> <td><span class="atlas-pill warn">Watch</span></td></tr>
+              <tr><th scope="row">Riley Singh</th> <td class="num" data-sort="180000">$180K</td><td class="num">38%</td><td class="num">$520K</td> <td><span class="atlas-pill warn">Watch</span></td></tr>
+              <tr><th scope="row">Casey Wu</th>    <td class="num" data-sort="92000">$92K</td>  <td class="num">22%</td><td class="num">$310K</td> <td><span class="atlas-pill bad">Coach</span></td></tr>
+              <tr><th scope="row">Morgan Diaz</th> <td class="num" data-sort="68000">$68K</td>  <td class="num">19%</td><td class="num">$240K</td> <td><span class="atlas-pill bad">Coach</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </article>
+
+    <!-- 3. Histogram bars card: Distribution of CSAT (5 bins) -->
+    <article class="atlas-card" data-tags="success,growth">
+      <div class="atlas-card-head">
+        <h3>CSAT distribution</h3>
+        <span class="meta">573 responses</span>
+      </div>
+      <div class="atlas-card-body">
+        <div class="atlas-bar-row"><span class="key">5★</span><div class="atlas-bar-track"><div class="atlas-bar-fill good" style="width:72%"></div></div><span class="count">412</span></div>
+        <div class="atlas-bar-row"><span class="key">4★</span><div class="atlas-bar-track"><div class="atlas-bar-fill good" style="width:18%"></div></div><span class="count">104</span></div>
+        <div class="atlas-bar-row"><span class="key">3★</span><div class="atlas-bar-track"><div class="atlas-bar-fill warn" style="width:7%"></div></div><span class="count">38</span></div>
+        <div class="atlas-bar-row"><span class="key">2★</span><div class="atlas-bar-track"><div class="atlas-bar-fill bad" style="width:3%"></div></div><span class="count">14</span></div>
+        <div class="atlas-bar-row"><span class="key">1★</span><div class="atlas-bar-track"><div class="atlas-bar-fill bad" style="width:1%"></div></div><span class="count">5</span></div>
+      </div>
+    </article>
+
+    <!-- 4. Callout card: Deploys today (single big stat) -->
+    <article class="atlas-card" data-tags="eng">
+      <div class="atlas-card-head">
+        <h3>Deploys today</h3>
+        <span class="meta">since 00:00 UTC</span>
+      </div>
+      <div class="atlas-card-body">
+        <div class="atlas-callout">
+          <div class="big">14</div>
+          <div class="sub">12 prod · 2 staging · 0 rollbacks</div>
+        </div>
+      </div>
+    </article>
+
+    <!-- 5. Sparkline card: p95 latency (downward = good) -->
+    <article class="atlas-card" data-tags="eng">
+      <div class="atlas-card-head">
+        <h3>p95 latency</h3>
+        <span class="meta">7d</span>
+      </div>
+      <div class="atlas-card-body">
+        <figure class="atlas-figure">
+          <svg class="atlas-spark trend-up" viewBox="0 0 300 64" preserveAspectRatio="none"
+               role="img" aria-labelledby="spark2-cap">
+            <title>p95 latency over the last 7 days, down 22% to 142ms, SLA 200ms</title>
+            <line class="spark-baseline" x1="0" y1="60" x2="300" y2="60"/>
+            <path class="spark-area" d="M0,18 L30,22 L60,16 L90,24 L120,14 L150,22 L180,12 L210,18 L240,10 L270,14 L300,12 L300,60 L0,60 Z"/>
+            <polyline class="spark-line" points="0,18 30,22 60,16 90,24 120,14 150,22 180,12 210,18 240,10 270,14 300,12"/>
+            <circle class="spark-dot" cx="300" cy="12"/>
+          </svg>
+          <figcaption id="spark2-cap">
+            <span class="atlas-pill good">142 ms</span>
+            <span class="sub">SLA &lt; 200 ms · ▼ 22% wow</span>
+          </figcaption>
+        </figure>
+      </div>
+    </article>
+
+    <!-- 6. Histogram (vertical bars) card: Daily signups, 14 bars -->
+    <article class="atlas-card" data-tags="product,growth">
+      <div class="atlas-card-head">
+        <h3>Signups by day</h3>
+        <span class="meta">last 14d · 421 total</span>
+      </div>
+      <div class="atlas-card-body">
+        <div class="atlas-histogram" style="--cols:14" aria-label="Signups per day for the last 14 days">
+          <div class="bar" style="height:35%" title="Day 1: 18"></div>
+          <div class="bar" style="height:42%" title="Day 2: 22"></div>
+          <div class="bar" style="height:30%" title="Day 3: 16"></div>
+          <div class="bar" style="height:48%" title="Day 4: 25"></div>
+          <div class="bar" style="height:55%" title="Day 5: 29"></div>
+          <div class="bar" style="height:38%" title="Day 6: 20"></div>
+          <div class="bar good" style="height:78%" title="Day 7: 41"></div>
+          <div class="bar good" style="height:88%" title="Day 8: 46"></div>
+          <div class="bar" style="height:62%" title="Day 9: 33"></div>
+          <div class="bar" style="height:58%" title="Day 10: 31"></div>
+          <div class="bar" style="height:71%" title="Day 11: 38"></div>
+          <div class="bar" style="height:65%" title="Day 12: 34"></div>
+          <div class="bar good" style="height:92%" title="Day 13: 49"></div>
+          <div class="bar good" style="height:100%" title="Day 14: 53"></div>
+        </div>
+        <figcaption style="margin-top:6px;font-size:11.5px;color:var(--atlas-muted)">
+          Up 64% wow. Two consecutive record days at the end of the window.
+        </figcaption>
+      </div>
+    </article>
+
+    <!-- 7. Status pill grid (mini-leaderboard of systems) -->
+    <article class="atlas-card" data-tags="eng">
+      <div class="atlas-card-head">
+        <h3>Service health</h3>
+        <span class="meta">6 systems</span>
+      </div>
+      <div class="atlas-card-body">
+        <table class="atlas-table">
+          <caption class="sr-only">Health status for six production services.</caption>
+          <thead><tr><th scope="col">Service</th><th scope="col" class="num">Uptime 30d</th><th scope="col">Status</th></tr></thead>
+          <tbody>
+            <tr><th scope="row">api-gateway</th>  <td class="num">99.99%</td><td><span class="atlas-pill good">Healthy</span></td></tr>
+            <tr><th scope="row">checkout</th>     <td class="num">99.95%</td><td><span class="atlas-pill good">Healthy</span></td></tr>
+            <tr><th scope="row">search</th>       <td class="num">99.82%</td><td><span class="atlas-pill warn">Degraded</span></td></tr>
+            <tr><th scope="row">notifications</th><td class="num">99.78%</td><td><span class="atlas-pill warn">Degraded</span></td></tr>
+            <tr><th scope="row">analytics</th>    <td class="num">98.40%</td><td><span class="atlas-pill bad">SLO breach</span></td></tr>
+            <tr><th scope="row">webhooks</th>     <td class="num">N/A</td>   <td><span class="atlas-pill neutral">Maintenance</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </article>
+
+    <!-- 8. Scatter (2-dim): signups vs activation, 12 dots, spans 2 -->
+    <article class="atlas-card" data-span="2" data-tags="product,growth">
+      <div class="atlas-card-head">
+        <h3>Signups vs. activation</h3>
+        <span class="meta">12 cohorts, weekly</span>
+      </div>
+      <div class="atlas-card-body">
+        <figure class="atlas-figure">
+          <svg class="atlas-scatter" viewBox="0 0 400 160" preserveAspectRatio="none"
+               role="img" aria-labelledby="scatter-cap">
+            <title>Activation rate vs. signup volume across 12 weekly cohorts. Larger cohorts trend higher.</title>
+            <!-- 12 dots, x = signups (0-400), y = inverted activation -->
+            <circle cx="40"  cy="135" r="5"><title>Week 14: 78 signups, 22% activated</title></circle>
+            <circle cx="60"  cy="120" r="5"><title>Week 15: 91 signups, 28% activated</title></circle>
+            <circle cx="85"  cy="125" r="5"><title>Week 16: 102 signups, 26% activated</title></circle>
+            <circle cx="110" cy="100" r="6"><title>Week 17: 124 signups, 34% activated</title></circle>
+            <circle cx="135" cy="108" r="6"><title>Week 18: 140 signups, 31% activated</title></circle>
+            <circle cx="160" cy="85"  r="6"><title>Week 19: 158 signups, 39% activated</title></circle>
+            <circle cx="190" cy="78"  r="7"><title>Week 20: 182 signups, 42% activated</title></circle>
+            <circle cx="220" cy="65"  r="7"><title>Week 21: 210 signups, 46% activated</title></circle>
+            <circle cx="255" cy="55"  r="7"><title>Week 22: 244 signups, 49% activated</title></circle>
+            <circle cx="290" cy="48"  r="8"><title>Week 23: 281 signups, 52% activated</title></circle>
+            <circle cx="330" cy="35"  r="8"><title>Week 24: 320 signups, 56% activated</title></circle>
+            <circle cx="370" cy="28"  r="9"><title>Week 25: 365 signups, 58% activated</title></circle>
+            <text class="axis-label" x="200" y="155" text-anchor="middle">signups →</text>
+            <text class="axis-label" x="6" y="80" transform="rotate(-90 6 80)" text-anchor="middle">activation →</text>
+          </svg>
+          <figcaption id="scatter-cap">
+            <span class="atlas-pill accent">r ≈ 0.94</span>
+            <span class="sub">Activation rate scales with cohort size; bigger weeks convert better.</span>
+          </figcaption>
+        </figure>
+      </div>
+    </article>
+
+    <!-- 9. Mini-grid (callouts) card: Onboarding queue breakdown -->
+    <article class="atlas-card" data-tags="success">
+      <div class="atlas-card-head">
+        <h3>Onboarding queue</h3>
+        <span class="meta">23 in flight</span>
+      </div>
+      <div class="atlas-card-body">
+        <div class="atlas-mini-grid">
+          <div class="atlas-mini"><div class="name">Week 1</div><div class="meta">kickoff</div><div class="score">8</div></div>
+          <div class="atlas-mini"><div class="name">Week 2-3</div><div class="meta">setup</div><div class="score">10</div></div>
+          <div class="atlas-mini"><div class="name">Week 4+</div><div class="meta">stalled</div><div class="score">5</div></div>
+          <div class="atlas-mini"><div class="name">At risk</div><div class="meta">&gt; 30 days</div><div class="score" style="color:var(--atlas-bad)">2</div></div>
+        </div>
+      </div>
+    </article>
+
+  </section>
+
+  <div class="atlas-footer">Atlas archetype · single-file HTML · no external dependencies</div>
+</div>
+
+<script>
+(function(){
+  'use strict';
+
+  // ---- Sortable tables ----
+  document.querySelectorAll('table[data-sortable]').forEach(function(table){
+    var headers = Array.from(table.querySelectorAll('thead th'));
+    headers.forEach(function(th, idx){
+      if (!th.querySelector('button.sort')) {
+        var btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'sort';
+        btn.innerHTML = th.innerHTML;
+        th.innerHTML = '';
+        th.appendChild(btn);
+      }
+      th.setAttribute('aria-sort', 'none');
+      th.querySelector('button.sort').addEventListener('click', function(){
+        var dir = th.getAttribute('aria-sort');
+        var asc = dir !== 'ascending';
+        headers.forEach(function(h){ h.setAttribute('aria-sort', 'none'); });
+        th.setAttribute('aria-sort', asc ? 'ascending' : 'descending');
+        var tbody = table.tBodies[0];
+        var rows = Array.from(tbody.rows);
+        rows.sort(function(a, b){
+          var ac = a.cells[idx], bc = b.cells[idx];
+          var av = (ac.dataset.sort != null ? ac.dataset.sort : ac.innerText).trim();
+          var bv = (bc.dataset.sort != null ? bc.dataset.sort : bc.innerText).trim();
+          var an = parseFloat(av.replace(/[,%$\s]/g, ''));
+          var bn = parseFloat(bv.replace(/[,%$\s]/g, ''));
+          if (!isNaN(an) && !isNaN(bn)) return asc ? an - bn : bn - an;
+          return asc ? av.localeCompare(bv) : bv.localeCompare(av);
+        });
+        var frag = document.createDocumentFragment();
+        rows.forEach(function(r){ frag.appendChild(r); });
+        tbody.appendChild(frag);
+      });
+    });
+  });
+
+  // ---- Filter chips + text search ----
+  var cards      = Array.from(document.querySelectorAll('.atlas-card'));
+  var chipGroups = Array.from(document.querySelectorAll('.atlas-chips'));
+  var searchEl   = document.getElementById('atlas-search');
+  var clearBtn   = document.getElementById('atlas-clear');
+  var counterEl  = document.getElementById('atlas-counter');
+  var totalCards = cards.length;
+  var rafId = null;
+
+  function activesByGroup(){
+    var byKey = {};
+    chipGroups.forEach(function(g){
+      var key = (g.dataset.group || '').replace(/-m$/, '');
+      var actives = Array.from(g.querySelectorAll('.atlas-chip[aria-pressed="true"]'))
+                         .map(function(c){ return c.dataset.tag; });
+      byKey[key] = byKey[key] ? byKey[key].concat(actives) : actives;
+    });
+    return byKey;
+  }
+
+  function apply(){
+    var actives = activesByGroup();
+    var hasActive = Object.keys(actives).some(function(k){ return actives[k].length > 0; });
+    var q = (searchEl && searchEl.value || '').trim().toLowerCase();
+    var shown = 0;
+    cards.forEach(function(card){
+      var tags = (card.dataset.tags || '').split(',').filter(Boolean);
+      var groupMatch = Object.keys(actives).every(function(k){
+        var as = actives[k];
+        if (!as.length) return true;
+        return as.some(function(a){ return tags.indexOf(a) !== -1; });
+      });
+      var textMatch = !q || card.innerText.toLowerCase().indexOf(q) !== -1;
+      var visible = groupMatch && textMatch;
+      card.classList.toggle('is-hidden', !visible);
+      if (visible) shown++;
+    });
+    if (counterEl) counterEl.textContent = 'Showing ' + shown + ' of ' + totalCards;
+    if (clearBtn) clearBtn.classList.toggle('is-shown', hasActive || q.length > 0);
+  }
+  function applyDebounced(){
+    if (rafId) cancelAnimationFrame(rafId);
+    rafId = requestAnimationFrame(apply);
+  }
+
+  function syncChips(srcChip){
+    var srcGroup = srcChip.parentElement.dataset.group.replace(/-m$/, '');
+    var pressed  = srcChip.getAttribute('aria-pressed') === 'true';
+    chipGroups.forEach(function(g){
+      var key = (g.dataset.group || '').replace(/-m$/, '');
+      if (key !== srcGroup) return;
+      g.querySelectorAll('.atlas-chip').forEach(function(c){
+        if (c === srcChip) return;
+        if (c.dataset.tag === srcChip.dataset.tag) {
+          c.setAttribute('aria-pressed', pressed ? 'true' : 'false');
+        }
+      });
+    });
+  }
+
+  chipGroups.forEach(function(g){
+    g.querySelectorAll('.atlas-chip').forEach(function(chip){
+      chip.addEventListener('click', function(){
+        var next = chip.getAttribute('aria-pressed') !== 'true';
+        chip.setAttribute('aria-pressed', next ? 'true' : 'false');
+        syncChips(chip);
+        apply();
+      });
+    });
+  });
+  if (searchEl) searchEl.addEventListener('input', applyDebounced);
+  if (clearBtn) clearBtn.addEventListener('click', function(){
+    document.querySelectorAll('.atlas-chip[aria-pressed="true"]').forEach(function(c){
+      c.setAttribute('aria-pressed', 'false');
+    });
+    if (searchEl) searchEl.value = '';
+    apply();
+  });
+  if (counterEl) counterEl.textContent = 'Showing ' + totalCards + ' of ' + totalCards;
+})();
+</script>
+</body>
+</html>
