@@ -21,3 +21,7 @@ All notable changes to this repo. Dates are YYYY-MM-DD.
 ## 2026-06-22 (setup deck)
 ### Added
 - `docs/Agentic-Marketing-Mastermind-Setup-Guide.pptx` + `docs/setup-guide.md` — new-user setup walkthrough (authored by Manick Bhan, presented by Jonathan Duque).
+
+## 2026-06-22 (deck refresh)
+### Changed
+- Setup deck: clone URL now points to the public `github.com/search-atlas-group/amm-toolkit`; removed the now-unnecessary "Launch & Set Permissions / Bypass permissions" slide (audience is past Claude Code basics); resequenced step numbers.
