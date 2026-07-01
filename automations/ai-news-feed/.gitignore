@@ -5,3 +5,5 @@ __pycache__/
 feed.secrets
 .env
 canvas_state.json
+last-run.json
+*.bak*

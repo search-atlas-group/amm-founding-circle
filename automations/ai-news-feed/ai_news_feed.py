@@ -41,6 +41,25 @@ import feedparser
 HERE = os.path.dirname(os.path.abspath(__file__))
 STATE_FILE = os.path.join(HERE, ".seen.json")
 CANVAS_STATE = os.path.join(HERE, "canvas_state.json")  # {month: "YYYY-MM", canvas_id: "F..."}
+LAST_RUN_FILE = os.path.join(HERE, "last-run.json")     # heartbeat: {ts, status, mode, posted_count, error}
+
+
+def write_heartbeat(status, mode="", posted_count=0, error=""):
+    """Heartbeat so silent death is detectable. Written on EVERY run (success or fail).
+    A stale `ts` (no recent run) or status != 'ok' is the signal a monitor watches for.
+    There is currently NO separate external monitor wired for this file — a follow-up
+    could add a launchd/cron check that alerts if `ts` is older than ~26h on a weekday."""
+    try:
+        with open(LAST_RUN_FILE, "w") as f:
+            json.dump({
+                "ts": datetime.now(timezone.utc).isoformat(),
+                "status": status,              # "ok" | "no-items" | "error"
+                "mode": mode,                  # "post" | "canvas" | "dry-run" | "slack"
+                "posted_count": posted_count,
+                "error": error[:500],
+            }, f, indent=2)
+    except Exception as e:  # never let heartbeat writing mask the real run result
+        print(f"[warn] could not write heartbeat: {e}", file=sys.stderr)
 
 
 # ---------------- config ----------------
@@ -242,7 +261,8 @@ def build_canvas_prompt(items):
         "*Sources:* <a markdown link for EACH outlet that covered it, by outlet name — e.g. [Axios](url) · [SiliconANGLE](url)>\n\n"
         "Rules: include only genuinely relevant, substantive stories (skip noise/promos/think-pieces). "
         "Order by importance. Use ONLY the URLs provided below, copied verbatim — NEVER invent a URL. "
-        "One headline per story. Aim for 5-9 stories. Output only the markdown, no preamble.\n\n"
+        "One headline per story. Output the top 10 most important stories (fewer only if there genuinely "
+        "aren't 10 substantive ones). Output only the markdown, no preamble.\n\n"
         f"Items:\n{lines}"
     )
 
@@ -370,23 +390,31 @@ def summarize(items, cfg):
 
 
 def curate(prompt, cfg):
-    """Run a prompt through the configured curation provider (with fallbacks).
-    Returns text or None (caller then falls back to raw titles / deterministic canvas)."""
+    """Run a prompt through the curation provider.
+
+    Uses ONLY the local `claude` CLI (subscription/OAuth auth) — no direct provider API
+    key required, in keeping with this repo's "no paid APIs required" principle. The
+    gemini / antigravity / anthropic-SDK paths below are kept as reference implementations
+    (each needs its own API key or CLI login) but are intentionally not wired into the
+    default chain; swap `providers.get("claude")` for one of them if you'd rather use a
+    key you already have.
+
+    Returns curated text, or None. On None the CANVAS/--post path fails LOUD and posts
+    nothing (see post_canvas_issue); only the non-member legacy paths fall back to raw.
+    """
     primary = cfg.get("provider", "none")
     if primary == "none":
         return None
     providers = {
-        # Claude via the local CLI (subscription auth, no API key) → SDK key as last resort
-        "claude": lambda: _claude_cli_curate(prompt)
-                  or _claude_curate(prompt, cfg.get("claude_model", "claude-sonnet-4-6")),
-        "gemini": lambda: _gemini_curate(prompt, cfg.get("gemini_model", "gemini-2.5-flash")),
-        "antigravity": lambda: _antigravity_curate(prompt, cfg.get("antigravity_model", "")),
+        # Claude via the local CLI ONLY — subscription/OAuth auth, no provider API key.
+        "claude": lambda: _claude_cli_curate(prompt),
     }
-    order = [primary] + [p for p in ("claude", "gemini") if p != primary]
-    for name in order:
-        fn = providers.get(name)
-        if fn and (result := fn()):
-            return result
+    # Force claude regardless of configured provider: it's the only path that needs no
+    # paid API key. (gemini / antigravity / anthropic-SDK intentionally not offered here —
+    # see _gemini_curate / _antigravity_curate / _claude_curate if you want to opt in.)
+    fn = providers.get("claude")
+    if fn and (result := fn()):
+        return result
     return None
 
 
@@ -491,7 +519,7 @@ def post_canvas_issue(cfg, picks, kept):
 
     base = cfg.get("canvas_url_base", "https://YOUR_WORKSPACE.slack.com/docs/YOUR_WORKSPACE_ID")
     url = f"{base}/{cid}"
-    heads = [l[4:].strip() for l in md.splitlines() if l.startswith("### ")][:8]
+    heads = [l[4:].strip() for l in md.splitlines() if l.startswith("### ")][:10]
     bullets = "\n".join(f"• {h}" for h in heads)
     teaser = (f":robot_face: *AI News — {today}*\n{bullets}\n\n"
               f":page_facing_up: *Full summaries + sources →* <{url}|this month's Canvas>")
@@ -501,8 +529,10 @@ def post_canvas_issue(cfg, picks, kept):
     return cid, url
 
 
-def main():
-    cfg = load_config()
+def _main(cfg):
+    """Core run. Returns (status, mode, posted_count) for the heartbeat. Raises on
+    member-facing failure (so launchd surfaces a nonzero exit) — never posts degraded
+    content to the member channel."""
     seen = load_seen()
     items = sense(cfg["feeds"], cfg.get("window_hours", 24))
     fresh = [i for i in items if i["id"] and i["id"] not in seen]
@@ -512,30 +542,64 @@ def main():
             print(f"[dropped: {d['_reason']:<14}] {d['title']}  ({d['source']})", file=sys.stderr)
         print(f"--- kept {len(kept)} / dropped {len(dropped)} of {len(fresh)} fresh ---", file=sys.stderr)
     picks = judge(kept, seen, cfg.get("max_items", 20), cfg.get("per_source", 3))
+
+    mode = ("post" if "--post" in sys.argv else
+            "canvas" if "--canvas" in sys.argv else
+            "dry-run" if "--dry-run" in sys.argv else "slack")
+
     if not picks:
         print("No items passed the quality filter; nothing posted.")
-        return
+        return "no-items", mode, 0
+
     if "--canvas" in sys.argv:
         md = curate(build_canvas_prompt(picks), cfg)
-        if not md:  # LLM unavailable → deterministic canvas from the kept set
+        if not md:  # LLM unavailable → deterministic canvas (preview only; never posted)
             md = build_canvas_fallback(kept)
         print(md)
-        return
+        return "ok", mode, 0
+
     if "--post" in sys.argv:
+        # post_canvas_issue() raises SystemExit if curation is unavailable — it will
+        # NOT publish the deterministic/raw fallback to the member channel. A bad post
+        # to a paid member channel is worse than no post. That exception propagates out
+        # of main() so launchd records a nonzero exit (silent death becomes loud).
         cid, url = post_canvas_issue(cfg, picks, kept)
         seen.update(i["id"] for i in picks)
         save_seen(seen)
         print(f"Posted canvas {cid} → {url}")
-        return
+        return "ok", mode, len(picks)
+
+    # --- Legacy non-member paths below (--dry-run / direct webhook). These MAY fall back
+    # to a raw digest because they are NOT the curated member Canvas post. ---
     digest = summarize(picks, cfg)
     text = build_message(digest, picks)
     if "--dry-run" in sys.argv:
         print(text)
-        return
+        return "ok", mode, 0
     post_slack(text)
     seen.update(i["id"] for i in picks)
     save_seen(seen)
     print(f"Posted {len(picks)} items.")
+    return "ok", mode, len(picks)
+
+
+def main():
+    cfg = load_config()
+    mode = ("post" if "--post" in sys.argv else
+            "canvas" if "--canvas" in sys.argv else
+            "dry-run" if "--dry-run" in sys.argv else "slack")
+    try:
+        status, mode, count = _main(cfg)
+    except SystemExit as e:
+        # SystemExit(str) = a deliberate fail-loud (e.g. curation unavailable). Record it
+        # in the heartbeat, then re-raise so the process exits nonzero for launchd.
+        if e.code not in (0, None):
+            write_heartbeat("error", mode=mode, error=str(e.code))
+        raise
+    except Exception as e:
+        write_heartbeat("error", mode=mode, error=f"{type(e).__name__}: {e}")
+        raise
+    write_heartbeat(status, mode=mode, posted_count=count)
 
 
 if __name__ == "__main__":
