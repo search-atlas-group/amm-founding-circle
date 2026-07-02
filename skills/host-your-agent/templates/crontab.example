@@ -1,0 +1,16 @@
+# Cron fallback for the overnight runner (Linux, or Mac if you prefer cron to launchd).
+#
+# The installer generates and installs the real line for you with your own paths.
+# This is what it looks like — a job at 01:00 every day, pointed at your job file,
+# with output logged so a failed run is never silent.
+#
+# Install by hand instead of via the installer:
+#   ( crontab -l 2>/dev/null; cat crontab.example ) | crontab -
+# Then edit the placeholder paths with `crontab -e`.
+#
+# NOTE: cron does NOT wake a sleeping machine. On a laptop that sleeps, prefer
+# launchd (Mac) or Task Scheduler (Windows) — both can wake the machine. Use cron
+# on an always-on box (a server, a Raspberry Pi, a machine that never sleeps).
+#
+# Fields:  min hour day month weekday   command
+0 1 * * * /usr/bin/env python3 /ABSOLUTE/PATH/TO/overnight_runner.py --job /ABSOLUTE/PATH/TO/my-job.sh --minutes 45 >> "$HOME/.local/state/youragent-overnight/cron.log" 2>&1
