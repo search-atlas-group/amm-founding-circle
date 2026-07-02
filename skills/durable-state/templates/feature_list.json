@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "run_id": "{{RUN_ID}}",
+  "features": [
+    {
+      "id": "F001",
+      "title": "Replace with the first concrete slice of the work",
+      "status": "pending",
+      "owner_role": "generator",
+      "files": [],
+      "verification": "Replace with the artifact or check that proves this slice is done"
+    }
+  ]
+}

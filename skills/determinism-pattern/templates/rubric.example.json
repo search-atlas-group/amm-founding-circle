@@ -1,0 +1,47 @@
+{
+  "skill": "weekly-client-seo-report",
+  "version": "1.0.0",
+  "checks": [
+    {
+      "id": "has-sections",
+      "type": "deterministic",
+      "rule": "min_headings",
+      "value": 3,
+      "why": "A complete report has at least a summary, findings, and next steps. Free to check, never drifts."
+    },
+    {
+      "id": "no-placeholders",
+      "type": "deterministic",
+      "rule": "forbidden_text",
+      "value": ["TODO", "[insert", "PLACEHOLDER", "lorem ipsum"],
+      "why": "Unfinished output must never reach a client. Deterministic, always caught."
+    },
+    {
+      "id": "names-the-client",
+      "type": "deterministic",
+      "rule": "required_text",
+      "value": ["Client:"],
+      "why": "Every report must say who it is for, so a scheduled run can't send a generic one."
+    },
+    {
+      "id": "under-budget",
+      "type": "deterministic",
+      "rule": "max_words",
+      "value": 1200,
+      "why": "Keeps every weekly report to the same length a client can actually read."
+    },
+    {
+      "id": "has-a-next-step",
+      "type": "deterministic",
+      "rule": "required_regex",
+      "value": "(?i)(next step|recommend|we will|action)",
+      "why": "A report with no clear next step is filler. Rule-checkable, so it always holds."
+    },
+    {
+      "id": "in-brand-voice",
+      "type": "model",
+      "prompt": "Does this read in a clear, confident, jargon-free voice a busy agency client would trust — no fluff, no AI-slop? Answer PASS or FAIL and one sentence why.",
+      "why": "The fuzzy part a rule can't catch. Runs only with --allow-model; use sparingly."
+    }
+  ]
+}
