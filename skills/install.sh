@@ -9,7 +9,9 @@
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-SKILLS_SRC="$SCRIPT_DIR/skills"
+# The skill folders live alongside this script (skills/<name>/), so the source
+# is this directory itself. (Older layout placed install.sh one level up.)
+SKILLS_SRC="$SCRIPT_DIR"
 TARGET="${CLAUDE_SKILLS_TARGET:-$HOME/.claude/skills}"
 USE_SYMLINKS="${USE_SYMLINKS:-0}"
 
