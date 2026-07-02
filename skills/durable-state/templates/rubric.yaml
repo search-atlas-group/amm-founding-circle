@@ -1,0 +1,22 @@
+schema_version: 1
+run_id: "{{RUN_ID}}"
+pass_threshold: 0.82
+axes:
+  - name: functionality
+    weight: 0.35
+    description: "The objective was actually met and the checks pass."
+  - name: maintainability
+    weight: 0.20
+    description: "The result is clean and easy to keep working with."
+  - name: verification
+    weight: 0.20
+    description: "The proof is real, current, and saved under the run folder."
+  - name: craft
+    weight: 0.15
+    description: "The output is polished and not sloppy."
+  - name: originality
+    weight: 0.10
+    description: "It fits the actual work, not a generic template answer."
+references:
+  good: []
+  bad: []

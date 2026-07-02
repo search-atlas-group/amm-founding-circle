@@ -1,0 +1,36 @@
+{
+  "_comment": "The list of connections your always-on agent depends on. Each check is a plain shell command that MUST exit 0 when healthy and non-zero when down. Exit 20 means 'blocked, needs you'. NEVER paste a token here — read auth from your environment or your CLI's own stored login. Delete the checks you don't use, edit the commands to match your setup, and add your own.",
+
+  "checks": [
+    {
+      "name": "model CLI reachable",
+      "kind": "endpoint",
+      "_comment": "Proves the agent can still talk to its model. Swap in a cheap health call your CLI supports; the point is that a spent budget or a dead endpoint makes this exit non-zero.",
+      "command": "claude -p --output-format text --max-budget-usd 0.01 'reply with the single word OK' | grep -qi ok",
+      "timeout": 60
+    },
+    {
+      "name": "MCP login (example CRM)",
+      "kind": "login",
+      "_comment": "Proves an MCP/tool login still authenticates RIGHT NOW. Replace with a tiny read-only 'whoami'/list call for your own tool that fails when the session has expired. An expired login exits non-zero here and pings you.",
+      "command": "your-cli auth status --quiet",
+      "timeout": 30
+    },
+    {
+      "name": "scheduled run making progress",
+      "kind": "run",
+      "_comment": "Proves the overnight run is not just alive but actually MOVING. Point watch_path at the folder the run writes into (e.g. its reports dir). If nothing there changes for stall_minutes, it flips to STALLED. Leave 'command' empty to judge purely by output movement, or set it to a check that exits 20 when the run is blocked on you.",
+      "watch_path": "~/agent-work/reports",
+      "stall_minutes": 15,
+      "command": "",
+      "timeout": 15
+    },
+    {
+      "name": "agent process alive (optional)",
+      "kind": "process",
+      "_comment": "Optional: proves the scheduled process is still running. Replace 'my-agent-run' with a unique string from your own job's command line. A dead process exits non-zero.",
+      "command": "pgrep -f 'my-agent-run' >/dev/null",
+      "timeout": 10
+    }
+  ]
+}

@@ -1,0 +1,28 @@
+{
+  "schema_version": 1,
+  "run_id": "{{RUN_ID}}",
+  "title": "{{TITLE}}",
+  "status": "draft",
+  "mode": "{{MODE}}",
+  "iteration": 0,
+  "restart_count": 0,
+  "current_owner_role": "planner",
+  "current_bottleneck": "unknown",
+  "harness_retirement_candidates": [],
+  "roles": {
+    "planner": "me",
+    "generator": "agent",
+    "evaluator": "separate_reviewer",
+    "integrator": "me",
+    "reflector": "me"
+  },
+  "verification": {
+    "last_command": null,
+    "last_status": "not_run",
+    "last_evidence": null
+  },
+  "timestamps": {
+    "created_at": "{{CREATED_AT}}",
+    "updated_at": "{{CREATED_AT}}"
+  }
+}

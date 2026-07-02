@@ -1,0 +1,58 @@
+{
+  "_readme": [
+    "This is YOUR inventory — replace every placeholder below with the real tools",
+    "you use and the real actions your business needs an agent to take. There is NO",
+    "built-in platform list; the map is only as true as what you write here.",
+    "",
+    "For each action set:",
+    "  tool    : the tool/platform the action lives in (your ad platform, your CRM, etc.)",
+    "  action  : the DO verb the agent needs to perform ('publish the post', 'change the budget')",
+    "  status  : 'green'  = the agent can perform this end-to-end (a write verb is exposed)",
+    "            'yellow' = the agent can only READ it; a human still acts",
+    "            'red'    = the action is not exposed to an agent at all (the wall)",
+    "  reason  : for RED only — why it's red (drives which bridge the map recommends):",
+    "            Bridge 1 (write lane exists, just not wired):",
+    "              'write_scope_not_enabled'  - connector has a write tier you haven't turned on",
+    "              'read_only_connector'      - current connector is read-only; a write tool exists",
+    "              'has_api_not_wired'        - platform has an API for this; agent isn't calling it yet",
+    "              'needs_automation_hub'     - route it through a no-code automation hub",
+    "            Bridge 2 (can't / shouldn't be a machine write):",
+    "              'no_api_for_action'        - no API path for this action at all",
+    "              'compliance_block'         - policy requires a human in the loop",
+    "              'too_risky_to_automate'    - spends money / deletes data; keep a human tap",
+    "  note    : (optional) anything you want on the map for this action",
+    "",
+    "If you're unsure of a status: have your agent test the READ and the WRITE for that",
+    "tool and report which actually goes through. A connector that 'connects' can still",
+    "be read-only. Tag by whether a write succeeds, not by whether it connects."
+  ],
+
+  "business": "My Agency (rename me)",
+
+  "workflows": [
+    {
+      "name": "Paid ads management (example — replace)",
+      "actions": [
+        { "tool": "<your ad platform>", "action": "Pull spend + performance", "status": "yellow", "note": "read works; reporting only" },
+        { "tool": "<your ad platform>", "action": "Change a campaign budget", "status": "red", "reason": "too_risky_to_automate", "note": "spends client money — stage for approval" },
+        { "tool": "<your ad platform>", "action": "Pause an underperforming ad", "status": "red", "reason": "write_scope_not_enabled", "note": "connector has a write tier we haven't enabled" }
+      ]
+    },
+    {
+      "name": "CRM pipeline hygiene (example — replace)",
+      "actions": [
+        { "tool": "<your CRM>", "action": "Read deals + contacts", "status": "green", "note": "fully callable" },
+        { "tool": "<your CRM>", "action": "Update a deal stage", "status": "red", "reason": "has_api_not_wired", "note": "API exists; give the agent a scoped script" },
+        { "tool": "<your CRM>", "action": "Log an activity note", "status": "green" }
+      ]
+    },
+    {
+      "name": "Intake form -> client onboarding (example — replace)",
+      "actions": [
+        { "tool": "<your form tool>", "action": "Read new submissions", "status": "green" },
+        { "tool": "<your form tool>", "action": "Write a status back to the entry", "status": "red", "reason": "no_api_for_action", "note": "no write API — stage a one-click approval" },
+        { "tool": "<your email tool>", "action": "Send the welcome email", "status": "red", "reason": "needs_automation_hub", "note": "route through a no-code hub the agent triggers" }
+      ]
+    }
+  ]
+}
