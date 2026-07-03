@@ -1,0 +1,38 @@
+EXAMPLE ONE-LINE INTENTS — command the fleet, don't operate it
+================================================================
+
+Send ONE of these (adapted to your work) as a single message from your phone to the
+channel your always-on machine watches. The rule: name the OUTCOME, not the steps.
+The rails you built lower on the ladder decide who picks up what.
+
+
+GOOD — outcomes a trusted lead could run without asking you how:
+---------------------------------------------------------------
+- "The Hartley account's rankings dropped overnight — diagnose it and draft the fix.
+   Ship this month's content for all three retainer clients off their briefs. Build
+   the audit for the new prospect. Run it on the usual rails, flag me only if
+   something needs a real decision."
+
+- "Audit all my client sites this week and flag anything that regressed since last
+   quarter. One file per client. Don't touch anything live — just find and draft."
+
+- "Draft next week's content for every retainer client from their brief folders,
+   run each through the content grader, and leave the ones that pass ready for me
+   to send Monday."
+
+- "Check the three prospects in the pipeline folder, build an audit for each, and
+   tell me which one is the strongest fit for a pitch."
+
+- "Pull this month's performance for every client, write each a one-page summary in
+   plain English, and flag any client whose numbers slipped so I can call them."
+
+
+WEAK — keystrokes dressed up as commands (you're still operating by remote control):
+------------------------------------------------------------------------------------
+- "Open client-14's audit file and run the schema check on section 3."     <- a step
+- "Change the meta title on the homepage to X."                            <- a keystroke
+- "Fix the broken link I saw earlier."                                     <- do this at the desk
+
+If it needs your hands on a specific file, that's desk work — let the fleet flag it in
+the briefing and do it later on the real machine. The phone sends intent; the
+workstation does the work.

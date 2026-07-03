@@ -1,0 +1,81 @@
+#!/usr/bin/env bash
+# ============================================================================
+#  Foundation installer — run this once after you clone the repo.
+#
+#    bash install.sh
+#
+#  It installs this foundation into your agent, additively and safely:
+#    • skills/    -> copied into your agent's skills dir (never deletes yours)
+#    • CLAUDE.md  -> installed as your house rules (any existing one is backed up)
+#    • brand/     -> placed where your agent can find it
+#
+#  Targets ~/.claude by default. Override:
+#    CLAUDE_DIR=/path CLAUDE_SKILLS_TARGET=/path bash install.sh
+#  Symlink the skills instead of copying (so `git pull` updates them live):
+#    USE_SYMLINKS=1 bash install.sh
+# ============================================================================
+
+set -euo pipefail
+
+HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+CLAUDE_DIR="${CLAUDE_DIR:-$HOME/.claude}"
+SKILLS_TARGET="${CLAUDE_SKILLS_TARGET:-$CLAUDE_DIR/skills}"
+USE_SYMLINKS="${USE_SYMLINKS:-0}"
+
+GREEN='\033[0;32m'; DIM='\033[2m'; YELLOW='\033[0;33m'; NC='\033[0m'
+
+echo ""
+echo "  Installing this foundation into your agent"
+echo -e "  ${DIM}agent config: $CLAUDE_DIR${NC}"
+echo ""
+
+mkdir -p "$CLAUDE_DIR" "$SKILLS_TARGET"
+
+# --- 1. Skills (additive — never removes skills you already have) ------------
+count=0
+if [[ -d "$HERE/skills" ]]; then
+  for skill_dir in "$HERE/skills"/*/; do
+    [[ -d "$skill_dir" ]] || continue
+    name="$(basename "$skill_dir")"
+    dest="$SKILLS_TARGET/$name"
+    if [[ -e "$dest" || -L "$dest" ]]; then rm -rf "$dest"; fi   # replace this skill only
+    if [[ "$USE_SYMLINKS" = "1" ]]; then
+      ln -s "$skill_dir" "$dest"
+    else
+      cp -R "$skill_dir" "$dest"
+    fi
+    count=$((count + 1))
+  done
+fi
+echo -e "  ${GREEN}✓${NC} skills: $count installed into $SKILLS_TARGET"
+
+# --- 2. CLAUDE.md (back up any existing one FIRST — never lose their rules) ---
+if [[ -f "$HERE/CLAUDE.md" ]]; then
+  target="$CLAUDE_DIR/CLAUDE.md"
+  if [[ -f "$target" ]]; then
+    backup="$target.bak"
+    # Keep a timestamped copy too, so a second install can't clobber the first backup.
+    cp "$target" "$backup"
+    cp "$target" "$target.$(date +%Y%m%d%H%M%S).bak"
+    cp "$HERE/CLAUDE.md" "$target"
+    echo -e "  ${GREEN}✓${NC} CLAUDE.md installed ${YELLOW}(your previous one saved to $backup)${NC}"
+  else
+    cp "$HERE/CLAUDE.md" "$target"
+    echo -e "  ${GREEN}✓${NC} CLAUDE.md installed to $target"
+  fi
+fi
+
+# --- 3. Brand kit ------------------------------------------------------------
+if [[ -d "$HERE/brand" ]]; then
+  brand_dest="$CLAUDE_DIR/brand"
+  mkdir -p "$brand_dest"
+  cp -R "$HERE/brand/." "$brand_dest/"
+  echo -e "  ${GREEN}✓${NC} brand kit placed in $brand_dest"
+fi
+
+echo ""
+echo -e "  ${GREEN}Done.${NC} Restart your agent (or refresh the session) to pick it up."
+echo ""
+echo -e "  ${DIM}Check skills: ls $SKILLS_TARGET${NC}"
+echo -e "  ${DIM}Update later: git pull, then re-run bash install.sh${NC}"
+echo ""

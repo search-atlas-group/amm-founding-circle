@@ -1,0 +1,37 @@
+# Standards, not secrets — this repo must never carry credentials or client data.
+# These patterns block the common ways a secret leaks in. Skim the file list
+# before your first commit anyway; this is a safety net, not a guarantee.
+
+# Secrets & credentials
+.env
+.env.*
+!.env.example
+*.key
+*.pem
+*.p12
+*.pfx
+credentials*
+secrets*
+*token*
+*secret*
+id_rsa*
+*.crt
+
+# Agent session / login state (never share your logged-in session)
+.claude/session*
+.codex/session*
+*.session
+auth.json
+cookies*
+
+# OS / editor noise
+.DS_Store
+Thumbs.db
+*.swp
+.idea/
+.vscode/
+
+# Local-only working files
+*.log
+tmp/
+scratch/
