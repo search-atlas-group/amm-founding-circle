@@ -1,11 +1,13 @@
 # Skills Index — AMM Founding Circle
 
-This repository carries **45 skills** under `skills/`, organized into four groups:
+This repository carries **52 skills** under `skills/`, organized into six groups:
 
 - **A. Marketing & AEO/SEO** — the original 16, referenced by canonical number `#1`–`#16` throughout the two orchestrators (`client-onboarding-os` and `aeo-llm-content-planner`). These chain into each other: foundation skills feed diagnostics, diagnostics feed the planner, and the planner + onboarding OS sequence everything else.
-- **B. Agentic Engineering** — 19 adopted skills covering the instinct/learning loop, build & code tooling, reporting, routing, and safety. No canonical numbering.
+- **B. Agentic Engineering** — 22 skills (19 adopted + 3 built for the cohort) covering the instinct/learning loop, build & code tooling, orchestration, reporting, routing, and safety. No canonical numbering.
 - **C. Security** — the standalone posture-audit skill.
 - **D. Always-on (L5)** — 9 skills that take your agent from "runs when I'm watching" to "runs while I sleep": the mental model, hosting, capacity, durability, consistency, monitoring, goal-driven runs, capability gaps, and the morning brief that proves it worked.
+- **E. Autonomy tier (L7 · L9 · L10)** — 3 skills for the top of the ladder, each composing the Always-on pieces: the multi-model council that stops you trusting one answer on high-stakes work (L7), the autonomy budget that lets you hand off a multi-day job on rails and walk away (L9), and commanding the whole fleet from your phone (L10).
+- **F. Foundation on-ramp (L1)** — the very first rung, made runnable: one genuine client task, by voice, in an hour, with proof it shipped. Start here if you're new, overwhelmed, or coming back after time away.
 
 The **agentic-ladder rung** column is a suggested autonomy level (L1–L10): single-purpose, human-in-the-loop skills sit around L3–L4; multi-skill orchestrators around L6; self-modifying / autonomy / instinct skills higher. See [`../curriculum/agentic-ladder.md`](../curriculum/agentic-ladder.md).
 
@@ -92,6 +94,8 @@ The **agentic-ladder rung** column is a suggested autonomy level (L1–L10): sin
 | [cli-llm-routing](cli-llm-routing/SKILL.md) | Uses installed AI CLIs (Gemini, Codex, Claude) for second opinions, latest-docs checks, long-context review. | When a task needs current docs, skeptical review, or oversized context. | Context + question → advice (bullets, risks, recommendation, sources). | L4 |
 | [browser-automation](browser-automation/SKILL.md) | Verifies web pages with real browser evidence — screenshots, console checks, form interactions, responsive views. | When output is visual/interactive or UI verification is needed. | URL + viewport → screenshot paths + console errors + interaction results. | L4 |
 | [clickup-api](clickup-api/SKILL.md) | ClickUp v3 API conventions — channel/DM rules, thread-reply endpoints, message-prefix requirement. | Before sending ClickUp messages, creating channels, or calling endpoints. | Message/channel spec → correct POST endpoint routes. | L3 |
+| [dispatch-and-brief](dispatch-and-brief/SKILL.md) | Splits one big job across parallel agents and writes each a tight, self-contained brief — context engineering made practical (split → brief → gate). | A job too big for one pass; parallel agents coming back thin or overlapping; your main chat clogged with raw output. | Big job → sliced briefs per agent → parallel drafts → one gated result, main thread stays lean. | L4 |
+| [share-your-foundation](share-your-foundation/SKILL.md) | Packages your rules, skills, and brand kit into one repo a teammate (or your second machine) clones and installs with a single command. | Onboarding a teammate onto your stack; your setup won't follow you between machines; you keep re-sending config. | Your CLAUDE.md + skills + brand kit → a clone-and-install repo — "clone this, run ./install.sh, you're me." | L4 |
 
 ### Autonomy / unattended
 
@@ -107,6 +111,7 @@ The **agentic-ladder rung** column is a suggested autonomy level (L1–L10): sin
 |-------|--------------|-------------|------------------|------|
 | [html-reports](html-reports/SKILL.md) | Library of self-contained HTML report archetypes (Folio, Stage, Atlas, Field, Ledger, Timeline, Catalog). | Generating a standalone report; pick archetype by document shape. | Archetype + content → single-file, dated, dependency-free HTML report. | L3 |
 | [report-writer](report-writer/SKILL.md) | Creates standalone HTML reports (decision memos, audits, comparisons) for stakeholder audiences. | When output is consumed outside the chat. | Audience + question + evidence → single-file HTML report (TL;DR, findings, recommendation, next steps). | L3 |
+| [client-dashboard](client-dashboard/SKILL.md) | Gives a client a live, branded, read-only view of the work your agents are doing — a self-contained HTML page regenerated from a results file each run and hosted static. Never embeds into the client's site. | A client wants to "see what you're doing"; extending a Command Center with a client-visible view; you were about to build a WordPress-plugin dashboard (don't). | Agent run → `results.json` → one branded, dependency-free HTML dashboard on a static host (read-only link). | L5–L6 |
 
 ### Safety
 
@@ -139,6 +144,28 @@ The rung-5 set. Together they answer one question: *how does my agent keep worki
 | [connection-monitor](connection-monitor/SKILL.md) | The watch: checks that the logins/APIs/sessions an unattended run depends on are alive and pings you the moment one drops — silence can never masquerade as success. | Any scheduled agent you need to trust; a login silently expired mid-run. | Run dependencies → runnable checker + status page + quiet-until-it-matters alerts. | L5 |
 | [multi-account-gateway](multi-account-gateway/SKILL.md) | The fuel line: keeps a long run from dying on a hidden capacity wall — budgeted API-key lane with automatic fallback, 429 cooldowns — and the hard red line around the one pattern that gets accounts banned. | Overnight runs stopping on rate limits/quota; tempted to "stack accounts" (don't). | Capacity problem → ToS-clean fallback setup + cooldown pattern. | L5 |
 | [capability-map](capability-map/SKILL.md) | Maps what your agent can actually DO across your stack vs. what's gapped (usually write-scopes), and the two bridges for a missing action. | "Everything is 80% agentic and I can't get the last 20%." | Your stack → coverage inventory + exact gapped actions + the right bridge per gap. | L5 |
+
+---
+
+## E. Autonomy tier (L7 · L9 · L10)
+
+The top of the ladder. Each of these composes the Group D Always-on pieces rather than replacing them: the council is your review loop for high-stakes work, the autonomy budget is the multi-day contract that ties `goal-mode` + `durable-state` + `connection-monitor` together, and commanding-from-your-phone is the trigger surface + briefing laid over an already-hosted, already-railed fleet. Don't reach for L9/L10 until the L5 pieces they build on are in place.
+
+| Skill | What it does | When to use | Inputs → Outputs | Rung |
+|-------|--------------|-------------|------------------|------|
+| [multi-model-council](multi-model-council/SKILL.md) | Sends the same task to 2–3 models that independently judge it against a rubric you wrote, surfaces where they disagree, and takes the version they converge on (majority decides, or you break the tie) — so one confidently-wrong answer can't reach a client. Builds on `cli-llm-routing`. | High-stakes work that's expensive to get wrong — a repricing memo, a positioning call, a client-facing audit; when a confident answer once burned you. | Task + a pass/fail rubric → converged verdict + surfaced disagreements + a record of what the council caught and changed. | L7 |
+| [autonomy-budget](autonomy-budget/SKILL.md) | The multi-day autonomy contract: set the rails once (allowed folders, never-touch list, time cap, parallel cap, comeback list), then hand off a multi-day job and walk away. Composes `goal-mode` + `durable-state` + `connection-monitor`; scales the `night-shift` contract from one night to days. | A batch audit of every client site, a multi-site refresh, a week of analysis — throughput without babysitting, with a log that proves it stayed in bounds. | A multi-day job + a filled-in autonomy contract → finished in-bounds work + run log + failure ledger; resumes on crash. | L9 |
+| [command-from-your-phone](command-from-your-phone/SKILL.md) | The commander pattern: send one line of intent (the outcome, not the keystrokes) from your phone, an always-on machine dispatches the jobs to your fleet on the rails you built, and it messages back one rolled-up briefing. Tool-agnostic; the phone is a trigger surface, never a coding surface. | You're away from the desk and client work can't wait; your agents are good enough to run unwatched and you just need to point them. | One-line intent (via any channel your always-on machine watches) → parallel fleet run on your rails → one briefing (what ran / shipped / blocked / the one call). | L10 |
+
+---
+
+## F. Foundation on-ramp (L1)
+
+The very first rung, made runnable. Where the other groups assume you're already operating the agent, this one gets you *to* your first real win — one genuine client task, by voice, in an hour, with proof it shipped. Start here if you're new, overwhelmed, or coming back after time away.
+
+| Skill | What it does | When to use | Inputs → Outputs | Rung |
+|-------|--------------|-------------|------------------|------|
+| [first-real-job](first-real-job/SKILL.md) | The L1 on-ramp made runnable: do ONE real client task through the agent, by voice, in about an hour, with every step saved — proof it ships, not a demo. Shrinks "learn this whole new way of working" down to a single job you already have today. | Your first genuine task (not a practice prompt); overwhelmed and unsure where to start; re-joining after time away and it feels like a fire hose. | One real task you already have + dictation on → a shipped deliverable in version control + a cleared 4-point proof checklist. | L1 |
 
 ---
 

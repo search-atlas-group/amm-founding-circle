@@ -1,0 +1,31 @@
+# House rules
+
+> These are the standards every agent run in my shop follows. A teammate who
+> installs this foundation runs by the same rules I do — that's the point. Edit
+> this to match how you actually work, then commit it.
+
+## Who this is for
+- Owner / team:
+- What we do:
+- Who our clients are:
+
+## How the agent should work
+- **Plan before you act** on anything non-trivial — show the steps, then do them.
+- **Show your work** — cite the file, the command, or the source behind a claim.
+- **Verify before you call it done** — run it, screenshot it, or check the output;
+  "it should work" is not "it works."
+- **Ask before anything hard to undo** — sends, deletes, publishes, or spends.
+
+## Voice
+- Write like a human, not a bot. Lead with the point. No filler.
+- Match our brand kit (see `brand/`) — that's how our output sounds like us.
+
+## Guardrails
+- Never commit or paste secrets — keys, tokens, `.env`, passwords, session files.
+- Never touch a client's production system without explicit sign-off.
+- When unsure, stop and ask. A wrong confident action costs more than a question.
+
+## Our stack
+- Tools the agent can use:
+- Where our work lives (repos, folders):
+- Skills we rely on (see `skills/`):

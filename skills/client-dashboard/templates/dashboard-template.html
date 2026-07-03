@@ -1,0 +1,321 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Client Dashboard</title>
+
+  <!--
+    ============================================================================
+    CLIENT DASHBOARD — self-contained, single-file, read-only by construction.
+    Open it by double-clicking. No server, no build step, no external requests.
+
+    HOW AN AGENT REGENERATES THIS EACH RUN:
+      1. Produce the run's results as JSON (see results.example.json for the shape).
+      2. Replace ONLY the JSON between the two fences marked
+         "DASHBOARD_DATA:START" / "DASHBOARD_DATA:END" below with the fresh JSON.
+         Do not touch the CSS or the render script — they never change per run.
+      3. Save the file, drop it on a static host, send the client the link.
+    Everything the page shows is driven by that one JSON block. That is the only
+    injection point.
+
+    BRANDING: swap the values in :root under "BRAND TOKENS" for the client's
+    brand once. The JSON can also override primary/accent per file (see brand.*).
+    ============================================================================
+  -->
+
+  <style>
+    :root {
+      /* ---- BRAND TOKENS — swap these for the client's brand (one time) ---- */
+      --brand-primary: #2f6df6;   /* headers, links, primary accents */
+      --brand-accent:  #0f766e;   /* secondary accent / logo mark     */
+
+      /* ---- Neutral system (leave as-is for the clean light theme) ---- */
+      --bg:        #f5f6f9;
+      --card:      #ffffff;
+      --ink:       #1a1f2e;
+      --muted:     #667085;
+      --line:      #e6e9ef;
+      --chip-bg:   #f0f2f6;
+      --up:        #15803d;
+      --up-bg:     #eaf6ee;
+      --down:      #b42318;
+      --down-bg:   #fdeeec;
+      --flat:      #667085;
+      --flat-bg:   #f0f2f6;
+      --radius:    14px;
+      --shadow:    0 1px 2px rgba(16,24,40,.04), 0 1px 3px rgba(16,24,40,.06);
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--ink);
+      font: 15px/1.55 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+    main { max-width: 960px; margin: 0 auto; padding: 32px 20px 72px; }
+
+    /* Header */
+    .masthead {
+      display: flex; align-items: flex-start; justify-content: space-between;
+      gap: 20px; flex-wrap: wrap; margin-bottom: 8px;
+    }
+    .brand { display: flex; align-items: center; gap: 12px; }
+    .brand-mark {
+      width: 40px; height: 40px; border-radius: 10px; flex: 0 0 auto;
+      background: linear-gradient(135deg, var(--brand-primary), var(--brand-accent));
+      color: #fff; display: grid; place-items: center;
+      font-weight: 800; font-size: 18px; letter-spacing: .5px;
+    }
+    .brand-name { font-weight: 700; font-size: 17px; line-height: 1.2; }
+    .brand-sub  { color: var(--muted); font-size: 13px; }
+    .period { text-align: right; color: var(--muted); font-size: 13px; }
+    .period strong { display: block; color: var(--ink); font-size: 15px; }
+
+    h1 { font-size: 30px; line-height: 1.15; margin: 22px 0 6px; letter-spacing: -.01em; }
+    .headline { color: var(--muted); font-size: 18px; margin: 0 0 26px; max-width: 62ch; }
+
+    h2 {
+      font-size: 13px; text-transform: uppercase; letter-spacing: .07em;
+      color: var(--muted); font-weight: 700; margin: 34px 0 14px;
+    }
+
+    /* KPI tiles */
+    .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 14px; }
+    .kpi {
+      background: var(--card); border: 1px solid var(--line); border-radius: var(--radius);
+      padding: 16px 18px; box-shadow: var(--shadow);
+    }
+    .kpi .label { color: var(--muted); font-size: 13px; margin-bottom: 6px; }
+    .kpi .value { font-size: 26px; font-weight: 700; letter-spacing: -.02em; }
+    .delta { display: inline-flex; align-items: center; gap: 4px; font-size: 12.5px;
+             font-weight: 700; padding: 2px 8px; border-radius: 999px; margin-top: 8px; }
+    .delta.up   { color: var(--up);   background: var(--up-bg); }
+    .delta.down { color: var(--down); background: var(--down-bg); }
+    .delta.flat { color: var(--flat); background: var(--flat-bg); }
+
+    /* Cards / lists */
+    .card {
+      background: var(--card); border: 1px solid var(--line); border-radius: var(--radius);
+      padding: 16px 18px; box-shadow: var(--shadow); margin-bottom: 12px;
+    }
+    .card .title { font-weight: 650; }
+    .card .detail { color: var(--muted); font-size: 14px; margin-top: 4px; }
+    .card .meta { color: var(--muted); font-size: 12.5px; margin-top: 8px; }
+    .pill { display: inline-block; font-size: 12px; font-weight: 700; padding: 3px 10px;
+            border-radius: 999px; background: var(--chip-bg); color: var(--muted); }
+
+    /* Rankings table */
+    .table-wrap { overflow-x: auto; border: 1px solid var(--line); border-radius: var(--radius);
+                  background: var(--card); box-shadow: var(--shadow); }
+    table { width: 100%; border-collapse: collapse; min-width: 460px; }
+    th, td { padding: 12px 16px; text-align: left; border-bottom: 1px solid var(--line); }
+    th { color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spacing: .05em; font-weight: 700; }
+    tr:last-child td { border-bottom: none; }
+    td.pos { font-variant-numeric: tabular-nums; }
+    .move { font-weight: 700; font-variant-numeric: tabular-nums; }
+    .move.up { color: var(--up); } .move.down { color: var(--down); } .move.flat { color: var(--flat); }
+
+    footer { margin-top: 40px; padding-top: 18px; border-top: 1px solid var(--line);
+             color: var(--muted); font-size: 12.5px; display: flex; justify-content: space-between;
+             gap: 12px; flex-wrap: wrap; }
+
+    .empty { color: var(--muted); font-size: 14px; font-style: italic; }
+
+    @media (max-width: 560px) {
+      main { padding: 20px 14px 48px; }
+      h1 { font-size: 24px; }
+      .period { text-align: left; }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <div class="masthead">
+      <div class="brand">
+        <div class="brand-mark" id="brand-mark">N</div>
+        <div>
+          <div class="brand-name" id="brand-name">Your Agency</div>
+          <div class="brand-sub" id="brand-sub">Prepared for a client</div>
+        </div>
+      </div>
+      <div class="period">
+        <span>Reporting period</span>
+        <strong id="period-label">—</strong>
+        <span id="data-through">Data through —</span>
+      </div>
+    </div>
+
+    <h1 id="report-title">Progress Report</h1>
+    <p class="headline" id="headline"></p>
+
+    <h2>This period at a glance</h2>
+    <div class="kpis" id="kpis"></div>
+
+    <h2>Work shipped this period</h2>
+    <div id="work-shipped"></div>
+
+    <h2>Rankings &amp; traffic</h2>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>Keyword</th><th>Previous</th><th>Current</th><th>Move</th></tr>
+        </thead>
+        <tbody id="rankings"></tbody>
+      </table>
+    </div>
+
+    <h2>In progress</h2>
+    <div id="in-progress"></div>
+
+    <h2>What's next</h2>
+    <div id="next-actions"></div>
+
+    <footer>
+      <span id="footer-note">Read-only snapshot — no login required.</span>
+      <span id="generated">Generated —</span>
+    </footer>
+  </main>
+
+  <!-- ==========================================================================
+       DASHBOARD_DATA:START
+       This is the ONLY block an agent replaces each run. Swap the JSON below for
+       the run's fresh results (shape defined in results.example.json). Keep the
+       <script id="dashboard-data" type="application/json"> wrapper intact.
+       The placeholder values here are a fictional demo so the file renders on its
+       own — replace them entirely.
+       ========================================================================== -->
+  <script id="dashboard-data" type="application/json">
+  {
+    "brand": {
+      "name": "Northwind Digital",
+      "clientName": "Riverside Dental Group",
+      "mark": "N",
+      "primaryColor": "#2f6df6",
+      "accentColor": "#0f766e"
+    },
+    "report": {
+      "title": "SEO Progress Report",
+      "periodLabel": "Week of July 1–7, 2026",
+      "dataThrough": "2026-07-07",
+      "generated": "2026-07-08",
+      "headline": "Organic traffic is up 18% this week and three new pages broke onto page one."
+    },
+    "kpis": [
+      { "label": "Organic sessions", "value": "4,210", "delta": "+18%", "direction": "up" },
+      { "label": "Keywords on page 1", "value": "27", "delta": "+3", "direction": "up" },
+      { "label": "Content shipped", "value": "5 pages", "delta": "", "direction": "flat" },
+      { "label": "Avg. Google position", "value": "8.4", "delta": "+1.6", "direction": "up" }
+    ],
+    "workShipped": [
+      { "title": "Published \"Emergency Dental Care in Riverside\" landing page", "detail": "Targeted six local-intent keywords; added service schema and internal links from the homepage.", "date": "2026-07-02" },
+      { "title": "Rewrote 4 service pages for clarity and search intent", "detail": "Tightened headings and added FAQ sections so the pages answer the questions people actually search.", "date": "2026-07-04" },
+      { "title": "Fixed 12 broken internal links flagged in the site audit", "detail": "Recovered link equity that was leaking to dead pages.", "date": "2026-07-05" }
+    ],
+    "rankings": [
+      { "keyword": "riverside emergency dentist", "previous": 9, "current": 4, "direction": "up" },
+      { "keyword": "teeth whitening riverside", "previous": 18, "current": 12, "direction": "up" },
+      { "keyword": "dental implants riverside", "previous": 7, "current": 7, "direction": "flat" },
+      { "keyword": "family dentist near me", "previous": 14, "current": 16, "direction": "down" }
+    ],
+    "inProgress": [
+      { "title": "Google Business Profile refresh", "status": "Awaiting your OK", "note": "Three new service descriptions are drafted and ready for your approval." },
+      { "title": "Cosmetic-dentistry content cluster", "status": "In production", "note": "Four supporting articles being written to build topical authority." }
+    ],
+    "nextActions": [
+      { "title": "Publish the 4 cosmetic-dentistry articles", "owner": "Northwind Digital", "eta": "Week of July 14" },
+      { "title": "Launch review-generation campaign for recent patients", "owner": "Northwind Digital", "eta": "Week of July 14" },
+      { "title": "Approve the new GBP service descriptions", "owner": "Riverside Dental Group", "eta": "This week" }
+    ]
+  }
+  </script>
+  <!-- DASHBOARD_DATA:END -->
+
+  <!-- Render script — deterministic, dependency-free, never changes per run. -->
+  <script>
+    (function () {
+      var el = document.getElementById('dashboard-data');
+      var data = {};
+      try { data = JSON.parse(el.textContent); }
+      catch (e) { document.getElementById('headline').textContent =
+        'Dashboard data could not be read — check the JSON block.'; return; }
+
+      var brand  = data.brand  || {};
+      var report = data.report || {};
+
+      // Brand
+      if (brand.primaryColor) document.documentElement.style.setProperty('--brand-primary', brand.primaryColor);
+      if (brand.accentColor)  document.documentElement.style.setProperty('--brand-accent',  brand.accentColor);
+      setText('brand-name', brand.name || 'Your Agency');
+      setText('brand-mark', brand.mark || (brand.name ? brand.name.charAt(0) : 'A'));
+      setText('brand-sub', brand.clientName ? ('Prepared for ' + brand.clientName) : 'Prepared for a client');
+
+      // Report meta
+      setText('report-title', report.title || 'Progress Report');
+      setText('headline', report.headline || '');
+      setText('period-label', report.periodLabel || '—');
+      setText('data-through', 'Data through ' + (report.dataThrough || '—'));
+      setText('generated', 'Generated ' + (report.generated || report.dataThrough || '—'));
+      if (brand.clientName) document.title = brand.clientName + ' — ' + (report.title || 'Dashboard');
+
+      // KPIs
+      renderList('kpis', data.kpis, function (k) {
+        var d = k.direction || 'flat';
+        var chip = k.delta ? '<span class="delta ' + d + '">' + arrow(d) + ' ' + esc(k.delta) + '</span>' : '';
+        return '<div class="kpi"><div class="label">' + esc(k.label) + '</div>' +
+               '<div class="value">' + esc(k.value) + '</div>' + chip + '</div>';
+      }, 'No metrics for this period.');
+
+      // Work shipped
+      renderList('work-shipped', data.workShipped, function (w) {
+        return '<div class="card"><div class="title">' + esc(w.title) + '</div>' +
+               (w.detail ? '<div class="detail">' + esc(w.detail) + '</div>' : '') +
+               (w.date ? '<div class="meta">' + esc(w.date) + '</div>' : '') + '</div>';
+      }, 'Nothing shipped this period yet.');
+
+      // Rankings (table rows)
+      renderList('rankings', data.rankings, function (r) {
+        var d = r.direction || 'flat';
+        var moved = (r.previous != null && r.current != null) ? Math.abs(r.previous - r.current) : '';
+        var label = d === 'up' ? '↑ ' + moved : d === 'down' ? '↓ ' + moved : '—';
+        return '<tr><td>' + esc(r.keyword) + '</td>' +
+               '<td class="pos">' + fmt(r.previous) + '</td>' +
+               '<td class="pos">' + fmt(r.current) + '</td>' +
+               '<td class="move ' + d + '">' + label + '</td></tr>';
+      }, null);
+      if (!data.rankings || !data.rankings.length) {
+        document.getElementById('rankings').innerHTML =
+          '<tr><td colspan="4" class="empty">No tracked keywords yet.</td></tr>';
+      }
+
+      // In progress
+      renderList('in-progress', data.inProgress, function (p) {
+        return '<div class="card"><div class="title">' + esc(p.title) +
+               (p.status ? ' <span class="pill">' + esc(p.status) + '</span>' : '') + '</div>' +
+               (p.note ? '<div class="detail">' + esc(p.note) + '</div>' : '') + '</div>';
+      }, 'Nothing in progress right now.');
+
+      // Next actions
+      renderList('next-actions', data.nextActions, function (a) {
+        var meta = [a.owner, a.eta].filter(Boolean).join(' · ');
+        return '<div class="card"><div class="title">' + esc(a.title) + '</div>' +
+               (meta ? '<div class="meta">' + esc(meta) + '</div>' : '') + '</div>';
+      }, 'No next actions listed.');
+
+      function renderList(id, arr, fn, emptyMsg) {
+        var node = document.getElementById(id);
+        if (!node) return;
+        if (!arr || !arr.length) { if (emptyMsg) node.innerHTML = '<p class="empty">' + emptyMsg + '</p>'; return; }
+        node.innerHTML = arr.map(fn).join('');
+      }
+      function setText(id, txt) { var n = document.getElementById(id); if (n) n.textContent = txt; }
+      function arrow(d) { return d === 'up' ? '▲' : d === 'down' ? '▼' : '■'; }
+      function fmt(v) { return (v == null || v === '') ? '—' : String(v); }
+      function esc(s) { return String(s == null ? '' : s)
+        .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
+    })();
+  </script>
+</body>
+</html>

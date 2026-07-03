@@ -1,0 +1,50 @@
+{
+  "_comment": "Example results file an agent writes at the end of a run. Its keys map 1:1 to the injection points in dashboard-template.html. To regenerate the dashboard: produce a file like this, then paste its contents (drop the leading _comment lines) into the DASHBOARD_DATA block of the template. Every business/person here is fictional placeholder data — replace it entirely. direction is always one of: up | down | flat, and it is set by YOU to mean good/bad/neutral (green/red/grey) — for rankings, a smaller position number is better, so an improvement is 'up' even though the number went down.",
+
+  "brand": {
+    "name": "Northwind Digital",
+    "clientName": "Riverside Dental Group",
+    "mark": "N",
+    "primaryColor": "#2f6df6",
+    "accentColor": "#0f766e"
+  },
+
+  "report": {
+    "title": "SEO Progress Report",
+    "periodLabel": "Week of July 1–7, 2026",
+    "dataThrough": "2026-07-07",
+    "generated": "2026-07-08",
+    "headline": "Organic traffic is up 18% this week and three new pages broke onto page one."
+  },
+
+  "kpis": [
+    { "label": "Organic sessions",    "value": "4,210",   "delta": "+18%", "direction": "up" },
+    { "label": "Keywords on page 1",  "value": "27",      "delta": "+3",   "direction": "up" },
+    { "label": "Content shipped",     "value": "5 pages", "delta": "",     "direction": "flat" },
+    { "label": "Avg. Google position","value": "8.4",     "delta": "+1.6", "direction": "up" }
+  ],
+
+  "workShipped": [
+    { "title": "Published \"Emergency Dental Care in Riverside\" landing page", "detail": "Targeted six local-intent keywords; added service schema and internal links from the homepage.", "date": "2026-07-02" },
+    { "title": "Rewrote 4 service pages for clarity and search intent", "detail": "Tightened headings and added FAQ sections so the pages answer the questions people actually search.", "date": "2026-07-04" },
+    { "title": "Fixed 12 broken internal links flagged in the site audit", "detail": "Recovered link equity that was leaking to dead pages.", "date": "2026-07-05" }
+  ],
+
+  "rankings": [
+    { "keyword": "riverside emergency dentist", "previous": 9,  "current": 4,  "direction": "up" },
+    { "keyword": "teeth whitening riverside",   "previous": 18, "current": 12, "direction": "up" },
+    { "keyword": "dental implants riverside",   "previous": 7,  "current": 7,  "direction": "flat" },
+    { "keyword": "family dentist near me",      "previous": 14, "current": 16, "direction": "down" }
+  ],
+
+  "inProgress": [
+    { "title": "Google Business Profile refresh", "status": "Awaiting your OK", "note": "Three new service descriptions are drafted and ready for your approval." },
+    { "title": "Cosmetic-dentistry content cluster", "status": "In production", "note": "Four supporting articles being written to build topical authority." }
+  ],
+
+  "nextActions": [
+    { "title": "Publish the 4 cosmetic-dentistry articles", "owner": "Northwind Digital", "eta": "Week of July 14" },
+    { "title": "Launch review-generation campaign for recent patients", "owner": "Northwind Digital", "eta": "Week of July 14" },
+    { "title": "Approve the new GBP service descriptions", "owner": "Riverside Dental Group", "eta": "This week" }
+  ]
+}

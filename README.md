@@ -24,7 +24,7 @@ New to a client? The capstone **[client-onboarding-os](skills/client-onboarding-
 
 | Folder | What's in it |
 |---|---|
-| [`skills/`](skills/README.md) | **45 skills** — start at the index. Group A: 16 AEO/SEO (a chained client workflow). Group B: 19 agentic-engineering skills. Group C: security. Group D: 9 always-on (L5). |
+| [`skills/`](skills/README.md) | **52 skills** — start at the index. Group A: 16 AEO/SEO (a chained client workflow). Group B: 22 agentic-engineering skills. Group C: security. Group D: 9 always-on (L5). Group E: 3 autonomy-tier (L7/L9/L10). Group F: the L1 on-ramp. |
 | [`curriculum/`](curriculum/) | The L1–L10 agentic-ladder progression. Every skill is tagged to a rung. |
 | [`playbooks/`](playbooks/) | How to work *with* agents — browser-verification, compounding-feedback, parallel-prototyping. |
 | [`harnesses/`](harnesses/) | Reusable agent patterns (SENSE → JUDGE → ACT → REPORT morning-brief loop). |

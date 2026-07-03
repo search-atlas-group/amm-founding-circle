@@ -1,0 +1,56 @@
+# My agent foundation
+
+This repo is my agent setup — the house rules, skills, and brand my agent runs on.
+Clone it, run one command, and your agent works exactly like mine.
+
+## Get set up (two commands)
+
+```bash
+git clone <this-repo-url> my-foundation
+cd my-foundation
+bash install.sh
+```
+
+Then restart your agent (or refresh the session). That's it — you're running my
+foundation.
+
+## What just got installed
+
+- **`skills/`** → copied into your agent's skills directory (`~/.claude/skills/`).
+  Additive — it never removes skills you already had.
+- **`CLAUDE.md`** → installed as your agent's house rules. If you already had one,
+  it was **backed up to `CLAUDE.md.bak`** first — nothing of yours is lost.
+- **`brand/`** → placed where your agent can find it, so output sounds like our shop.
+
+The installer prints exactly what it did. Options:
+
+```bash
+USE_SYMLINKS=1 bash install.sh          # symlink skills so `git pull` updates them live
+CLAUDE_DIR=/path bash install.sh        # install into a different agent config dir
+```
+
+## Staying current
+
+I improve this over time. To get the latest:
+
+```bash
+git pull
+bash install.sh
+```
+
+An update is a pull — you never have to re-copy anything by hand.
+
+## What's in here
+
+```
+CLAUDE.md      the house rules every run follows
+skills/        the capabilities (one folder per skill)
+brand/         the brand kit — voice, audience, style
+install.sh     the installer you just ran
+```
+
+## Note
+
+This repo holds **standards, not secrets** — no API keys, tokens, or client data.
+If a skill needs a key to run, you'll set that up locally on your own machine; it's
+never stored here.
