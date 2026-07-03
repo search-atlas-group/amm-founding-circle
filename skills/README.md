@@ -1,10 +1,11 @@
 # Skills Index — AMM Founding Circle
 
-This repository carries **36 skills** under `skills/`, organized into three groups:
+This repository carries **45 skills** under `skills/`, organized into four groups:
 
 - **A. Marketing & AEO/SEO** — the original 16, referenced by canonical number `#1`–`#16` throughout the two orchestrators (`client-onboarding-os` and `aeo-llm-content-planner`). These chain into each other: foundation skills feed diagnostics, diagnostics feed the planner, and the planner + onboarding OS sequence everything else.
 - **B. Agentic Engineering** — 19 adopted skills covering the instinct/learning loop, build & code tooling, reporting, routing, and safety. No canonical numbering.
 - **C. Security** — the standalone posture-audit skill.
+- **D. Always-on (L5)** — 9 skills that take your agent from "runs when I'm watching" to "runs while I sleep": the mental model, hosting, capacity, durability, consistency, monitoring, goal-driven runs, capability gaps, and the morning brief that proves it worked.
 
 The **agentic-ladder rung** column is a suggested autonomy level (L1–L10): single-purpose, human-in-the-loop skills sit around L3–L4; multi-skill orchestrators around L6; self-modifying / autonomy / instinct skills higher. See [`../curriculum/agentic-ladder.md`](../curriculum/agentic-ladder.md).
 
@@ -120,6 +121,24 @@ The **agentic-ladder rung** column is a suggested autonomy level (L1–L10): sin
 | Skill | What it does | When to use | Inputs → Outputs | Rung |
 |-------|--------------|-------------|------------------|------|
 | [security-radar](security-radar/SKILL.md) | Audits installed skills, MCP servers, permissions, and dependencies against OSV.dev + OWASP (read-only). | When hardening the setup, or after installing new skills/servers/dependencies. | Local config + lockfiles + installed surface → posture brief (rating + severity-sorted findings + fixes). | L4 |
+
+---
+
+## D. Always-on (L5)
+
+The rung-5 set. Together they answer one question: *how does my agent keep working — correctly, safely, and provably — when I'm not watching?* Read `building-autonomous-agents` first (the mental model), then `host-your-agent` (get it running on a schedule), then bolt on the rest as your unattended runs get longer.
+
+| Skill | What it does | When to use | Inputs → Outputs | Rung |
+|-------|--------------|-------------|------------------|------|
+| [building-autonomous-agents](building-autonomous-agents/SKILL.md) | The mental model: a tool is invoked, an agent *runs* — the gap is a trigger. Teaches the Sense → Correlate → Judge → Act → Report loop and the Observe → Propose → Act trust ladder. | Before building anything always-on; when a "set and forget" job isn't firing; when deciding machine vs. cloud. | A job you keep hand-running → the right trigger + deployment shape + trust level for it. | L5 |
+| [host-your-agent](host-your-agent/SKILL.md) | Gets the agent off your laptop: an auto-save hook (never lose overnight work) + a scheduled unattended runner (launchd / Task Scheduler / cron) that leaves a finished morning artifact. | Tired of hand-running scripts and babysitting a terminal; crashes keep killing sessions. | A recurring job → scheduled unattended run + rollback trail + morning artifact. | L5 |
+| [agency-morning-brief](agency-morning-brief/SKILL.md) | Autonomous morning chief-of-staff: sweeps your connected sources, correlates across them, triages what you genuinely still owe, drafts replies. Read-only by default. | Every morning; "what's on my plate today." | Connected sources → one-page decision-ready brief + drafts you approve. | L5 |
+| [goal-mode](goal-mode/SKILL.md) | Give the agent the finish line, not the next step — it works toward the condition on its own and pings you on meaningful change and on completion. | You're stuck typing "keep going" to keep a long run alive. | Finish-line condition → unattended progress + desktop pings at the moments that matter. | L5 |
+| [durable-state](durable-state/SKILL.md) | Moves a long run's memory out of the chat window into three files on disk (contract / progress / state) so crashes, restarts, and machine hand-offs can't kill the work. | Any job that runs for hours, overnight, or across sittings/machines. | Long-running job → resumable run folder; pick up exactly where it stopped. | L5 |
+| [determinism-pattern](determinism-pattern/SKILL.md) | Turns a fuzzy repeatable job into a versioned skill + judge-skill that scores each run against a rubric and blocks bad output — same quality every run, watched or not. | Same task comes out great one day, sloppy the next; handing a repeatable job to an unattended run. | Repeatable process → versioned skill + rubric judge + consistent output. | L5 |
+| [connection-monitor](connection-monitor/SKILL.md) | The watch: checks that the logins/APIs/sessions an unattended run depends on are alive and pings you the moment one drops — silence can never masquerade as success. | Any scheduled agent you need to trust; a login silently expired mid-run. | Run dependencies → runnable checker + status page + quiet-until-it-matters alerts. | L5 |
+| [multi-account-gateway](multi-account-gateway/SKILL.md) | The fuel line: keeps a long run from dying on a hidden capacity wall — budgeted API-key lane with automatic fallback, 429 cooldowns — and the hard red line around the one pattern that gets accounts banned. | Overnight runs stopping on rate limits/quota; tempted to "stack accounts" (don't). | Capacity problem → ToS-clean fallback setup + cooldown pattern. | L5 |
+| [capability-map](capability-map/SKILL.md) | Maps what your agent can actually DO across your stack vs. what's gapped (usually write-scopes), and the two bridges for a missing action. | "Everything is 80% agentic and I can't get the last 20%." | Your stack → coverage inventory + exact gapped actions + the right bridge per gap. | L5 |
 
 ---
 
