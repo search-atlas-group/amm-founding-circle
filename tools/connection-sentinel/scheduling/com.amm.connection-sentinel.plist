@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>com.amm.connection-sentinel</string>
+
+  <!-- Edit both paths below to your real checkout location before loading. -->
+  <key>ProgramArguments</key>
+  <array>
+    <string>/usr/bin/env</string>
+    <string>python3</string>
+    <string>/ABSOLUTE/PATH/TO/tools/connection-sentinel/sentinel.py</string>
+    <string>--config</string>
+    <string>/ABSOLUTE/PATH/TO/tools/connection-sentinel/connections.yaml</string>
+    <string>--interval</string>
+    <string>900</string>
+  </array>
+
+  <key>WorkingDirectory</key>
+  <string>/ABSOLUTE/PATH/TO/tools/connection-sentinel</string>
+
+  <key>RunAtLoad</key>
+  <true/>
+  <key>KeepAlive</key>
+  <true/>
+
+  <key>StandardOutPath</key>
+  <string>/tmp/connection-sentinel.log</string>
+  <key>StandardErrorPath</key>
+  <string>/tmp/connection-sentinel.err</string>
+</dict>
+</plist>
