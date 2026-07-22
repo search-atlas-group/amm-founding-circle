@@ -1,56 +1,74 @@
 """Renders the tiny local status board -- one glance, green/red per
-connection. Self-contained HTML, no build step, no server."""
+connection. Self-contained HTML, no build step, no server.
+
+Design: shares the repo-wide Founding Circle theme (`theme.py`, vendored
+into this tool so it stays runnable standalone) -- KPI strip up top
+(healthy / down / total), one status-pill table below.
+"""
 from __future__ import annotations
 
 import html
 from datetime import datetime, timezone
 
-_STYLE = """
-body{font:15px/1.5 -apple-system,system-ui,sans-serif;background:#f7f8fb;color:#17202a;margin:0}
-main{max-width:760px;margin:0 auto;padding:32px 20px 48px}
-h1{font-size:22px;margin:0 0 4px}
-.sub{color:#5d6b7a;margin:0 0 20px}
-table{width:100%;border-collapse:collapse;background:#fff;border:1px solid #e2e8f0;border-radius:8px;overflow:hidden}
-th,td{text-align:left;padding:10px 12px;border-bottom:1px solid #e2e8f0;vertical-align:top}
-th{color:#5d6b7a;font-size:12px;text-transform:uppercase;letter-spacing:.04em;background:#f1f5f9}
-.dot{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:8px;vertical-align:middle}
-.ok{background:#0f766e}
-.down{background:#b91c1c}
-tr.down{background:#fef2f2}
-tr:last-child td{border-bottom:none}
-"""
+from theme import kpi_strip, page, pill
+
+# Kept for back-compat with anything reading connections.state.json/tests
+# that checks the raw row status class -- the semantic OK/DOWN class stays
+# on the <tr> even though the visible pill now carries the styling.
+_ROW_CLASS = {True: "ok", False: "down"}
 
 
 def render(state: dict) -> str:
     conns = (state or {}).get("connections", {}) or {}
     now = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
+
+    names = sorted(conns)
+    healthy_count = sum(1 for n in names if bool((conns[n] or {}).get("healthy")))
+    down_count = len(names) - healthy_count
+
     rows = []
-    for name in sorted(conns):
+    for name in names:
         c = conns[name] or {}
         healthy = bool(c.get("healthy"))
-        status_class = "ok" if healthy else "down"
-        status_label = "Healthy" if healthy else "Down"
+        row_class = _ROW_CLASS[healthy]
+        status_pill = pill("Healthy", "good") if healthy else pill("Down", "bad")
         rows.append(
-            f"<tr class='{status_class}'>"
-            f"<td><span class='dot {status_class}'></span>{html.escape(name)}</td>"
-            f"<td>{status_label}</td>"
+            f"<tr class='{row_class}'>"
+            f"<td>{html.escape(name)}</td>"
+            f"<td>{status_pill}</td>"
             f"<td>{html.escape(str(c.get('detail', '')))}</td>"
-            f"<td>{html.escape(str(c.get('checked_at', '')))}</td>"
+            f"<td class='mono'>{html.escape(str(c.get('checked_at', '')))}</td>"
             f"</tr>"
         )
-    if not rows:
-        rows.append("<tr><td colspan='4'>No connections configured yet.</td></tr>")
-    return (
-        "<!doctype html><html lang=\"en\"><head><meta charset=\"utf-8\">"
-        "<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">"
-        f"<title>Connection Sentinel</title><style>{_STYLE}</style></head>"
-        "<body><main>"
-        "<h1>Connection Sentinel</h1>"
-        f"<p class=\"sub\">Generated {now} -- refreshes every check cycle.</p>"
-        "<table><thead><tr><th>Connection</th><th>Status</th><th>Detail</th>"
-        "<th>Last checked</th></tr></thead>"
-        f"<tbody>{''.join(rows)}</tbody></table>"
-        "</main></body></html>"
+
+    kpis = kpi_strip(
+        [
+            {"label": "Healthy", "value": str(healthy_count), "trend": "good" if healthy_count else None},
+            {"label": "Down", "value": str(down_count), "trend": "bad" if down_count else "good"},
+            {"label": "Total watched", "value": str(len(names))},
+        ]
+    )
+
+    if rows:
+        table_html = (
+            "<div class='fc-table-wrap'><table class='fc-table'>"
+            "<thead><tr><th>Connection</th><th>Status</th><th>Detail</th><th>Last checked</th></tr></thead>"
+            f"<tbody>{''.join(rows)}</tbody></table></div>"
+        )
+    else:
+        table_html = "<p class='fc-empty'>No connections configured yet.</p>"
+
+    body = (
+        '<style>table.fc-table tr.down td{background:var(--fc-bad-soft)}</style>'
+        f'<div class="fc-card"><h2>Watched connections</h2>{table_html}</div>'
+    )
+
+    return page(
+        title="Connection Sentinel",
+        subtitle=f"Generated {now} — refreshes every check cycle.",
+        kpis_html=kpis,
+        body_html=body,
+        footer_note="Connection Sentinel · AMM Founding Circle",
     )
 
 

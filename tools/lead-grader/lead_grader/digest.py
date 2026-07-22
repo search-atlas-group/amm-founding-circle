@@ -14,52 +14,16 @@ from pathlib import Path
 from typing import Any, Optional
 
 from .schema import VALID_GRADES, Grade, Lead
+from .theme import kpi_strip, page, pill
 
 _GRADE_SORT_ORDER = {g: i for i, g in enumerate(VALID_GRADES)}
-
-_HTML_TEMPLATE = """<!doctype html>
-<html lang="en">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Lead digest — {client_title} — {date}</title>
-<style>
-  :root {{
-    --bg: #f7f8fb; --card: #ffffff; --ink: #17202a; --muted: #5d6b7a;
-    --line: #d9e0e8; --accent: #2563eb;
-  }}
-  body {{ margin:0; background:var(--bg); color:var(--ink);
-    font:15px/1.55 system-ui,-apple-system,"Segoe UI",sans-serif; }}
-  main {{ max-width: 860px; margin: 0 auto; padding: 40px 20px 64px; }}
-  header, .lead {{ background:var(--card); border:1px solid var(--line);
-    border-radius:8px; padding:20px 24px; margin-bottom:14px; }}
-  h1 {{ margin:0 0 6px; font-size:28px; }}
-  .lede {{ color:var(--muted); margin:0; }}
-  .lead {{ display:flex; gap:16px; align-items:flex-start; }}
-  .emoji {{ font-size:26px; line-height:1; }}
-  .grade-label {{ font-weight:600; }}
-  .meta {{ color:var(--muted); font-size:13px; margin:4px 0 8px; }}
-  .quote {{ border-left:3px solid var(--accent); padding-left:12px; margin:8px 0 0;
-    color:var(--ink); font-style:italic; }}
-  .empty {{ color:var(--muted); text-align:center; padding:40px 0; }}
-</style>
-</head>
-<body>
-<main>
-  <header>
-    <h1>Lead digest — {client_title}</h1>
-    <p class="lede">{summary}</p>
-  </header>
-  {leads_html}
-</main>
-</body>
-</html>
-"""
+_GRADE_PILL_KIND = {"Hot": "accent", "Qualified": "good", "Weak": "warn", "Junk": "bad"}
+_GRADE_KPI_TREND = {"Hot": "good", "Qualified": "good", "Weak": "warn", "Junk": "bad"}
 
 _LEAD_HTML = """<div class="lead">
   <div class="emoji">{emoji}</div>
   <div>
-    <div class="grade-label">{grade}</div>
+    <div class="grade-label">{grade_pill}</div>
     <div class="meta">{caller} &middot; {duration}</div>
     <div>{reason}</div>
     {quote_html}
@@ -119,32 +83,51 @@ def _render_text(client_name: str, date_str: str, ordered, summary: str) -> str:
 
 
 def _render_html(client_name: str, date_str: str, ordered, summary: str) -> str:
+    counts = {g: 0 for g in VALID_GRADES}
+    for _, grade in ordered:
+        if grade.grade in counts:
+            counts[grade.grade] += 1
+
+    kpis = kpi_strip(
+        [
+            {"label": g, "value": str(counts[g]), "trend": _GRADE_KPI_TREND.get(g)}
+            for g in VALID_GRADES
+        ]
+    )
+
     if not ordered:
-        leads_html = '<div class="empty">Nothing to grade today.</div>'
+        leads_html = "<p class='fc-empty'>Nothing to grade today.</p>"
     else:
         blocks = []
         for lead, grade in ordered:
             duration = f"{lead.duration_seconds}s" if lead.duration_seconds else "unknown length"
             quote_html = ""
             if grade.quote:
-                quote_html = f'<div class="quote">&ldquo;{escape(grade.quote)}&rdquo;</div>'
+                quote_html = f'<div class="fc-quote">&ldquo;{escape(grade.quote)}&rdquo;</div>'
             blocks.append(
                 _LEAD_HTML.format(
                     emoji=grade.emoji(),
-                    grade=escape(grade.grade),
+                    grade_pill=pill(grade.grade, _GRADE_PILL_KIND.get(grade.grade, "neutral")),
                     caller=escape(lead.caller or "unknown caller"),
                     duration=duration,
                     reason=escape(grade.reason),
                     quote_html=quote_html,
                 )
             )
-        leads_html = "\n".join(blocks)
+        leads_html = (
+            "<style>.lead{display:flex;gap:14px;align-items:flex-start;padding:14px 0;"
+            "border-bottom:1px solid var(--fc-rule)}.lead:last-child{border-bottom:none}"
+            ".lead .emoji{font-size:24px;line-height:1}</style>"
+            f'<div class="fc-card"><h2>Today\'s leads</h2>{"".join(blocks)}</div>'
+        )
 
-    return _HTML_TEMPLATE.format(
-        client_title=escape(client_name),
-        date=date_str,
-        summary=escape(summary),
-        leads_html=leads_html,
+    return page(
+        title=f"Lead digest — {client_name}",
+        subtitle=summary,
+        kpis_html=kpis,
+        body_html=leads_html,
+        footer_note="Lead Grader · AMM Founding Circle",
+        doc_title=f"Lead digest — {client_name} — {date_str}",
     )
 
 

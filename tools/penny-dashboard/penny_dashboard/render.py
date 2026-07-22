@@ -6,54 +6,26 @@ only). Matches this repo's dependency-light bar and the sibling
 `client-dashboard` skill's shape: opens by double-click, works emailed as
 an attachment, can't call home.
 
-Design intent (JD's standing house style): clean and minimal, not a
-flashy SaaS demo — one muted accent color, generous whitespace, no
-gradients or neon.
+Design: shares the repo-wide Founding Circle theme (`theme.py`, vendored
+into this tool so it stays runnable standalone) — same KPI-strip /
+pill / hairline-card language as every other founding-circle tool.
+
+STRUCTURAL ABSENCE, unchanged: `render_client_safe_view` only ever
+receives a `ClientSafeView` (from `visibility.build_client_safe_view`),
+whose type has no margin/cost/other-client attribute at all. Re-skinning
+this file only ever touches markup/CSS — it must never grow a code path
+that reads margin/cost data into the client-safe function.
 """
 
 from __future__ import annotations
 
-import html
 from datetime import datetime, timezone
 
-_BASE_CSS = """
-  :root {
-    --bg: #fafafa; --panel: #ffffff; --border: #e4e4e7;
-    --text: #18181b; --muted: #71717a; --accent: #2563eb;
-    --danger: #b91c1c; --danger-bg: #fef2f2; --ok: #15803d;
-  }
-  * { box-sizing: border-box; }
-  body {
-    margin: 0; padding: 40px 24px; background: var(--bg); color: var(--text);
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
-    font-size: 15px; line-height: 1.5;
-  }
-  .wrap { max-width: 880px; margin: 0 auto; }
-  h1 { font-size: 20px; font-weight: 600; margin: 0 0 4px; }
-  .meta { color: var(--muted); font-size: 13px; margin-bottom: 28px; }
-  table { width: 100%; border-collapse: collapse; background: var(--panel);
-          border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
-  th, td { padding: 10px 14px; text-align: left; border-bottom: 1px solid var(--border); font-size: 14px; }
-  th { color: var(--muted); font-weight: 500; font-size: 12px; text-transform: uppercase; letter-spacing: .03em; }
-  tr:last-child td { border-bottom: none; }
-  .num { text-align: right; font-variant-numeric: tabular-nums; }
-  .row-low { background: var(--danger-bg); }
-  .badge { display: inline-block; padding: 2px 8px; border-radius: 999px; font-size: 12px; font-weight: 500; }
-  .badge-low { background: var(--danger-bg); color: var(--danger); }
-  .badge-ok { color: var(--ok); }
-  .note { margin-top: 24px; color: var(--muted); font-size: 13px; }
-  ul.deliverables { margin: 8px 0 0; padding-left: 20px; }
-  .card { background: var(--panel); border: 1px solid var(--border); border-radius: 8px; padding: 20px 24px; margin-bottom: 16px; }
-  .stat { font-size: 22px; margin-top: 6px; }
-"""
+from .theme import esc, kpi_strip, page, pill, table
 
 
 def _now_stamp() -> str:
     return datetime.now(timezone.utc).strftime("%Y-%m-%d")
-
-
-def _esc(value) -> str:
-    return html.escape(str(value))
 
 
 def render_owner_view(rows: list, period: str, threshold_pct: float, trends: dict) -> str:
@@ -61,20 +33,34 @@ def render_owner_view(rows: list, period: str, threshold_pct: float, trends: dic
     loss-making clients sorted to the top. NEVER share this file with a
     client; it contains internal cost/margin data by design."""
     sorted_rows = sorted(rows, key=lambda r: r.margin_pct)
+    below_threshold = sum(1 for r in sorted_rows if r.margin_pct <= threshold_pct)
+    total_billed = sum(r.billed_usd for r in sorted_rows)
+    total_margin = sum(r.margin_usd for r in sorted_rows)
+    avg_margin_pct = (total_margin / total_billed * 100) if total_billed else 0.0
+
+    kpis = kpi_strip(
+        [
+            {"label": "Clients", "value": str(len(sorted_rows))},
+            {"label": "Total billed", "value": f"${total_billed:,.0f}"},
+            {"label": "Avg margin", "value": f"{avg_margin_pct:.1f}%", "trend": "good" if avg_margin_pct >= threshold_pct else "bad"},
+            {
+                "label": f"Below {threshold_pct:.0f}%",
+                "value": str(below_threshold),
+                "trend": "bad" if below_threshold else "good",
+            },
+        ]
+    )
+
     body_rows = []
     for r in sorted_rows:
         trend = trends.get(r.client_id)
         trend_str = "—" if trend is None else f"{trend:+.1f} pts"
         low = r.margin_pct <= threshold_pct
-        row_class = ' class="row-low"' if low else ""
-        badge = (
-            f'<span class="badge badge-low">below {threshold_pct:.0f}%</span>'
-            if low
-            else '<span class="badge badge-ok">healthy</span>'
-        )
+        row_class = " class='fc-row-flag'" if low else ""
+        badge = pill(f"below {threshold_pct:.0f}%", "bad") if low else pill("healthy", "good")
         body_rows.append(
             f"<tr{row_class}>"
-            f"<td>{_esc(r.client_id)}</td>"
+            f"<td>{esc(r.client_id)}</td>"
             f"<td class='num'>${r.billed_usd:,.0f}</td>"
             f"<td class='num'>${r.cost_usd:,.0f}</td>"
             f"<td class='num'>${r.margin_usd:,.0f}</td>"
@@ -83,21 +69,29 @@ def render_owner_view(rows: list, period: str, threshold_pct: float, trends: dic
             f"<td>{badge}</td>"
             "</tr>"
         )
-    body_html = "".join(body_rows) or '<tr><td colspan="7">No clients configured yet.</td></tr>'
-    return f"""<!doctype html>
-<html lang="en"><head><meta charset="utf-8">
-<title>Penny Dashboard — Owner View — {_esc(period)}</title>
-<style>{_BASE_CSS}</style></head>
-<body><div class="wrap">
-  <h1>Penny Dashboard — Owner View</h1>
-  <div class="meta">Period: {_esc(period)} &middot; Generated {_now_stamp()} &middot; INTERNAL ONLY, never share this file</div>
-  <table>
-    <thead><tr><th>Client</th><th class='num'>Billed</th><th class='num'>Cost</th>
-    <th class='num'>Margin $</th><th class='num'>Margin %</th><th class='num'>Trend</th><th>Status</th></tr></thead>
-    <tbody>{body_html}</tbody>
-  </table>
-  <div class="note">Loss-making / low-margin clients are sorted to the top and highlighted. This file contains internal cost and margin data — it is never safe to send to a client.</div>
-</div></body></html>"""
+    table_html = table(
+        ["Client", "Billed", "Cost", "Margin $", "Margin %", "Trend", "Status"],
+        "".join(body_rows),
+        empty_text="No clients configured yet.",
+    )
+
+    body = (
+        '<div class="fc-card"><h2>Client margin — '
+        f'<span class="fc-count">period {esc(period)}</span></h2>'
+        f"{table_html}"
+        '<p class="fc-note" style="margin-top:12px">Loss-making / low-margin clients are sorted '
+        "to the top and highlighted. This file contains internal cost and margin data — it is "
+        "never safe to send to a client.</p></div>"
+    )
+
+    return page(
+        title="Penny Dashboard — Owner View",
+        subtitle=f"Period: {period} · Generated {_now_stamp()} · INTERNAL ONLY, never share this file",
+        kpis_html=kpis,
+        body_html=body,
+        footer_note="Penny Dashboard (owner view) · AMM Founding Circle",
+        doc_title=f"Penny Dashboard — Owner View — {period}",
+    )
 
 
 def render_client_safe_view(view) -> str:
@@ -108,36 +102,30 @@ def render_client_safe_view(view) -> str:
     `visibility.build_client_safe_view`, whose return type has no
     attribute for those fields at all.
     """
-    deliverables_html = ""
-    if view.deliverables:
-        items = "".join(f"<li>{_esc(d)}</li>" for d in view.deliverables)
-        deliverables_html = (
-            f'<div class="card"><strong>What we shipped this period</strong>'
-            f'<ul class="deliverables">{items}</ul></div>'
-        )
+    cards = []
 
-    spend_html = ""
     if view.ad_spend_usd is not None:
-        spend_html = (
-            '<div class="card"><strong>Ad spend this period</strong>'
-            f'<div class="stat">${view.ad_spend_usd:,.0f}</div></div>'
+        cards.append(
+            '<div class="fc-card"><h2>Ad spend this period</h2>'
+            f'<div class="fc-kpi-value" style="font-size:32px">${view.ad_spend_usd:,.0f}</div></div>'
         )
 
-    results_html = ""
+    if view.deliverables:
+        items = "".join(f"<li>{esc(d)}</li>" for d in view.deliverables)
+        cards.append(
+            '<div class="fc-card"><h2>What we shipped this period</h2>'
+            f'<ul style="margin:8px 0 0;padding-left:20px">{items}</ul></div>'
+        )
+
     if view.results_note:
-        results_html = (
-            f'<div class="card"><strong>Results</strong>'
-            f'<div style="margin-top:6px;">{_esc(view.results_note)}</div></div>'
-        )
+        cards.append(f'<div class="fc-card"><h2>Results</h2><p>{esc(view.results_note)}</p></div>')
 
-    return f"""<!doctype html>
-<html lang="en"><head><meta charset="utf-8">
-<title>{_esc(view.client_name)} — {_esc(view.period)}</title>
-<style>{_BASE_CSS}</style></head>
-<body><div class="wrap">
-  <h1>{_esc(view.client_name)}</h1>
-  <div class="meta">Data through {_esc(view.period)}</div>
-  {spend_html}
-  {deliverables_html}
-  {results_html}
-</div></body></html>"""
+    body = "".join(cards) or '<p class="fc-empty">Nothing to show for this period yet.</p>'
+
+    return page(
+        title=view.client_name,
+        subtitle=f"Data through {view.period}",
+        body_html=body,
+        footer_note="Prepared by your agency · AMM Founding Circle",
+        doc_title=f"{view.client_name} — {view.period}",
+    )

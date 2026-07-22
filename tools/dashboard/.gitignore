@@ -1,0 +1,6 @@
+# Founding Circle Dashboard — local, no member-specific state of its own.
+__pycache__/
+*.pyc
+.pytest_cache/
+.ruff_cache/
+.venv/
