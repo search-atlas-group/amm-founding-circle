@@ -1,0 +1,18 @@
+# One entry per client you bill. This is the roster the other config
+# files (billing.yaml, tools-costs.yaml, visibility.yaml) key off of by
+# `id`. Real data goes in clients.yaml (gitignored) — never commit real
+# client names/ids to this repo.
+
+clients:
+  - id: acme
+    name: "Acme Roofing"
+    # Only ONE of these two is needed for ad spend; leave the other null.
+    google_ads_customer_id: null   # e.g. "123-456-7890" — needs the google-ads package + your own OAuth creds
+    manual_spend_csv: "data/spend/acme.csv"   # simplest v1 path: export spend from the platform UI, drop it here
+    hours_csv: null   # optional, not wired in v1 yet — see README "Later phase"
+
+  - id: bolt-hvac
+    name: "Bolt HVAC"
+    google_ads_customer_id: null
+    manual_spend_csv: "data/spend/bolt-hvac.csv"
+    hours_csv: null

@@ -1,0 +1,23 @@
+# Generated output — regenerated every run, never commit.
+out/
+*.db
+
+# Real config — contains real client cost/billing data, never commit.
+config/clients.yaml
+config/billing.yaml
+config/tools-costs.yaml
+config/visibility.yaml
+
+# Real per-client spend/hours data.
+data/spend/*.csv
+!data/spend/example.csv
+data/hours/*.csv
+!data/hours/example.csv
+
+# Secrets.
+.env
+
+# Python.
+__pycache__/
+*.pyc
+.pytest_cache/

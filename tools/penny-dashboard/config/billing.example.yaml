@@ -1,0 +1,16 @@
+# What each client actually pays you. Keyed by the same `id` as clients.yaml.
+
+clients:
+  - id: acme
+    retainer_usd: 2000
+    hourly_rate_usd: 75   # only used once hours_csv tracking is wired in (see README "Later phase")
+    ad_spend_markup:
+      type: percent   # none | flat | percent
+      value: 10         # 10% on top of raw ad spend, billed to the client
+
+  - id: bolt-hvac
+    retainer_usd: 1500
+    hourly_rate_usd: 75
+    ad_spend_markup:
+      type: flat
+      value: 150   # flat $150/mo management fee on their ad spend, instead of a percentage
