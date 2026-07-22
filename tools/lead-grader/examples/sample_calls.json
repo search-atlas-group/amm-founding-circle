@@ -1,0 +1,92 @@
+{
+  "page": 1,
+  "per_page": 25,
+  "total_pages": 1,
+  "total_records": 4,
+  "calls": [
+    {
+      "id": "CAL1001",
+      "answered": true,
+      "business_phone_number": "+15555550100",
+      "customer_name": "Jamie R.",
+      "customer_phone_number": "+15555550101",
+      "customer_city": "Springfield",
+      "customer_state": "OH",
+      "direction": "inbound",
+      "duration": 214,
+      "start_time": "2026-07-20T14:32:00-04:00",
+      "recording": "https://app.callrail.com/calls/CAL1001/recording.mp3",
+      "tracking_phone_number": "+15555550199",
+      "company_id": "CO900",
+      "company_name": "Example Roofing Co",
+      "source_name": "Google Ads",
+      "tags": ["quote-request"],
+      "transcription": {
+        "transcription": "Hi, I'm calling about my roof, I noticed a leak in the attic yesterday after the storm and I want a quote for a full replacement. I'm in Springfield, and I'm hoping to get this done within the next month if possible."
+      }
+    },
+    {
+      "id": "CAL1002",
+      "answered": true,
+      "business_phone_number": "+15555550100",
+      "customer_name": null,
+      "customer_phone_number": "+15555550111",
+      "customer_city": "Unknown",
+      "customer_state": "OH",
+      "direction": "inbound",
+      "duration": 12,
+      "start_time": "2026-07-20T15:05:00-04:00",
+      "recording": "https://app.callrail.com/calls/CAL1002/recording.mp3",
+      "tracking_phone_number": "+15555550199",
+      "company_id": "CO900",
+      "company_name": "Example Roofing Co",
+      "source_name": "Google Ads",
+      "tags": [],
+      "transcription": {
+        "transcription": "Hi is this uh, is this the pizza place? Oh sorry wrong number."
+      }
+    },
+    {
+      "id": "CAL1003",
+      "answered": true,
+      "business_phone_number": "+15555550100",
+      "customer_name": "Pat T.",
+      "customer_phone_number": "+15555550121",
+      "customer_city": "Springfield",
+      "customer_state": "OH",
+      "direction": "inbound",
+      "duration": 96,
+      "start_time": "2026-07-20T16:40:00-04:00",
+      "recording": "https://app.callrail.com/calls/CAL1003/recording.mp3",
+      "tracking_phone_number": "+15555550199",
+      "company_id": "CO900",
+      "company_name": "Example Roofing Co",
+      "source_name": "Organic",
+      "tags": [],
+      "transcription": {
+        "transcription": "Hey, this is Pat, I do gutter cleaning services in the area, wanted to see if you guys ever subcontract that work out, I could offer you a partnership rate."
+      }
+    },
+    {
+      "id": "CAL1004",
+      "answered": true,
+      "business_phone_number": "+15555550100",
+      "customer_name": "Morgan L.",
+      "customer_phone_number": "+15555550131",
+      "customer_city": "Dayton",
+      "customer_state": "OH",
+      "direction": "inbound",
+      "duration": 58,
+      "start_time": "2026-07-20T17:15:00-04:00",
+      "recording": "https://app.callrail.com/calls/CAL1004/recording.mp3",
+      "tracking_phone_number": "+15555550199",
+      "company_id": "CO900",
+      "company_name": "Example Roofing Co",
+      "source_name": "Facebook",
+      "tags": [],
+      "transcription": {
+        "transcription": "Hi, I'm renting my place right now but wanted to ask what a roof replacement runs, just curious for future reference, not looking to do anything soon."
+      }
+    }
+  ]
+}

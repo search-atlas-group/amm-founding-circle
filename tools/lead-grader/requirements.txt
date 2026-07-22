@@ -1,0 +1,7 @@
+requests>=2.31
+pyyaml>=6.0
+python-dotenv>=1.0
+
+# Optional, only if you turn on the local Whisper fallback for calls
+# CallRail hasn't transcribed yet (see README "Local transcription fallback"):
+# openai-whisper

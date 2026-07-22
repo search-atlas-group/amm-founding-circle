@@ -1,0 +1,14 @@
+# Copy this whole folder: clients/_example/ -> clients/<your-client-slug>/
+# then edit the two files inside.
+
+name: "Example Client Name"
+
+# Which CallRail "company" this client's tracking numbers live under.
+# Find it in CallRail: Settings -> Companies, or in any call's URL.
+callrail_company_id: "REPLACE_WITH_CALLRAIL_COMPANY_ID"
+
+# Optional per-client digest destination. If you leave these out, the
+# shared SLACK_WEBHOOK_URL / SMTP_* in your .env is used for every client.
+digest:
+  slack_webhook: ""   # e.g. https://hooks.slack.com/services/XXX/YYY/ZZZ
+  email_to: ""        # e.g. owner@example.com
