@@ -1,0 +1,96 @@
+# Connection Sentinel config -- copy this file to connections.yaml and keep
+# only the entries you actually use. ${ENV_VAR} placeholders resolve from
+# your .env at run time -- never write a real key or token directly in here.
+
+notify:
+  email:
+    enabled: false          # set true + fill SENTINEL_SMTP_* in .env for email alerts too
+    to: "you@example.com"
+  macos:
+    enabled: true            # macOS Notification Center -- the default alert channel (v1)
+  daily_heartbeat: true      # one "all green" ping/day when nothing's broken -- so silence
+                              # from the watch itself is never ambiguous
+
+connections:
+  # ---------------------------------------------------------------------
+  # Search Atlas MCP -- the case this tool was built for (Rick Janson's
+  # silent 401). Point `url` at whatever health/auth endpoint your MCP
+  # server exposes over HTTP. A 401/403 gets flagged with an MCP-specific
+  # fix hint automatically -- that's what `mcp_http` does differently from
+  # a plain `http` check.
+  # ---------------------------------------------------------------------
+  - name: "Search Atlas MCP"
+    type: mcp_http
+    url: "https://api.searchatlas.com/v1/ping"      # replace with your real MCP endpoint
+    headers:
+      Authorization: "Bearer ${SEARCHATLAS_API_KEY}"
+    timeout: 8
+
+  # --- Google Ads (read-only account fetch) ---
+  - name: "Google Ads"
+    type: http
+    url: "https://googleads.googleapis.com/v18/customers/${GOOGLE_ADS_CUSTOMER_ID}"
+    headers:
+      Authorization: "Bearer ${GOOGLE_ADS_ACCESS_TOKEN}"
+      developer-token: "${GOOGLE_ADS_DEVELOPER_TOKEN}"
+    timeout: 10
+
+  # --- Google Analytics 4 (a minimal report request) ---
+  - name: "GA4"
+    type: http
+    url: "https://analyticsdata.googleapis.com/v1beta/properties/${GA4_PROPERTY_ID}:runReport"
+    method: POST
+    headers:
+      Authorization: "Bearer ${GA4_ACCESS_TOKEN}"
+      Content-Type: "application/json"
+    body:
+      dateRanges: [{startDate: "today", endDate: "today"}]
+      metrics: [{name: "activeUsers"}]
+    timeout: 10
+
+  # --- Meta (Facebook Marketing API) ---
+  - name: "Meta Ads"
+    type: http
+    url: "https://graph.facebook.com/v19.0/me?access_token=${META_ACCESS_TOKEN}"
+    timeout: 8
+
+  # --- CallRail ---
+  - name: "CallRail"
+    type: http
+    url: "https://api.callrail.com/v3/a/${CALLRAIL_ACCOUNT_ID}/accounts.json"
+    headers:
+      Authorization: "Token token=${CALLRAIL_API_KEY}"
+    timeout: 8
+
+  # --- Smartlead ---
+  - name: "Smartlead"
+    type: http
+    url: "https://server.smartlead.ai/api/v1/campaigns?api_key=${SMARTLEAD_API_KEY}"
+    timeout: 8
+
+  # --- ClickUp ---
+  - name: "ClickUp"
+    type: http
+    url: "https://api.clickup.com/api/v2/user"
+    headers:
+      Authorization: "${CLICKUP_API_TOKEN}"
+    timeout: 8
+
+  # --- Slack ---
+  - name: "Slack"
+    type: http
+    url: "https://slack.com/api/auth.test"
+    method: POST
+    headers:
+      Authorization: "Bearer ${SLACK_BOT_TOKEN}"
+    timeout: 8
+
+  # ---------------------------------------------------------------------
+  # Anything else -- the escape hatch. Point `command` at any read-only
+  # script or CLI's own auth-check subcommand. Exit 0 = healthy, anything
+  # else = down. Uncomment and adapt:
+  # ---------------------------------------------------------------------
+  # - name: "My scheduled scraper"
+  #   type: command
+  #   command: "my-cli auth status"
+  #   timeout: 15
