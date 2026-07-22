@@ -1,0 +1,13 @@
+# Generated output — never commit real client data or reports.
+reports/
+*.fixed.*
+
+# Real client profiles a member builds locally. The example ships committed;
+# anything else under clients/ is member-local.
+clients/*
+!clients/acme-example/
+!clients/README.md
+
+__pycache__/
+*.pyc
+.pytest_cache/
