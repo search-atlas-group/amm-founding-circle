@@ -1,0 +1,13 @@
+.venv/
+__pycache__/
+*.pyc
+leads.db
+output/
+.pytest_cache/
+
+# Real client configs/rubrics can carry client names, webhook URLs, and
+# business specifics — never commit them. Only the sanitized starter
+# template (clients/_example/) is tracked.
+clients/*
+!clients/_example/
+!clients/_example/**
