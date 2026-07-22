@@ -1,0 +1,5 @@
+pyyaml>=6.0
+python-dotenv>=1.0
+# LLM personalization CLIs (claude / gemini) are invoked as external commands, not
+# pip packages — install them separately if you want real personalization instead
+# of the built-in mock templater (see README "Personalization provider").

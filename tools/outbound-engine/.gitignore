@@ -1,0 +1,10 @@
+# Local state / generated output — never commit
+outbound_engine.db
+outbound_engine.db-journal
+reports/
+config/icp.yaml
+config/voice-examples.md
+__pycache__/
+.pytest_cache/
+*.pyc
+.venv/

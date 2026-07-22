@@ -1,0 +1,53 @@
+[
+  {
+    "external_id": "vv-1001",
+    "company_name": "Ridgeline Roofing Co",
+    "company_domain": "ridgelineroofingco.com",
+    "page_path": "/pricing",
+    "visit_count": 3,
+    "referrer_type": "organic",
+    "last_seen_at": "2026-07-18T14:22:00Z",
+    "contact_name": "Dana Ruiz",
+    "contact_role": "Marketing Director",
+    "contact_email": "dana.ruiz@ridgelineroofingco.example"
+  },
+  {
+    "external_id": "vv-1002",
+    "company_name": "Coastal Family Dental Group",
+    "company_domain": "coastalfamilydental.example",
+    "page_path": "/services/seo",
+    "visit_count": 1,
+    "referrer_type": "paid",
+    "last_seen_at": "2026-07-19T09:05:00Z"
+  },
+  {
+    "external_id": "vv-1003",
+    "company_name": "Summit Legal Partners",
+    "company_domain": "summitlegalpartners.example",
+    "page_path": "/case-studies",
+    "visit_count": 2,
+    "referrer_type": "organic",
+    "last_seen_at": "2026-07-17T18:40:00Z",
+    "contact_name": "Marcus Webb",
+    "contact_role": "Managing Partner",
+    "contact_email": "mwebb@summitlegalpartners.example"
+  },
+  {
+    "external_id": "vv-1004",
+    "company_name": "State University Marketing Dept",
+    "company_domain": "stateu.edu",
+    "page_path": "/blog/what-is-seo",
+    "visit_count": 1,
+    "referrer_type": "direct",
+    "last_seen_at": "2026-07-16T11:12:00Z"
+  },
+  {
+    "external_id": "vv-1005",
+    "company_name": "Ironclad Digital Agency",
+    "company_domain": "ironclaggency.example",
+    "page_path": "/pricing",
+    "visit_count": 4,
+    "referrer_type": "organic",
+    "last_seen_at": "2026-07-20T08:00:00Z"
+  }
+]
