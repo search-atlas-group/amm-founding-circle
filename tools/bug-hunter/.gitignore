@@ -1,0 +1,10 @@
+# Bug Hunter — local, member-specific, never committed.
+clients.yaml
+reports/
+*.html
+
+.pytest_cache/
+.ruff_cache/
+__pycache__/
+*.pyc
+.venv/
