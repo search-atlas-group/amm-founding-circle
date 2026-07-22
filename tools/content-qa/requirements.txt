@@ -1,0 +1,9 @@
+# Content QA Agent — dependencies.
+#
+# The tool runs with ZERO installs on a bare `python3` (stdlib only): the
+# grammar/voice/fact-extraction heuristics and the HTML report all work out
+# of the box. Install this one optional package only if you want `.env`
+# loaded via the org-standard loader instead of the tool's tiny built-in
+# fallback parser (functionally equivalent either way):
+
+python-dotenv>=1.0
