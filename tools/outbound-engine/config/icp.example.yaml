@@ -1,0 +1,66 @@
+# Outbound Engine — Ideal Customer Profile (ICP) example.
+#
+# Copy this to config/icp.yaml and edit, OR run the guided wizard instead:
+#   python3 run.py wizard
+#
+# This file drives scoring in outbound_engine/enrich/enrichment.py — every
+# prospect gets a 0-100 icp_score and a verdict (match / maybe / reject) from
+# these rules. Nothing here calls an LLM; it's plain, auditable logic on
+# purpose, so you can read exactly why a prospect got the grade it did.
+
+business:
+  name: "Example Agency"
+  what_we_sell: "SEO + paid media management for local service businesses"
+
+target:
+  # Matched against the prospect's company name (crude keyword match in v1 —
+  # good enough for a first pass; tighten with your own real client industries).
+  industries:
+    - "roofing"
+    - "dental"
+    - "legal"
+    - "home services"
+
+  # NOTE: v1's signal source (an anonymous or company-level website-visitor hit)
+  # doesn't reliably carry employee count. These fields are here for a future
+  # enrichment provider to use — right now they get flat partial credit either
+  # way (see enrichment.py's `unresolved_partial_credit` comment).
+  company_size:
+    min_employees: 5
+    max_employees: 200
+
+  # Same caveat as company_size — not resolved from v1's signal source yet.
+  geography:
+    - "United States"
+
+  # Free-text, used for your own reference / a future richer scoring model.
+  # v1's actual trigger scoring looks at page visited + visit count + referrer
+  # type (see enrichment.py's _trigger_score) rather than parsing this list.
+  trigger_signals:
+    - "visited pricing or services page"
+    - "returned visitor (2+ sessions in 14 days)"
+    - "came from a paid or organic search for a service keyword"
+
+  # Hard-excluded regardless of score. ".edu" domains and anything with
+  # "agency" in the name/domain are already excluded by default in
+  # enrichment.py — add your own known non-prospects here too.
+  exclude:
+    - "competitor agencies"
+    - "current clients"
+
+scoring:
+  # icp_score >= match_threshold  -> "match"
+  # icp_score >= maybe_threshold  -> "maybe"
+  # icp_score <  maybe_threshold  -> "reject"
+  match_threshold: 70
+  maybe_threshold: 40
+  weights:
+    industry_match: 35
+    size_match: 20
+    geography_match: 15
+    trigger_signal_strength: 30
+
+# Optional — shown on the weekly report's "Cost comparison" line. Bryan Fikes'
+# proven version of this stack replaced a ~$700/mo Apollo + Hunter.io spend —
+# put your own number here once you know it.
+cost_comparison: "Replaces ~$700/mo Apollo + Hunter.io spend (adjust once you know your real number)"
