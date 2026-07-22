@@ -1,0 +1,11 @@
+httpx>=0.27
+PyYAML>=6.0
+
+# Optional — only needed if you want the Google Ads read-only checks
+# (disapproved ads, paused campaigns, broken final URLs). The tool runs fine
+# without it; it will just skip that one check category and say so.
+#
+# google-ads>=25.0
+
+# Optional — nicer .env loading (a stdlib fallback parser is used if absent).
+# python-dotenv>=1.0

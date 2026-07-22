@@ -1,0 +1,49 @@
+# Copy this file to clients.yaml (gitignored — never commit real client data)
+# and fill in your own roster. Every field except `name` and `sites` is
+# optional — start minimal, add expected tracking IDs / Google Ads customer
+# IDs as you go.
+
+clients:
+  # --- Minimal example: just a site crawl + generic tracking presence check ---
+  - name: Acme Roofing
+    sites:
+      - https://acmeroofing.example.com
+
+  # --- Fuller example: expected tracking IDs (catches the "wrong ID installed"
+  # bug, not just "some tag exists"), a Google Ads account, and a known
+  # exception so an intentionally-paused seasonal campaign stops re-alerting. ---
+  - name: Blue Sky HVAC
+    sites:
+      - https://blueskyhvac.example.com
+      - https://blog.blueskyhvac.example.com
+
+    # Google Ads customer ID for THIS client (format: 123-456-7890 or 1234567890).
+    # Requires the GOOGLE_ADS_* vars in .env to be set, or this client's Ads
+    # checks are skipped (site + tracking checks still run).
+    google_ads_customer_id: "123-456-7890"
+
+    # Expected tracking IDs. If set, Bug Hunter verifies THIS exact ID is
+    # installed (catches a stale/staging ID left behind). If left unset for a
+    # given tag type, it only flags if that tag type is missing entirely.
+    ga4_measurement_id: "G-ABCDEF1234"
+    gtm_container_id: "GTM-ABC1234"
+    meta_pixel_id: "1234567890123456"
+
+    # Which page(s) to check for tracking tags. Defaults to just the homepage
+    # ("/") if omitted — add more if a client's tags only load on certain pages.
+    tracking_check_paths:
+      - "/"
+      - "/contact"
+
+    # Cap on pages crawled per site, per run (default 60). Raise for a large
+    # site, lower for a quick smoke test.
+    max_pages_per_site: 60
+
+    # Findings you've reviewed and confirmed are intentional. Paste the exact
+    # `key` value from a report row to silence that specific finding forever
+    # (it's still checked every run — just not re-flagged). End an entry in
+    # `*` to silence a whole category/location at once, e.g.
+    # "blue-sky-hvac/tracking/*" to silence ALL tracking findings for this
+    # client (use sparingly — you want to know if something NEW breaks).
+    known_exceptions:
+      - "blue-sky-hvac/google-ads/deadbeef01"  # example: this campaign is deliberately paused for the off-season
