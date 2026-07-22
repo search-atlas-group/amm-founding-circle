@@ -1,0 +1,27 @@
+# What each client is allowed to see on their client-safe page.
+#
+# IMPORTANT: only fields on the hard-coded allowlist in
+# penny_dashboard/visibility.py (ALLOWED_CLIENT_SAFE_FIELDS) can EVER
+# appear on a client-safe page. Margin, cost, tool names, and every other
+# client's data are structurally absent from the render — not just left
+# out of this file by convention. Listing an internal field name here is
+# a silent no-op, not a leak.
+
+clients:
+  acme:
+    visible_fields:
+      - ad_spend_usd
+      - deliverables
+      - results_note
+    deliverables:
+      - "Published 4 blog posts"
+      - "Launched the Q3 landing page"
+    results_note: "Rankings up 12 positions this month across target keywords."
+
+  bolt-hvac:
+    visible_fields:
+      - deliverables
+      - results_note
+    deliverables:
+      - "Fixed 3 broken form submissions"
+    results_note: "Site traffic up 8% month over month."
