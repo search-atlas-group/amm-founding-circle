@@ -1,0 +1,15 @@
+# Your fixed monthly tool spend, allocated across active clients.
+# v1 supports "even" allocation (split equally across every client in
+# clients.yaml) plus a flat per-client override for anything client-specific.
+
+monthly_fixed_costs:
+  - name: "SEO platform seat"
+    amount_usd: 300
+    allocation: even
+  - name: "Rank tracker"
+    amount_usd: 99
+    allocation: even
+
+per_client_overrides:
+  acme:
+    extra_costs_usd: 50   # e.g. a dedicated tool seat used only for this client

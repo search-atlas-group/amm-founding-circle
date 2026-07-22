@@ -1,0 +1,6 @@
+PyYAML>=6.0
+
+# Optional — only needed if a client in config/clients.yaml sets
+# google_ads_customer_id instead of manual_spend_csv. Not required to run
+# the tool on manual/CSV spend data (the v1 default path).
+# google-ads>=25.0
