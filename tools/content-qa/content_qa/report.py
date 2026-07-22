@@ -12,6 +12,7 @@ from string import Template
 
 from content_qa.fact_check import FactResult, Verdict as FactVerdict
 from content_qa.grammar import Issue
+from content_qa.theme import THEME_CSS, kpi_strip, pill
 from content_qa.verdict import VerdictResult
 from content_qa.voice_check import VoiceResult
 
@@ -106,29 +107,38 @@ def _row(cells: list[str]) -> str:
 
 def _grammar_rows(issues: list[Issue]) -> str:
     if not issues:
-        return "<tr><td colspan='3' class='empty'>No mechanical issues found.</td></tr>"
-    return "\n".join(
+        return "<p class='fc-empty'>No mechanical issues found.</p>"
+    rows = "\n".join(
         _row([i.severity, f"{i.problem}<br><span class='snippet'>{i.snippet}</span>", i.fix])
         for i in issues
+    )
+    return (
+        "<div class='fc-table-wrap'><table class='fc-table'>"
+        "<thead><tr><th>Severity</th><th>Issue</th><th>Suggested fix</th></tr></thead>"
+        f"<tbody>{rows}</tbody></table></div>"
     )
 
 
 def _fact_rows(facts: list[FactResult]) -> str:
     if not facts:
-        return "<tr><td colspan='3' class='empty'>No checkable claims extracted.</td></tr>"
+        return "<p class='fc-empty'>No checkable claims extracted.</p>"
     rows = []
     for fact in facts:
-        css_class = fact.verdict.value
+        pill_kind = {"verified": "good", "unverifiable": "neutral", "contradicted": "bad"}[fact.verdict.value]
         rows.append(
             _row(
                 [
-                    f"<span class='badge {css_class}'>{_FACT_ICON[fact.verdict]}</span>",
+                    pill(_FACT_ICON[fact.verdict], pill_kind),
                     fact.claim.text,
                     fact.reason or "",
                 ]
             )
         )
-    return "\n".join(rows)
+    return (
+        "<div class='fc-table-wrap'><table class='fc-table'>"
+        "<thead><tr><th>Verdict</th><th>Claim</th><th>Reason / source</th></tr></thead>"
+        f"<tbody>{''.join(rows)}</tbody></table></div>"
+    )
 
 
 def _voice_block(voice: VoiceResult) -> str:
@@ -155,9 +165,22 @@ def render_html_report(data: ReportData, template_path: Path | None = None) -> s
     degraded_html = ""
     if data.degraded_notes:
         items = "".join(f"<li>{n}</li>" for n in data.degraded_notes)
-        degraded_html = f"<section><h2>Notes</h2><ul>{items}</ul></section>"
+        degraded_html = f"<div class='fc-card'><h2>Notes</h2><ul>{items}</ul></div>"
+
+    auto_fixable = sum(1 for i in data.grammar_issues if i.auto_fixable)
+    verified = sum(1 for f in data.fact_results if f.verdict == FactVerdict.VERIFIED)
+    kpis = kpi_strip(
+        [
+            {"label": "Verdict", "value": data.verdict.verdict.value},
+            {"label": "Grammar issues", "value": str(len(data.grammar_issues)), "sub": f"{auto_fixable} auto-fixable"},
+            {"label": "Voice", "value": voice_status, "trend": "good" if data.voice_result.passed else "bad"},
+            {"label": "Facts checked", "value": str(len(data.fact_results)), "sub": f"{verified} verified"},
+        ]
+    )
 
     return template.substitute(
+        theme_css=THEME_CSS,
+        kpis=kpis,
         client_name=data.client_name,
         draft_source=data.draft_source,
         generated_at=data.generated_at,
@@ -165,10 +188,10 @@ def render_html_report(data: ReportData, template_path: Path | None = None) -> s
         verdict_class=verdict_class,
         verdict_reason=data.verdict.reason,
         grammar_count=len(data.grammar_issues),
-        grammar_rows=_grammar_rows(data.grammar_issues),
+        grammar_table=_grammar_rows(data.grammar_issues),
         voice_status=voice_status,
         voice_block=_voice_block(data.voice_result),
         fact_count=len(data.fact_results),
-        fact_rows=_fact_rows(data.fact_results),
+        fact_table=_fact_rows(data.fact_results),
         degraded_notes=degraded_html,
     )
