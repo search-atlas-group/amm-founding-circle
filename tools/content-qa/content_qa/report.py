@@ -12,7 +12,7 @@ from string import Template
 
 from content_qa.fact_check import FactResult, Verdict as FactVerdict
 from content_qa.grammar import Issue
-from content_qa.theme import THEME_CSS, kpi_strip, pill
+from content_qa.theme import THEME_CSS, esc, kpi_strip, pill
 from content_qa.verdict import VerdictResult
 from content_qa.voice_check import VoiceResult
 
@@ -109,7 +109,13 @@ def _grammar_rows(issues: list[Issue]) -> str:
     if not issues:
         return "<p class='fc-empty'>No mechanical issues found.</p>"
     rows = "\n".join(
-        _row([i.severity, f"{i.problem}<br><span class='snippet'>{i.snippet}</span>", i.fix])
+        _row(
+            [
+                esc(i.severity),
+                f"{esc(i.problem)}<br><span class='snippet'>{esc(i.snippet)}</span>",
+                esc(i.fix),
+            ]
+        )
         for i in issues
     )
     return (
@@ -129,8 +135,8 @@ def _fact_rows(facts: list[FactResult]) -> str:
             _row(
                 [
                     pill(_FACT_ICON[fact.verdict], pill_kind),
-                    fact.claim.text,
-                    fact.reason or "",
+                    esc(fact.claim.text),
+                    esc(fact.reason or ""),
                 ]
             )
         )
@@ -142,13 +148,13 @@ def _fact_rows(facts: list[FactResult]) -> str:
 
 
 def _voice_block(voice: VoiceResult) -> str:
-    parts = [f"<p><strong>Reading level:</strong> {voice.reading_level_estimate}</p>"]
+    parts = [f"<p><strong>Reading level:</strong> {esc(voice.reading_level_estimate)}</p>"]
     if voice.reading_level_note:
-        parts.append(f"<p class='note'>{voice.reading_level_note}</p>")
+        parts.append(f"<p class='note'>{esc(voice.reading_level_note)}</p>")
     if voice.banned_phrase_hits:
         parts.append("<ul>")
         for hit in voice.banned_phrase_hits:
-            parts.append(f"<li>banned phrase “{hit.phrase}” &mdash; “{hit.snippet}”</li>")
+            parts.append(f"<li>banned phrase “{esc(hit.phrase)}” &mdash; “{esc(hit.snippet)}”</li>")
         parts.append("</ul>")
     else:
         parts.append("<p>No banned phrases found.</p>")
@@ -164,7 +170,7 @@ def render_html_report(data: ReportData, template_path: Path | None = None) -> s
 
     degraded_html = ""
     if data.degraded_notes:
-        items = "".join(f"<li>{n}</li>" for n in data.degraded_notes)
+        items = "".join(f"<li>{esc(n)}</li>" for n in data.degraded_notes)
         degraded_html = f"<div class='fc-card'><h2>Notes</h2><ul>{items}</ul></div>"
 
     auto_fixable = sum(1 for i in data.grammar_issues if i.auto_fixable)
@@ -181,12 +187,12 @@ def render_html_report(data: ReportData, template_path: Path | None = None) -> s
     return template.substitute(
         theme_css=THEME_CSS,
         kpis=kpis,
-        client_name=data.client_name,
-        draft_source=data.draft_source,
-        generated_at=data.generated_at,
-        verdict=data.verdict.verdict.value,
+        client_name=esc(data.client_name),
+        draft_source=esc(data.draft_source),
+        generated_at=esc(data.generated_at),
+        verdict=esc(data.verdict.verdict.value),
         verdict_class=verdict_class,
-        verdict_reason=data.verdict.reason,
+        verdict_reason=esc(data.verdict.reason),
         grammar_count=len(data.grammar_issues),
         grammar_table=_grammar_rows(data.grammar_issues),
         voice_status=voice_status,

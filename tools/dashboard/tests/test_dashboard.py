@@ -141,6 +141,20 @@ class ShellRenderTests(unittest.TestCase):
         self.assertNotIn("<script>alert(1)</script>", html)
         self.assertIn("&lt;script&gt;", html)
 
+    def test_report_iframe_is_sandboxed(self):
+        """M2 fix: the report iframe uses srcdoc (inherits parent origin), so it
+        must carry an empty sandbox attribute — otherwise an XSS in an embedded
+        tool report (e.g. content-qa's HTML report, see H1) could run same-origin
+        and call this dashboard's own /api/run/* endpoints."""
+        html = render_shell(TOOL_TABS)
+        self.assertIn('class="report-frame"', html)
+        for pane_html in html.split("<iframe")[1:]:
+            tag_end = pane_html.index(">")
+            tag = pane_html[:tag_end]
+            self.assertIn("sandbox", tag)
+            self.assertNotIn("allow-scripts", tag)
+            self.assertNotIn("allow-same-origin", tag)
+
 
 if __name__ == "__main__":
     unittest.main()

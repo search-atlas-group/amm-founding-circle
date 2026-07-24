@@ -147,7 +147,7 @@ def _pane(tab: ToolTab) -> str:
     {sub_html}
     <span class="fc-status">Not loaded yet.</span>
   </div>
-  <iframe class="report-frame" title="{esc(tab.label)} report"></iframe>
+  <iframe class="report-frame" title="{esc(tab.label)} report" sandbox=""></iframe>
   <pre class="fc-log"></pre>
 </section>
 """
