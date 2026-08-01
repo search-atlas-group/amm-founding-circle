@@ -12,11 +12,20 @@ playbooks, curriculum, and automations we build together, in one place.
 git clone https://github.com/search-atlas-group/amm-founding-circle.git
 cd amm-founding-circle/skills && ./install.sh   # USE_SYMLINKS=1 to update via git pull
 
-# 2. open Claude Code and run your first skill — e.g. an AEO audit:
+# 2. find your rung — scans your machine, opens a readout, uploads nothing
+cd .. && ./onboarding/onboard.sh
+
+# 3. open Claude Code and run your first skill — e.g. an AEO audit:
 #    "Run an LLM citation audit for acme.com" -> loads skills/llm-citation-audit
 ```
 
-3. See what it produces in [`examples/`](examples/) before you run anything.
+4. See what it produces in [`examples/`](examples/) before you run anything.
+
+**Where am I on the ladder?** [`./onboarding/onboard.sh`](onboarding/README.md) checks
+your own machine and tells you your rung, what is solid underneath it, and the one
+next thing that moves you up — pointing at the skills in this repo that do it. It is
+presence-only, nothing is uploaded, and sharing your result is opt-in. Re-run it after
+every change.
 
 New to a client? The capstone **[client-onboarding-os](skills/client-onboarding-os/SKILL.md)** sequences the first 90 days and tells you which skill to run when.
 
@@ -24,6 +33,7 @@ New to a client? The capstone **[client-onboarding-os](skills/client-onboarding-
 
 | Folder | What's in it |
 |---|---|
+| [`onboarding/`](onboarding/README.md) | **Start here.** Scans your machine, tells you your rung, what's solid underneath it, and the one next thing to do. Presence-only, nothing uploaded. |
 | [`skills/`](skills/README.md) | **52 skills** — start at the index. Group A: 16 AEO/SEO (a chained client workflow). Group B: 22 agentic-engineering skills. Group C: security. Group D: 9 always-on (L5). Group E: 3 autonomy-tier (L7/L9/L10). Group F: the L1 on-ramp. |
 | [`curriculum/`](curriculum/) | The L1–L10 agentic-ladder progression. Every skill is tagged to a rung. |
 | [`playbooks/`](playbooks/) | How to work *with* agents — browser-verification, compounding-feedback, parallel-prototyping. |
