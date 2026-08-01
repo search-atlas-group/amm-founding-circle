@@ -163,6 +163,12 @@ The top of the ladder. Each of these composes the Group D Always-on pieces rathe
 
 ---
 
+## G. Onboarding
+
+| Skill | What it does | When to use | Inputs → Outputs | Rung |
+|-------|--------------|-------------|------------------|------|
+| [ladder-audit](ladder-audit/SKILL.md) | Scans this machine, translates whatever you built into the ten-rung ladder, and reports a system score, tier progress, your reach vs. your defensible floor, and the one next thing to build. Presence-only; nothing is uploaded. | "Run my ladder audit", "what rung am I on", "what am I missing", or after you build something and want a fresh read. | This machine → `onboarding/your-ladder.html` + a terminal summary. | L1 |
+
 ## F. Foundation on-ramp (L1)
 
 The very first rung, made runnable. Where the other groups assume you're already operating the agent, this one gets you *to* your first real win — one genuine client task, by voice, in an hour, with proof it shipped. Start here if you're new, overwhelmed, or coming back after time away.
