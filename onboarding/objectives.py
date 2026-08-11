@@ -105,6 +105,7 @@ def gather() -> dict:
         "jobs": P.scheduled_jobs(),
         "ci": [p.name for p in P.ci_workflows()],
         "ci_cron": P.ci_scheduled(),
+        "spend_gates": P.spend_gate_files(),
         "mux": [m for m in ("tmux", "rmux", "herdr", "zellij", "screen") if P.which(m)],
         "rules": P.any_exists(
             *P.claude_paths("CLAUDE.md"), "~/.codex/AGENTS.md", "~/.gemini/GEMINI.md",
@@ -258,8 +259,8 @@ def build(skills_installed: set[str], skills_stat: dict) -> list[Objective]:
                   signatures=[
                       _sig("custom agent definitions",
                            lambda f: _hit(f["agents"], f"{len(f['agents'])} agent director(ies)")),
-                      _sig("a multi-agent framework in a project",
-                           lambda f: _hit(f["planning"] and f["agents"], "multi-agent project layout")),
+                      _sig("a multi-agent project layout",
+                           lambda f: _hit(f["planning"], f"{len(f['planning'])} planning/spec director(ies)")),
                   ],
                   suggestion="Define two agents with different jobs and point them at one project."),
         Objective("4.parallel", 4, "They can run at the same time",
@@ -427,6 +428,8 @@ def build(skills_installed: set[str], skills_stat: dict) -> list[Objective]:
                   weight=2,
                   signatures=[
                       _sig("an autonomy budget or goal loop", has_skill("autonomy-budget", "goal-mode")),
+                      _sig("a spend/budget gate in your own code",
+                           lambda f: _hit(f["spend_gates"], f"{len(f['spend_gates'])} file(s) with a spend gate")),
                   ],
                   suggestion="Bound the run before you extend it.",
                   skill="autonomy-budget"),

@@ -21,6 +21,21 @@ WORK_DIRS = ("~/Desktop", "~/Documents", "~/Projects", "~/projects", "~/dev",
 CLAUDE_DIRS = ("~/.claude", "~/.claude-max-1", "~/.claude-max-2")
 AGENT_CLIS = ("claude", "codex", "gemini", "kimi", "droid", "agy", "aider", "cursor-agent", "opencode")
 
+#: Directories that are never the evidence we're looking for and are large
+#: enough to exhaust the walk budget before real evidence is reached (e.g. a
+#: `node_modules` next to a member's first repo can be tens of thousands of
+#: entries deep). We still see the directory itself, we just don't descend.
+JUNK_DIR_NAMES = frozenset({
+    "node_modules", "vendor", "target", "dist", "build", "venv", ".venv",
+    "__pycache__", ".next", ".turbo", "Pods", ".gradle", ".tox",
+})
+
+#: Dot-directories worth descending into because real evidence lives inside
+#: them (GitHub Actions workflows, CircleCI config, ...). Everything else
+#: starting with "." stays a leaf (e.g. .git's internals, .cache, .npm) --
+#: expensive to walk and never the signal a rung is looking for.
+DESCEND_DOT_DIRS = frozenset({".github", ".circleci", ".gitlab", ".claude", ".codex", ".gemini"})
+
 
 def which(name: str) -> str | None:
     return shutil.which(name)
@@ -70,21 +85,31 @@ def file_mentions(path: str, *needles: str) -> bool:
 
 
 def _walk(roots, depth: int, limit: int):
-    """Bounded, symlink-safe walk over the work directories."""
-    seen = 0
-    for root in (roots if roots is not None else WORK_DIRS):
+    """Bounded, symlink-safe walk over the work directories.
+
+    The entry budget is per-root, not shared across all roots. A single large
+    root (e.g. one repo with a deep `node_modules`) used to burn the whole
+    shared budget before later roots were ever visited, so a member with 45
+    repos across ~/Desktop and ~/dev could have most of them go unseen. Each
+    root now gets its own share of `limit`, so evidence in the Nth root is
+    reached even if the first root is huge.
+    """
+    root_list = list(roots if roots is not None else WORK_DIRS)
+    per_root_limit = max(200, limit // max(1, len(root_list)))
+    for root in root_list:
         base = expand(root)
         if not base.is_dir():
             continue
+        seen = 0
         stack = [(base, 0)]
-        while stack and seen < limit:
+        while stack and seen < per_root_limit:
             current, level = stack.pop()
             try:
                 entries = list(current.iterdir())
             except OSError:
                 continue
             for entry in entries:
-                if seen >= limit:
+                if seen >= per_root_limit:
                     break
                 try:
                     is_dir = entry.is_dir() and not entry.is_symlink()
@@ -92,8 +117,11 @@ def _walk(roots, depth: int, limit: int):
                     continue
                 yield entry, is_dir, level
                 seen += 1
-                if is_dir and level < depth and not entry.name.startswith("."):
-                    stack.append((entry, level + 1))
+                if not is_dir or level >= depth or entry.name in JUNK_DIR_NAMES:
+                    continue
+                if entry.name.startswith(".") and entry.name not in DESCEND_DOT_DIRS:
+                    continue
+                stack.append((entry, level + 1))
 
 
 def find_dirs(marker: str, roots=None, depth: int = 3, limit: int = 4000) -> list[Path]:
@@ -143,19 +171,25 @@ def mcp_sources() -> list[str]:
 
 
 def agent_definition_dirs() -> list[str]:
-    """Custom agent definitions, global or project-scoped."""
+    """Custom agent definitions, global or project-scoped.
+
+    Members organize agent definitions into category subfolders (e.g.
+    `agents/research/*.md`) as often as they drop them flat, so this has to
+    walk recursively -- a non-recursive `glob("*.md")` reports zero for
+    anyone who filed theirs into folders.
+    """
     found: list[str] = []
     for d in CLAUDE_DIRS:
         target = expand(f"{d}/agents")
         try:
-            if target.is_dir() and any(target.glob("*.md")):
+            if target.is_dir() and any(target.rglob("*.md")):
                 found.append(f"{d}/agents")
         except OSError:
             continue
     for project in find_dirs(".claude", depth=2):
         target = project / ".claude" / "agents"
         try:
-            if target.is_dir() and any(target.glob("*.md")):
+            if target.is_dir() and any(target.rglob("*.md")):
                 found.append(f"{project.name}/.claude/agents")
         except OSError:
             continue
@@ -224,9 +258,41 @@ def git_worktrees() -> int:
 
 
 def ci_workflows() -> list[Path]:
-    return find_files(("ci.yml", "ci.yaml", "main.yml", "test.yml", "build.yml",
-                       "release.yml", ".gitlab-ci.yml"))
+    """Any CI config: GitHub Actions/CircleCI can name their workflow file
+    anything, so the real signal is the *directory* it lives in, not one of
+    a handful of filenames we happened to think of. A GitLab pipeline is the
+    one platform with a fixed, single filename, so that stays name-matched."""
+    out: list[Path] = []
+    for entry, is_dir, _ in _walk(None, depth=4, limit=4000):
+        if is_dir or entry.suffix not in (".yml", ".yaml"):
+            continue
+        if entry.parent.name in ("workflows", ".circleci"):
+            out.append(entry)
+    out += find_files(".gitlab-ci.yml")
+    return out
 
 
 def ci_scheduled() -> bool:
     return any(file_mentions(str(p), "schedule:", "- cron:") for p in ci_workflows())
+
+
+def spend_gate_files() -> list[str]:
+    """Code that gates autonomy on a budget, not just an installed skill.
+
+    'Autonomy has a budget and rails' should be scored on whether the
+    capability exists in whatever shape a member built it, same as every
+    other rung -- not only when it comes from one specific repo skill. A
+    member who wrote their own budget/spend cap in code is evidence too.
+    """
+    out: list[str] = []
+    seen_dirs: set[Path] = set()
+    for entry, is_dir, _ in _walk(None, depth=3, limit=4000):
+        if is_dir or entry.parent in seen_dirs:
+            continue
+        if entry.suffix not in (".py", ".ts", ".js", ".toml", ".yaml", ".yml"):
+            continue
+        if file_mentions(str(entry), "budget_usd", "spend_cap", "cost_cap",
+                          "max_spend", "spend_limit", "billable"):
+            out.append(str(entry))
+            seen_dirs.add(entry.parent)
+    return out

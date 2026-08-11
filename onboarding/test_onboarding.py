@@ -234,6 +234,94 @@ def test_json_has_key_survives_a_corrupt_config(tmp_path):
     assert P.json_has_key(str(bad), "hooks") is False
 
 
+# --- bugs reported by Bryan Fikes, 2026-08-11 --------------------------------
+
+
+def test_a_large_root_does_not_starve_a_later_root_of_budget(tmp_path, monkeypatch):
+    """Regression for the entry-budget-exhaustion bug: a huge first root used
+    to consume the whole shared limit before a later root's `.git` was ever
+    reached, so a member with several repos across roots saw `repos: []`."""
+    huge = tmp_path / "huge"
+    huge.mkdir()
+    for i in range(50):
+        (huge / f"file{i}.txt").write_text("x")
+    small = tmp_path / "small"
+    (small / ".git").mkdir(parents=True)
+    monkeypatch.setattr(P, "WORK_DIRS", (str(huge), str(small)))
+    assert len(P.find_dirs(".git", limit=60)) == 1
+
+
+def test_walk_skips_junk_directories_but_still_sees_them(tmp_path, monkeypatch):
+    (tmp_path / "node_modules" / "some-package" / ".git").mkdir(parents=True)
+    (tmp_path / "real" / ".git").mkdir(parents=True)
+    monkeypatch.setattr(P, "WORK_DIRS", (str(tmp_path),))
+    found = P.find_dirs(".git")
+    assert [p.name for p in found] == ["real"]
+
+
+def test_github_workflows_directory_is_reachable(tmp_path, monkeypatch):
+    """Regression: dot-directories were never descended into, so
+    `.github/workflows/*.yml` was structurally unreachable."""
+    wf = tmp_path / "a-repo" / ".github" / "workflows"
+    wf.mkdir(parents=True)
+    (wf / "deploy.yml").write_text("on: push\njobs: {}\n")
+    monkeypatch.setattr(P, "WORK_DIRS", (str(tmp_path),))
+    ci = P.ci_workflows()
+    assert any(p.name == "deploy.yml" for p in ci)
+
+
+def test_ci_workflow_filename_does_not_matter(tmp_path, monkeypatch):
+    """Regression: only a fixed filename list (ci.yml, main.yml, ...) counted.
+    Any *.yml inside .github/workflows is a real CI workflow."""
+    wf = tmp_path / "a-repo" / ".github" / "workflows"
+    wf.mkdir(parents=True)
+    (wf / "daily-content.yml").write_text("on: schedule\n")
+    monkeypatch.setattr(P, "WORK_DIRS", (str(tmp_path),))
+    assert any(p.name == "daily-content.yml" for p in P.ci_workflows())
+
+
+def test_agent_definitions_are_found_recursively(tmp_path, monkeypatch):
+    """Regression: `glob("*.md")` (non-recursive) reported zero for a member
+    who filed agent definitions into category subfolders."""
+    agents = tmp_path / ".claude" / "agents"
+    (agents / "research").mkdir(parents=True)
+    (agents / "research" / "scout.md").write_text("# scout")
+    monkeypatch.setattr(P, "CLAUDE_DIRS", (str(tmp_path / ".claude"),))
+    monkeypatch.setattr(P, "WORK_DIRS", ())
+    assert f"{tmp_path / '.claude'}/agents" in P.agent_definition_dirs()
+
+
+def test_spend_gate_in_code_is_detected(tmp_path, monkeypatch):
+    (tmp_path / "agent").mkdir()
+    (tmp_path / "agent" / "budget.py").write_text("MAX = 10\nbudget_usd = 5.0\n")
+    monkeypatch.setattr(P, "WORK_DIRS", (str(tmp_path),))
+    assert P.spend_gate_files()
+
+
+def test_4_many_alternative_signature_is_genuinely_different(tmp_path, monkeypatch):
+    """Regression: the second signature for 4.many required `planning AND
+    agents` -- the exact same condition as the first signature (agents
+    alone), so it could never fire on its own. A project with a planning/spec
+    layout but no `.claude/agents` dir should still satisfy the objective."""
+    built = obj_mod.build(set(), {"installed_total": 0, "available_total": 55})
+    many = next(o for o in built if o.id == "4.many")
+    facts = {"agents": [], "planning": ["specs"]}
+    hit, _ = many.signatures[1].detect(facts)
+    assert hit is True
+
+
+def test_9_bounds_accepts_a_code_level_spend_gate_not_only_the_skill():
+    """Regression: 9.bounds had exactly one signature (a specific repo skill
+    being installed), violating the scanner's own stated principle that a
+    member is scored on the capability, not on matching our tools."""
+    built = obj_mod.build(set(), {"installed_total": 0, "available_total": 55})
+    bounds = next(o for o in built if o.id == "9.bounds")
+    assert len(bounds.signatures) >= 2
+    facts = {"spend_gates": ["agent/budget.py"]}
+    hit, _ = bounds.signatures[1].detect(facts)
+    assert hit is True
+
+
 def test_evaluate_runs_end_to_end():
     result = lp.evaluate({})
     assert sorted(result["rungs"]) == list(range(1, 11))
