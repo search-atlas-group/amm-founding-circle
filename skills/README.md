@@ -1,6 +1,6 @@
 # Skills Index — AMM Founding Circle
 
-This repository carries **56 skills** under `skills/`, organized into six groups:
+This repository carries **61 skills** under `skills/`, organized into seven groups:
 
 - **A. Marketing & AEO/SEO** — the original 16, referenced by canonical number `#1`–`#16` throughout the two orchestrators (`client-onboarding-os` and `aeo-llm-content-planner`). These chain into each other: foundation skills feed diagnostics, diagnostics feed the planner, and the planner + onboarding OS sequence everything else.
 - **B. Agentic Engineering** — 26 skills (19 adopted + 7 built for the cohort) covering the instinct/learning loop, build & code tooling, orchestration, reporting, routing, and safety. No canonical numbering.
@@ -8,6 +8,7 @@ This repository carries **56 skills** under `skills/`, organized into six groups
 - **D. Always-on (L5)** — 9 skills that take your agent from "runs when I'm watching" to "runs while I sleep": the mental model, hosting, capacity, durability, consistency, monitoring, goal-driven runs, capability gaps, and the morning brief that proves it worked.
 - **E. Autonomy tier (L7 · L9 · L10)** — 3 skills for the top of the ladder, each composing the Always-on pieces: the multi-model council that stops you trusting one answer on high-stakes work (L7), the autonomy budget that lets you hand off a multi-day job on rails and walk away (L9), and commanding the whole fleet from your phone (L10).
 - **F. Foundation on-ramp (L1)** — the very first rung, made runnable: one genuine client task, by voice, in an hour, with proof it shipped. Start here if you're new, overwhelmed, or coming back after time away.
+- **H. Website Migration (giveaway kit)** — 5 skills that let a non-technical person run one real stage of a WordPress → SearchAtlas Website Studio migration themselves — a genuine taste of the full service, with the automated/bulk/managed version as the obvious upsell. Shared at the 2026-08-13 session.
 
 The **agentic-ladder rung** column is a suggested autonomy level (L1–L10): single-purpose, human-in-the-loop skills sit around L3–L4; multi-skill orchestrators around L6; self-modifying / autonomy / instinct skills higher. See [`../curriculum/agentic-ladder.md`](../curriculum/agentic-ladder.md).
 
@@ -178,6 +179,18 @@ The very first rung, made runnable. Where the other groups assume you're already
 | [first-real-job](first-real-job/SKILL.md) | The L1 on-ramp made runnable: do ONE real client task through the agent, by voice, in about an hour, with every step saved — proof it ships, not a demo. Shrinks "learn this whole new way of working" down to a single job you already have today. | Your first genuine task (not a practice prompt); overwhelmed and unsure where to start; re-joining after time away and it feels like a fire hose. | One real task you already have + dictation on → a shipped deliverable in version control + a cleared 4-point proof checklist. | L1 |
 
 ---
+
+## H. Website Migration (giveaway kit)
+
+A single-page site migration, run by hand, one stage at a time. Free/paid line throughout: **single + manual + qualitative is free; bulk + automated + quantitative + continuous is the service.** Each skill is self-contained (no dependencies on the others beyond the router naming them) and uses only the Python standard library — no installs required. Every script accepts pasted content or dry-run mode.
+
+| Skill | What it does | When to use | Inputs → Outputs | Rung |
+|-------|--------------|-------------|------------------|------|
+| [website-migration](website-migration/SKILL.md) | Router — explains the 4-stage migration and hands off to the right skill below. | Starting point; "how do I migrate my site." | A migration goal → the 4-stage mental model + which skill to run next. | L3 |
+| [wp-content-extractor](wp-content-extractor/SKILL.md) | Pulls one WordPress page/post into clean Markdown + an image list. | Stage 1 — extract. | One WP URL → Markdown + image list. | L3 |
+| [sa-website-studio](sa-website-studio/SKILL.md) | Pushes one domain into SearchAtlas Website Studio via the SA MCP API. | Stage 2 — rebuild. Requires a SearchAtlas account + API key. | One domain + content → a live Website Studio project. | L3 |
+| [migration-visual-check](migration-visual-check/SKILL.md) | Compares one original page against its rebuild — structure + screenshots. | Stage 3 — verify. | Original URL + rebuilt URL → structural diff + screenshot comparison. | L3 |
+| [migration-seo-parity](migration-seo-parity/SKILL.md) | Probes one URL for SEO/redirect health and hands back a cutover checklist. | Stage 4 — cutover. | One URL → SEO/redirect health read + cutover checklist. | L3 |
 
 ## Install
 
