@@ -11,13 +11,26 @@ Config files are inspected for the presence of a key, never for its value.
 from __future__ import annotations
 
 import json
+import os
 import shutil
 import subprocess
 from pathlib import Path
 
-#: Where members plausibly keep client work. Bounded so the scan stays fast.
-WORK_DIRS = ("~/Desktop", "~/Documents", "~/Projects", "~/projects", "~/dev",
-             "~/code", "~/work", "~/src", "~/Sync", "~/repos", "~/git")
+#: Default places members plausibly keep client work. Bounded so the scan stays fast.
+_WORK_DIRS_DEFAULT = ("~/Desktop", "~/Documents", "~/Projects", "~/projects", "~/dev",
+                      "~/code", "~/work", "~/src", "~/Sync", "~/repos", "~/git")
+
+
+def _work_dirs() -> tuple[str, ...]:
+    """Allow override via AMM_LADDER_WORK_DIRS (colon-separated) while keeping defaults."""
+    env = os.environ.get("AMM_LADDER_WORK_DIRS")
+    if env:
+        return tuple(p.strip() for p in env.split(":") if p.strip())
+    return _WORK_DIRS_DEFAULT
+
+
+#: Backwards-compatible public alias that resolves the env flag on first use.
+WORK_DIRS = _work_dirs()
 CLAUDE_DIRS = ("~/.claude", "~/.claude-max-1", "~/.claude-max-2")
 AGENT_CLIS = ("claude", "codex", "gemini", "kimi", "droid", "agy", "aider", "cursor-agent", "opencode")
 
