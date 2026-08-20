@@ -220,6 +220,28 @@ def test_project_scoped_mcp_is_found(tmp_path, monkeypatch):
     assert any(".mcp.json" in s for s in P.mcp_sources())
 
 
+def test_claude_project_memory_is_found_when_flat_memory_dir_is_absent(tmp_path, monkeypatch):
+    # Claude Code's real layout: <CLAUDE_DIR>/projects/<encoded-cwd>/memory/*.md --
+    # no flat <CLAUDE_DIR>/memory folder at all. Reported by a member (2026-08-20)
+    # scoring zero on a capability he actually has (255 files) because the old
+    # check only looked at the flat path.
+    claude_dir = tmp_path / ".claude"
+    proj_mem = claude_dir / "projects" / "-Users-don-lnc-workspace" / "memory"
+    proj_mem.mkdir(parents=True)
+    (proj_mem / "notes.md").write_text("x")
+    monkeypatch.setattr(P, "CLAUDE_DIRS", (str(claude_dir),))
+    found = P.claude_project_memory_dirs()
+    assert len(found) == 1
+    assert "memory" in found[0]
+
+
+def test_claude_project_memory_ignores_empty_memory_dirs(tmp_path, monkeypatch):
+    claude_dir = tmp_path / ".claude"
+    (claude_dir / "projects" / "-Users-x-repo" / "memory").mkdir(parents=True)
+    monkeypatch.setattr(P, "CLAUDE_DIRS", (str(claude_dir),))
+    assert P.claude_project_memory_dirs() == []
+
+
 def test_walk_does_not_follow_symlinks(tmp_path, monkeypatch):
     real = tmp_path / "real"
     (real / ".beads").mkdir(parents=True)
