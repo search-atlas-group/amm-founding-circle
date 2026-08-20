@@ -15,6 +15,7 @@ from __future__ import annotations
 import argparse
 import base64
 import html
+import os
 import subprocess
 import sys
 from datetime import datetime
@@ -291,7 +292,12 @@ def main(argv: list[str] | None = None) -> int:
     path = write(result, verdict, Path(args.out))
     print(f"readout: {path}")
     if args.open:
-        subprocess.run(["open" if sys.platform == "darwin" else "xdg-open", str(path)], check=False)
+        if sys.platform == "darwin":
+            subprocess.run(["open", str(path)], check=False)
+        elif sys.platform == "win32":
+            os.startfile(str(path))  # noqa: S606 (Windows-only API)
+        else:
+            subprocess.run(["xdg-open", str(path)], check=False)
     return 0
 
 

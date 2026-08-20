@@ -8,6 +8,19 @@ what is missing at your rung, and the single next thing that moves you up.
 ./onboarding/onboard.sh
 ```
 
+**On Windows**, run this instead (no Git Bash or WSL needed — a plain PowerShell
+window works):
+
+```powershell
+.\onboarding\onboard.ps1
+```
+
+If PowerShell refuses to run it ("running scripts is disabled"), either
+right-click the file and choose **Run with PowerShell**, or run this once in
+your terminal first: `Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass`.
+You'll also need Python from [python.org](https://python.org/downloads) —
+check "Add python.exe to PATH" during install.
+
 It takes about ten seconds and opens a readout in your browser.
 
 ## What it actually does
@@ -112,7 +125,8 @@ from session attendance. But it is your call, every time.
 
 | File | What it is |
 |---|---|
-| `onboard.sh` | the one command |
+| `onboard.sh` | the one command (macOS / Linux) |
+| `onboard.ps1` | the one command (Windows, native PowerShell) |
 | `probes.py` | the low-level presence checks |
 | `objectives.py` | what each rung is for, and every way to satisfy it |
 | `ladder_probe.py` | the scoring — reach, floor, tier progress, system score |
