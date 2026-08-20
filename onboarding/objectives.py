@@ -130,7 +130,8 @@ def gather() -> dict:
                     + [p.name for p in P.find_dirs("adr", depth=3)],
         "specfiles": [p.name for p in P.find_files(("SPEC.md", "PRD.md", "DESIGN.md"), depth=2)],
         "memory": P.any_exists(*[f"{d}/memory" for d in P.CLAUDE_DIRS],
-                               *P.claude_paths("CLAUDE.md"), "~/.codex/memory"),
+                               *P.claude_paths("CLAUDE.md"), "~/.codex/memory")
+                  + P.claude_project_memory_dirs(),
         "vault": [p.name for p in P.find_dirs(".obsidian", depth=3)],
         "vectors": [p.name for p in P.find_dirs(".chroma", depth=3)]
                    + [p.name for p in P.find_dirs("lancedb", depth=3)],

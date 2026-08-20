@@ -160,6 +160,42 @@ def claude_paths(filename: str) -> list[str]:
     return [f"{d}/{filename}" for d in CLAUDE_DIRS]
 
 
+def claude_project_memory_dirs() -> list[str]:
+    """Claude Code's actual per-project memory storage.
+
+    Claude Code does not keep memory in a flat `<dir>/memory` folder -- it
+    stores one memory directory per project the agent has worked in, at
+    `<CLAUDE_DIR>/projects/<encoded-cwd>/memory/`, where the encoded name is
+    the project's absolute path with every `/` replaced by `-`. A member can
+    have zero files under `~/.claude/memory` and hundreds of real memory
+    files split across several of these per-project stores -- checking only
+    the flat path scores them zero on a capability they actually have
+    (reported by Don Franklin, 2026-08-20: 255/72/2 files across 3 project
+    stores, all invisible to the old flat-path check).
+
+    Presence only -- we return which project stores exist and hold files,
+    never their contents.
+    """
+    found: list[str] = []
+    for d in CLAUDE_DIRS:
+        projects_root = expand(f"{d}/projects")
+        try:
+            if not projects_root.is_dir():
+                continue
+            for project_dir in projects_root.iterdir():
+                if not project_dir.is_dir():
+                    continue
+                mem = project_dir / "memory"
+                try:
+                    if mem.is_dir() and any(mem.iterdir()):
+                        found.append(f"{d}/projects/{project_dir.name}/memory")
+                except OSError:
+                    continue
+        except OSError:
+            continue
+    return found
+
+
 def installed_clis() -> list[str]:
     return [c for c in AGENT_CLIS if which(c)]
 
