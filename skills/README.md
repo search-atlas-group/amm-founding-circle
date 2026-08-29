@@ -1,6 +1,6 @@
 # Skills Index — AMM Founding Circle
 
-This repository carries **62 skills** under `skills/`, organized into seven groups:
+This repository carries **63 skills** under `skills/`, organized into seven groups:
 
 - **A. Marketing & AEO/SEO** — the original 16, referenced by canonical number `#1`–`#16` throughout the two orchestrators (`client-onboarding-os` and `aeo-llm-content-planner`). These chain into each other: foundation skills feed diagnostics, diagnostics feed the planner, and the planner + onboarding OS sequence everything else.
 - **B. Agentic Engineering** — 26 skills (19 adopted + 7 built for the cohort) covering the instinct/learning loop, build & code tooling, orchestration, reporting, routing, and safety. No canonical numbering.
@@ -9,6 +9,7 @@ This repository carries **62 skills** under `skills/`, organized into seven grou
 - **E. Autonomy tier (L7 · L9 · L10)** — 3 skills for the top of the ladder, each composing the Always-on pieces: the multi-model council that stops you trusting one answer on high-stakes work (L7), the autonomy budget that lets you hand off a multi-day job on rails and walk away (L9), and commanding the whole fleet from your phone (L10).
 - **F. Foundation on-ramp (L1)** — the very first rung, made runnable: one genuine client task, by voice, in an hour, with proof it shipped. Start here if you're new, overwhelmed, or coming back after time away.
 - **H. Website Migration (giveaway kit)** — 5 skills that let a non-technical person run one real stage of a WordPress → SearchAtlas Website Studio migration themselves — a genuine taste of the full service, with the automated/bulk/managed version as the obvious upsell. Shared at the 2026-08-13 session.
+- **I. Website Launch Planning** — 1 skill: a full pre-launch plan (site architecture, per-page SEO briefs, schemas, tracking) for a brand-new site, grounded in live Search Atlas MCP data. Complements Group H — that kit migrates an *existing* site, this one plans a site that doesn't exist yet.
 
 The **agentic-ladder rung** column is a suggested autonomy level (L1–L10): single-purpose, human-in-the-loop skills sit around L3–L4; multi-skill orchestrators around L6; self-modifying / autonomy / instinct skills higher. See [`../curriculum/agentic-ladder.md`](../curriculum/agentic-ladder.md).
 
@@ -193,6 +194,16 @@ A single-page site migration, run by hand, one stage at a time. Free/paid line t
 | [sa-website-studio](sa-website-studio/SKILL.md) | Pushes one domain into SearchAtlas Website Studio via the SA MCP API. | Stage 2 — rebuild. Requires a SearchAtlas account + API key. | One domain + content → a live Website Studio project. | L3 |
 | [migration-visual-check](migration-visual-check/SKILL.md) | Compares one original page against its rebuild — structure + screenshots. | Stage 3 — verify. | Original URL + rebuilt URL → structural diff + screenshot comparison. | L3 |
 | [migration-seo-parity](migration-seo-parity/SKILL.md) | Probes one URL for SEO/redirect health and hands back a cutover checklist. | Stage 4 — cutover. | One URL → SEO/redirect health read + cutover checklist. | L3 |
+
+---
+
+## I. Website Launch Planning
+
+| Skill | What it does | When to use | Inputs → Outputs | Rung |
+|-------|--------------|-------------|------------------|------|
+| [launch-website](launch-website/SKILL.md) | Turns discovery inputs (URL, services, locations) into a complete pre-launch plan — site architecture, per-page briefs (keywords, metadata, modules, FAQs, schemas, internal links), tracking setup — pulling live Search Atlas MCP data. Opinionated toward local service businesses with 1–5 locations. | Planning a brand-new site launch; "plan a launch," "generate site architecture," "build per-page SEO briefs." | Domain + services + locations → `plan.md` + `dashboard.html` + `notes.md`, with every number sourced to a tool call. | L6 |
+
+**Known gap:** this skill's own instructions reference a companion file tree (`spec/master-template-spec.md`, `references/page-types.md`, `references/searchatlas-playbook.md`, `references/internal-linking.md`, `references/local-seo-layer.md`, `spec/sitemap-rules.md`, `spec/measurement.md`, `examples/goswiftpro-fairfax/`, `assets/dashboard-template.html`, `qa/tool_manifest.json`, `qa/lint_skill_tools.py`) that was not supplied alongside `SKILL.md` and does not exist in this repo yet. The skill will still run — most rules are also stated inline in the phase text — but any Read of those paths will fail; source the missing files before treating references-dependent phases (schema/module matrices, FAQ targets, sitemap rules) as complete.
 
 ## Install
 
