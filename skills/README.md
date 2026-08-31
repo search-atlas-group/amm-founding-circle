@@ -203,8 +203,6 @@ A single-page site migration, run by hand, one stage at a time. Free/paid line t
 |-------|--------------|-------------|------------------|------|
 | [launch-website](launch-website/SKILL.md) | Turns discovery inputs (URL, services, locations) into a complete pre-launch plan — site architecture, per-page briefs (keywords, metadata, modules, FAQs, schemas, internal links), tracking setup — pulling live Search Atlas MCP data. Opinionated toward local service businesses with 1–5 locations. | Planning a brand-new site launch; "plan a launch," "generate site architecture," "build per-page SEO briefs." | Domain + services + locations → `plan.md` + `dashboard.html` + `notes.md`, with every number sourced to a tool call. | L6 |
 
-**Known gap:** this skill's own instructions reference a companion file tree (`spec/master-template-spec.md`, `references/page-types.md`, `references/searchatlas-playbook.md`, `references/internal-linking.md`, `references/local-seo-layer.md`, `spec/sitemap-rules.md`, `spec/measurement.md`, `examples/goswiftpro-fairfax/`, `assets/dashboard-template.html`, `qa/tool_manifest.json`, `qa/lint_skill_tools.py`) that was not supplied alongside `SKILL.md` and does not exist in this repo yet. The skill will still run — most rules are also stated inline in the phase text — but any Read of those paths will fail; source the missing files before treating references-dependent phases (schema/module matrices, FAQ targets, sitemap rules) as complete.
-
 ## Install
 
 ```bash
