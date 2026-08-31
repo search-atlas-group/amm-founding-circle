@@ -21,7 +21,7 @@ have; copying it produces a site that ranks for nothing.
 1. **Never publish a number you did not pull from a tool.** Ratings, review counts,
    licence numbers, years in business, job counts, awards, competitor metrics. If it is
    not sourced, it does not go in the plan — not as an example, not as a placeholder that
-   looks like data. See `spec/master-template-spec.md` §5.
+   looks like data.
 2. **Never generate a page just because a keyword exists.** Search volume is not a
    publish gate. Evidence is. See Phase 3.
 
@@ -33,10 +33,7 @@ partner cannot tell an invented volume from a real one by reading it.
 The `searchatlas` MCP server must be connected. If `mcp__searchatlas__*` tools are not
 available, stop and tell the user to add it (`https://mcp.searchatlas.com/mcp`).
 
-Tool names in this skill are verified against `qa/tool_manifest.json`. **If you are
-editing this skill, run `qa/lint_skill_tools.py` before you finish.** v0.3 shipped 52
-tool names that did not exist on the server, which silently broke keyword research, FAQ
-sourcing, citations and tracking. Do not add a tool name from memory.
+Do not add a tool name from memory — verify it against the live MCP tool list first.
 
 ---
 
@@ -121,9 +118,8 @@ reusable?"* → `bv_create`.
 
 ### Required-for-publish inputs
 
-These are not optional and the plan says so explicitly when they are missing. Per
-`spec/master-template-spec.md` §5, absent identity/legal/licensing data is a **hard fail**,
-not a silently omitted block:
+These are not optional and the plan says so explicitly when they are missing. Absent
+identity/legal/licensing data is a **hard fail**, not a silently omitted block:
 
 - Legal business name, exact NAP per location, licence number(s) + issuing state
 - Insurance status, service capability per service line
@@ -158,10 +154,9 @@ Deduplicate, score by volume × intent weight, group by service. Hold as `keywor
 
 ## Phase 2.5 — Local competitor identification
 
-**`WebSearch` first** — pass the non-competitor blocklist from
-`references/searchatlas-playbook.md` to `blocked_domains` so review sites, aggregators,
-directories and social are filtered server-side. Parse hostnames, dedupe, top 3 distinct
-per query. Run for the head term and per location.
+**`WebSearch` first** — pass a non-competitor blocklist (review sites, aggregators,
+directories, social platforms) to `blocked_domains` so they're filtered server-side.
+Parse hostnames, dedupe, top 3 distinct per query. Run for the head term and per location.
 
 Fallbacks: `AskUserQuestion` for 3–5 known competitors → "competitor research deferred"
 with a next step. **Never invent a competitor domain, and never state a competitor's DA,
@@ -174,8 +169,7 @@ Feeds **Section 3 of the plan: Local Competitive Landscape.**
 
 ## Phase 3 — Site architecture
 
-Derive the sitemap from evidence, not from a fixed skeleton. Full rules in
-`spec/sitemap-rules.md`; the logic:
+Derive the sitemap from evidence, not from a fixed skeleton. The logic:
 
 ```
 /                                  Home — always
@@ -213,8 +207,8 @@ natively rather than auto-creating — the UI flow is multi-step and better in-a
 
 Recommend, do not auto-create: `bv_create` (voice questionnaire), `kg_create`
 (Organization + one `LocalBusiness`/`Plumber` node **per physical location**). Read back
-with `kg_get` and check against the spec's required-entity list — there is no
-completeness-scoring tool.
+with `kg_get` and check it against the entities and topic clusters the plan calls for —
+there is no completeness-scoring tool.
 
 ## Phase 5 — Per-page briefs
 
@@ -226,7 +220,9 @@ links · **and the template that renders it** (`templates/{name}.html`).
 canonical and body must agree on **one** primary target. Secondary geographic mentions are
 fine; contradiction is the defect.
 
-**Modules** from `references/page-types.md`.
+**Modules.** Choose per page type based on what the page needs to prove — hero, service
+list, service-area map, testimonials, FAQ block, schema block, and so on. Home and hub
+pages carry the broadest set; a service page needs only what supports that one service.
 
 **FAQs — generate candidates, then validate against volume.** There is no PAA endpoint on
 this MCP, and **related keywords are not a substitute** — verified on 2026-08-14, they
@@ -248,11 +244,11 @@ much does it cost to replace a water heater"* **2,400/mo**.
 0 for "how long does a water heater last" while assigning it a difficulty score of 27,
 which is internally inconsistent. Cross-check anything surprising.
 
-Per-page targets live in `references/page-types.md` (blog post 0–4 · contact 2–3 · home and about 3–5 · hub and location 4–6 · service 4–8 · the FAQ hub consolidates). **Stop when the good ones run out.** v0.3 said
-"if PAA data is thin, supplement to reach 8–12" — that instruction manufactures padding.
-Six sourced questions beat twelve invented ones. Home and hub pages skew to company and
-service-area questions; service pages skew to service questions; location pages skew to
-coverage questions.
+Per-page targets: blog post 0–4 · contact 2–3 · home and about 3–5 · hub and location 4–6
+· service 4–8 · the FAQ hub consolidates. **Stop when the good ones run out** — six
+sourced questions beat twelve invented ones; don't pad toward a target. Home and hub
+pages skew to company and service-area questions; service pages skew to service
+questions; location pages skew to coverage questions.
 
 **Headings outlines (gated, generation-class).** `cg_create_content_instance` +
 `cg_run_generation_step` + `cg_update_article_headings`, homepage and top 3 service pages
@@ -261,8 +257,8 @@ headings natively post-launch."
 
 ## Phase 6 — Schema deployment plan
 
-Compile the per-page matrix from `references/page-types.md`. Document the sequence; do not
-auto-deploy:
+Compile a per-page schema matrix (which schema types each page needs and why). Document
+the deployment sequence; do not auto-deploy:
 
 1. `otto_audit_site` — project ready
 2. `otto_set_engagement` — activate
@@ -278,14 +274,17 @@ tactic, and make no promises about star results.
 
 ## Phase 7 — Internal linking map
 
-Apply `references/internal-linking.md`. Output as a table: source → target → anchor →
-module. Service-area cities that have no page get **plain text, not links** — this is what
-makes the doorway-page guard visible in the markup instead of buried in prose.
+Output a table: source → target → anchor → module, following standard hub-and-spoke
+rules (hub pages link out to every spoke; spokes link back to the hub and sideways to
+directly related spokes, not to every other spoke). Service-area cities that have no
+page get **plain text, not links** — this is what makes the doorway-page guard visible
+in the markup instead of buried in prose.
 
 ## Phase 8 — Local SEO layer
 
-Output `references/local-seo-layer.md` as a numbered checklist, **per location**. Note
-that `local_seo_heatmaps_recommend_keywords` requires a `business_id` from
+Output a numbered checklist, **per location**: GBP profile completeness, categories,
+NAP consistency, citations, and a local heatmap read. Note that
+`local_seo_heatmaps_recommend_keywords` requires a `business_id` from
 `local_seo_heatmaps_create_business` — it belongs here, not in Phase 2.
 
 ## Phase 9 — Tracking setup
@@ -294,7 +293,7 @@ that `local_seo_heatmaps_recommend_keywords` requires a `business_id` from
 - `gsc_get_sites` (NATIVE, OAuth) + `otto_manage_gsc_property` to bind it
 - `llmv_create_project` + `llmv_add_topics` + `llmv_add_queries` (plural)
 - `otto_audit_site` → `otto_set_engagement`
-- **Call tracking and attribution** — `spec/measurement.md`. The phone is the primary
+- **Call tracking and attribution.** The phone is the primary
   channel for a trade; a site measuring only the form measures the wrong half. Record the
   DNI mode and the NAP strategy before launch, because tracking numbers and NAP
   consistency genuinely conflict.
@@ -335,9 +334,8 @@ missing reads as complete.
 
 ### `dashboard.html`
 
-Copy `assets/dashboard-template.html` and inject plan data into the embedded
-`<script id="plan-data" type="application/json">` block. Verify it opens without console
-errors.
+A self-contained HTML dashboard summarizing the plan, built inline from the plan data.
+Verify it opens without console errors.
 
 ### `notes.md`
 
@@ -364,25 +362,6 @@ What's next?
 
 Invoke the chosen skill immediately with inputs pre-filled. Do not re-prompt for data
 already collected.
-
-## Reference files
-
-- `references/searchatlas-playbook.md` — MCP tool catalogue per phase, verified names
-- `references/page-types.md` — page-type → modules + schemas + FAQ matrix
-- `references/internal-linking.md` — hub-and-spoke rules
-- `references/local-seo-layer.md` — GBP + citations + heatmaps detail
-- `spec/master-template-spec.md` — the page/proof/data contract this plan must satisfy
-- `spec/sitemap-rules.md` — 1–5 location sitemap derivation
-
-## Example
-
-`examples/goswiftpro-fairfax/` — a real graded run against a live Northern Virginia
-plumber. Every number in it carries its source, and the run notes record what the tools
-returned versus what had to be deferred.
-
-The previous worked example (`plumbing-vegas`) was a fully invented business with invented
-volumes and competitor scores, presented as a calibration reference. It was removed: a
-model calibrating on it reproduces the shape *including* the confident fake numbers.
 
 ## Out of scope
 
