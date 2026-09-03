@@ -2,6 +2,10 @@
 
 All notable changes to this repo. Dates are YYYY-MM-DD.
 
+## 2026-09-03
+### Added
+- **`tools/agent-memory-kit/`** — pushed recall for Claude Code: a local search index (qmd) over your markdown notes plus a prompt hook that injects the top 3 matching notes before the agent thinks. Cross-platform installers (`install.sh` / `install.bat`), `/remember` command, `brain-search` skill, brain template, self-test (`test.sh` / `test.bat`), uninstaller. Covered in the 2026-09-03 cohort session.
+
 ## 2026-06-22
 ### Added
 - **Agentic Engineering Fundamentals** — 19 skills (instinct/learning loop, build & code, reporting, routing, safety), 3 playbooks, operating-model docs, essays, templates, agent-authoring guide.
