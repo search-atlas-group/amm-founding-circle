@@ -14,6 +14,10 @@ Config, command line first, then environment:
   --min-score N     / BRAIN_MIN_SCORE    minimum match score to inject (default: 80)
   --max-hits N      / BRAIN_MAX_HITS     maximum hits injected per prompt (default: 3)
   --prompt TEXT                          skip stdin and use TEXT (for verifying by hand)
+  --qmd PATH                             absolute qmd binary, baked in by the installer
+  --no-dedupe                            do not read or write the per-session dedupe file
+                                         (use it whenever you verify by hand, so the same
+                                         command keeps printing on every run)
 """
 import hashlib
 import json
@@ -51,6 +55,8 @@ def parse_argv(argv):
         "min_score": int_env("BRAIN_MIN_SCORE", 80),
         "max_hits": int_env("BRAIN_MAX_HITS", 3),
         "prompt": None,
+        "qmd": os.environ.get("BRAIN_QMD") or None,
+        "no_dedupe": False,
     }
     i = 0
     while i < len(argv):
@@ -72,12 +78,26 @@ def parse_argv(argv):
             i += 2
         elif a == "--prompt" and val is not None:
             opts["prompt"] = val; i += 2
+        elif a == "--qmd" and val is not None:
+            opts["qmd"] = val; i += 2
+        elif a in ("--no-dedupe", "--fresh-session"):
+            opts["no_dedupe"] = True; i += 1
         else:
             i += 1
     return opts
 
 
-def find_qmd():
+def find_qmd(preferred=None):
+    """Baked-in absolute path first, PATH lookup second, well-known locations last.
+
+    The installer resolves qmd once and bakes the answer into the hook command, so the
+    hook keeps working under a login shell whose PATH does not carry nvm or a custom npm
+    prefix. The PATH lookup stays as the fallback for a moved or reinstalled binary.
+    """
+    if preferred:
+        if os.access(preferred, os.X_OK):
+            return preferred
+        warn("baked-in qmd path is not executable: %s — falling back to PATH" % preferred)
     for name in QMD_NAMES:
         found = shutil.which(name)
         if found:
@@ -86,6 +106,28 @@ def find_qmd():
         if os.access(fallback, os.X_OK):
             return fallback
     return None
+
+
+def qmd_env(qmd):
+    """Environment for the qmd child, with qmd's own directory prepended to PATH.
+
+    qmd is a Node script: an absolute path alone is not enough, because its shebang still
+    has to find `node`. Under nvm or a custom npm prefix both live in the same bin dir, so
+    prepending it makes an absolute qmd path actually runnable from a bare hook PATH.
+    """
+    env = dict(os.environ)
+    bindir = os.path.dirname(os.path.abspath(qmd))
+    if bindir:
+        env["PATH"] = bindir + os.pathsep + env.get("PATH", "")
+    return env
+
+
+def warn(msg):
+    """One diagnostic line on stderr. A hook must never be a silent no-op it cannot explain."""
+    try:
+        sys.stderr.write("qmd-recall-hook: %s\n" % msg)
+    except Exception:  # noqa: BLE001
+        pass
 
 
 def stem(w):
@@ -175,8 +217,11 @@ def main(argv=None):
 
     if len(prompt) < 25 or prompt[0] in "/!":
         return 0
-    qmd = find_qmd()
+    qmd = find_qmd(opts["qmd"])
     if not qmd:
+        warn("qmd not found (no baked-in path, not on PATH: %s). Notes recall is OFF. "
+             "Re-run the kit installer, or pass --qmd /absolute/path/to/qmd."
+             % (os.environ.get("PATH") or "")[:200])
         return 0
 
     kw = keywords(prompt)
@@ -187,7 +232,8 @@ def main(argv=None):
             cmd += ["-c", opts["collection"]]
         try:
             raw = subprocess.run(cmd, capture_output=True, text=True, timeout=3,
-                                 encoding="utf-8", errors="replace").stdout or ""
+                                 encoding="utf-8", errors="replace",
+                                 env=qmd_env(qmd)).stdout or ""
         except Exception:  # noqa: BLE001
             return 0
         hits = parse_hits(raw, opts["min_score"])
@@ -197,12 +243,17 @@ def main(argv=None):
     if not hits:
         return 0
 
-    state = state_path(session_id)
-    seen = read_seen(state)
-    new = [h for h in hits if h["path"].split(":")[0] not in seen][:opts["max_hits"]]
+    if opts["no_dedupe"]:
+        new = hits[:opts["max_hits"]]
+    else:
+        state = state_path(session_id)
+        seen = read_seen(state)
+        new = [h for h in hits if h["path"].split(":")[0] not in seen][:opts["max_hits"]]
+        if not new:
+            return 0
+        append_seen(state, [h["path"].split(":")[0] for h in new])
     if not new:
         return 0
-    append_seen(state, [h["path"].split(":")[0] for h in new])
 
     lines = "\n".join("- %s — %s (%d%%)" % (h.get("title", "")[:70], h["path"], h["score"])
                       for h in new)

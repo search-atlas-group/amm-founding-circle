@@ -129,6 +129,39 @@ def end_to_end(keep=False):
                 if "qmd-recall-hook.py" in c]
         check(len(ups2) == 1, "re-install leaves exactly one recall entry (found %d)" % len(ups2))
 
+        # S2-12(a): re-running with --collection when qmd already owns that name (here
+        # pointing somewhere else entirely) must not hard-fail with a raw qmd dump.
+        qmd_bin = kitlib.find_qmd(env)
+        if qmd_bin:
+            taken = collection + "-taken"
+            other = root / "other-notes"
+            (other).mkdir(parents=True, exist_ok=True)
+            (other / "note.md").write_text("# other\n", encoding="utf-8")
+            subprocess.run([qmd_bin, "collection", "add", str(other), "--name", taken],
+                           capture_output=True, text=True, env=env, timeout=600)
+            r3 = subprocess.run(
+                [sys.executable, str(KIT / "install.py"), "--brain-dir", str(brain_dir),
+                 "--claude-dir", str(claude_dir), "--collection", taken, "--skip-index"],
+                capture_output=True, text=True, env=env, timeout=600)
+            out3 = (r3.stdout or "") + (r3.stderr or "")
+            check(r3.returncode == 0,
+                  "installer is idempotent on an already-taken collection name (S2-12)", out3)
+            check("Traceback" not in out3, "no raw traceback on the re-run", out3)
+            subprocess.run([qmd_bin, "collection", "remove", taken],
+                           capture_output=True, text=True, env=env, timeout=300)
+            # put settings back on the real collection for the checks that follow
+            subprocess.run(
+                [sys.executable, str(KIT / "install.py"), "--brain-dir", str(brain_dir),
+                 "--claude-dir", str(claude_dir), "--collection", collection,
+                 "--handoff-hook", "--skip-index"],
+                capture_output=True, text=True, env=env, timeout=600)
+            cmd = next((c for c in settings_commands(settings, "UserPromptSubmit")
+                        if "qmd-recall-hook.py" in c), cmd)
+            ups3 = [c for c in settings_commands(settings, "UserPromptSubmit")
+                    if "qmd-recall-hook.py" in c]
+            check(len(ups3) == 1,
+                  "a collection change leaves one recall entry, not two (found %d)" % len(ups3))
+
         # the hook actually fires
         if kitlib.find_qmd(env):
             payload = json.dumps({
@@ -168,10 +201,75 @@ def end_to_end(keep=False):
             check('"additionalContext"' in (hr4.stdout or ""),
                   "--prompt verification path works", hr4.stdout + hr4.stderr)
 
+            # S1-3: the documented verify command must be REPEATABLE. `--prompt` alone
+            # hashes a fixed session id to one never-rotated state file, so a second run
+            # is silent; `--no-dedupe` is what the installer and README now print.
+            verify = [sys.executable, str(recall), "--collection", collection,
+                      "--no-dedupe", "--prompt",
+                      "what did we decide about migrations that add a non-null column"]
+            v1 = subprocess.run(verify, capture_output=True, text=True, env=env, timeout=60)
+            v2 = subprocess.run(verify, capture_output=True, text=True, env=env, timeout=60)
+            v3 = subprocess.run(verify, capture_output=True, text=True, env=env, timeout=60)
+            check('"additionalContext"' in (v1.stdout or ""),
+                  "--no-dedupe verify prints on run 1", v1.stdout + v1.stderr)
+            check('"additionalContext"' in (v2.stdout or ""),
+                  "--no-dedupe verify prints again on run 2 (S1-3)", v2.stdout + v2.stderr)
+            check('"additionalContext"' in (v3.stdout or ""),
+                  "--no-dedupe verify prints again on run 3 (S1-3)", v3.stdout + v3.stderr)
+            check((v1.stdout or "") == (v2.stdout or "") == (v3.stdout or ""),
+                  "--no-dedupe verify is byte-identical across runs")
+            # and the in-session dedupe it bypasses is still in force without the flag
+            again = subprocess.run(
+                [sys.executable, str(recall), "--collection", collection, "--prompt",
+                 "what did we decide about migrations that add a non-null column"],
+                capture_output=True, text=True, env=env, timeout=60)
+            check((again.stdout or "").strip() == "",
+                  "without --no-dedupe the repeat is still suppressed", again.stdout)
+
+            # S2-12: the installed hook must carry an absolute qmd path and must fire
+            # with a PATH that has no qmd on it (nvm / custom npm prefix / launchd).
+            qmd_path = kitlib.find_qmd(env)
+            check("--qmd" in cmd and qmd_path in cmd,
+                  "hook command bakes in the absolute qmd path", cmd)
+            bare = dict(env)
+            bare["PATH"] = "/usr/bin:/bin"
+            check(kitlib.find_qmd(bare) is None,
+                  "test precondition: qmd is not on the stripped PATH")
+            hb = subprocess.run(
+                [sys.executable, str(recall), "--collection", collection, "--qmd", qmd_path,
+                 "--no-dedupe", "--prompt",
+                 "what did we decide about migrations that add a non-null column"],
+                capture_output=True, text=True, env=bare, timeout=60)
+            check('"additionalContext"' in (hb.stdout or ""),
+                  "hook still fires with a stripped PATH thanks to the baked-in qmd (S2-12)",
+                  hb.stdout + hb.stderr)
+            # a bad baked-in path must say so on stderr and fall back, not fail silently
+            hn = subprocess.run(
+                [sys.executable, str(recall), "--collection", collection,
+                 "--qmd", str(root / "no-such-qmd"), "--no-dedupe", "--prompt",
+                 "what did we decide about migrations that add a non-null column"],
+                capture_output=True, text=True, env=env, timeout=60)
+            check("not executable" in (hn.stderr or "") and hn.returncode == 0,
+                  "an unusable baked-in qmd path is reported on stderr (S2-12)",
+                  "rc=%s err=%r" % (hn.returncode, hn.stderr))
+            check('"additionalContext"' in (hn.stdout or ""),
+                  "...and the PATH fallback still finds qmd", hn.stdout)
+
+            # refresh script: baked qmd path, and it must not claim a scope it lacks
+            rtext = refresh.read_text(encoding="utf-8")
+            check(qmd_path in rtext and "@@QMD@@" not in rtext,
+                  "refresh-brain.py has the qmd path baked in")
+
             rr = subprocess.run([sys.executable, str(refresh)], capture_output=True,
                                 text=True, env=env, timeout=1800)
             check(rr.returncode == 0 and (rr.stdout or "").startswith("OK "),
                   "refresh-brain.py runs cleanly", rr.stdout + rr.stderr)
+            check("scope=" in (rr.stdout or ""),
+                  "refresh-brain.py states the index scope it actually used", rr.stdout)
+            rb = subprocess.run([sys.executable, str(refresh)], capture_output=True,
+                                text=True, env=bare, timeout=1800)
+            check(rb.returncode == 0 and (rb.stdout or "").startswith("OK "),
+                  "refresh-brain.py runs with a stripped PATH too", rb.stdout + rb.stderr)
         else:
             skip("qmd not on PATH — hook and refresh not exercised")
 
@@ -188,6 +286,25 @@ def end_to_end(keep=False):
             check(text.startswith("---") and "type: project" in text,
                   "handoff stub has valid frontmatter")
             check("demo-proj" in text, "handoff stub names the project")
+
+        # S2-12(b): the uninstaller must name the collection that was actually installed,
+        # not the literal default "brain".
+        sys.path.insert(0, str(KIT))
+        import uninstall as uninstall_mod  # noqa: E402
+        found = uninstall_mod.installed_collection(settings)
+        check(found == collection,
+              "uninstall reads the installed collection out of settings.json (got %r)" % found)
+
+        # SEV3 nit 6: settings.json backups are pruned, not accumulated forever.
+        for _ in range(9):
+            subprocess.run([sys.executable, str(KIT / "merge_settings.py"), str(settings),
+                            "UserPromptSubmit", "echo baktest"],
+                           capture_output=True, text=True, env=env, timeout=60)
+        baks = sorted(claude_dir.glob("settings.json.bak.*"))
+        check(len(baks) <= 5, "settings.json backups are pruned (found %d)" % len(baks))
+        subprocess.run([sys.executable, str(KIT / "merge_settings.py"), str(settings),
+                        "UserPromptSubmit", "echo baktest", "--remove"],
+                       capture_output=True, text=True, env=env, timeout=60)
 
         # uninstall
         ur = subprocess.run([sys.executable, str(KIT / "uninstall.py"),
@@ -325,6 +442,38 @@ def windows_unit_tests():
     opts = hook.parse_argv(["--collection", "notes", "--max-hits", "2", "--min-score", "70"])
     check(opts["collection"] == "notes" and opts["max_hits"] == 2 and opts["min_score"] == 70,
           "recall hook: command-line options parse", opts)
+    o2 = hook.parse_argv(["--no-dedupe", "--qmd", "/opt/x/bin/qmd"])
+    check(o2["no_dedupe"] is True and o2["qmd"] == "/opt/x/bin/qmd",
+          "recall hook: --no-dedupe and --qmd parse", o2)
+    check(hook.parse_argv(["--fresh-session"])["no_dedupe"] is True,
+          "recall hook: --fresh-session is accepted as an alias")
+    check(hook.find_qmd("/definitely/not/here/qmd") != "/definitely/not/here/qmd",
+          "recall hook: an unusable baked-in path falls back rather than being trusted")
+
+    # S2-12: with no qmd anywhere, the hook must SAY so rather than exit silently.
+    import io
+    with mock.patch.object(hook, "find_qmd", return_value=None), \
+            mock.patch.object(sys, "stderr", io.StringIO()) as err:
+        rc = hook.main(["--prompt",
+                        "what did we decide about migrations that add a non-null column"])
+    msg = err.getvalue()
+    check(rc == 0 and "qmd not found" in msg and "recall is OFF" in msg,
+          "recall hook: a missing qmd writes a diagnostic to stderr (S2-12)",
+          "rc=%s msg=%r" % (rc, msg))
+
+    # SEV3 nit 6: refresh only claims a per-collection scope when qmd offers one.
+    rspec = importlib.util.spec_from_file_location("kit_refresh", str(KIT / "refresh.py"))
+    refresh_mod = importlib.util.module_from_spec(rspec)
+    rspec.loader.exec_module(refresh_mod)
+    with mock.patch.object(refresh_mod.subprocess, "run",
+                           return_value=mock.Mock(stdout="  qmd update [--pull]  - Re-index\n")):
+        check(refresh_mod.update_supports_collection("/bin/qmd") is False,
+              "refresh: no collection flag claimed when qmd update does not offer one")
+    with mock.patch.object(refresh_mod.subprocess, "run",
+                           return_value=mock.Mock(
+                               stdout="  qmd update [-c <name>]  - Re-index one collection\n")):
+        check(refresh_mod.update_supports_collection("/bin/qmd") is True,
+              "refresh: the collection flag is used when qmd update does offer one")
     check(hook.parse_argv(["--collection"])["collection"] is not None,
           "recall hook: a truncated argument does not crash it")
 

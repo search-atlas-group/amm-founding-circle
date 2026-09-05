@@ -57,6 +57,7 @@ All skills run with **no paid APIs** — SearchAtlas MCP is used when available,
 - **[SECURITY.md](SECURITY.md)** — the skill-vetting bar every skill (esp. third-party) must clear, plus a PR review checklist.
 - **[playbooks/autonomy-fence.md](playbooks/autonomy-fence.md)** — the 🟢/🟡/🔴 + confidence-gate pattern for letting an agent act safely on your behalf.
 - **[templates/agent-spec-template.md](templates/agent-spec-template.md)** — a clean ADK-style format for specifying your own agents.
+- **`local/`** — the gitignored destination for bulk or derived data: anything that describes a person, grants access, or was fetched rather than authored — member and roster exports, API dumps, kubeconfigs and service-account files, customer or billing exports. Put it in a `local/` folder anywhere in the repo, never at a folder root. Credentials are already covered by the `.env` rules above it in `.gitignore`.
 
 ## Contributing
 

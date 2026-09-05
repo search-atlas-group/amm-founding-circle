@@ -10,6 +10,7 @@ Leaves alone: your notes folder, and the qmd collection.
 import argparse
 import json
 import os
+import shlex
 import sys
 from pathlib import Path
 
@@ -27,6 +28,43 @@ def parse_args(argv=None):
     p.add_argument("--brain-dir", default=None)
     p.add_argument("--collection", default=None)
     return p.parse_args(argv)
+
+
+def installed_collection(settings):
+    """The collection the installed hook actually searches, read out of settings.json.
+
+    The uninstaller must never print a destructive command naming a collection the user
+    never installed: `--collection` defaults to "brain", and someone who installed with
+    `--collection notes` would otherwise be told to drop an unrelated index.
+    """
+    try:
+        data = json.loads(settings.read_text(encoding="utf-8") or "{}")
+    except (OSError, json.JSONDecodeError):
+        return None
+    if not isinstance(data, dict):
+        return None
+    hooks = data.get("hooks")
+    if not isinstance(hooks, dict):
+        return None
+    for matchers in hooks.values():
+        if not isinstance(matchers, list):
+            continue
+        for m in matchers:
+            inner = m.get("hooks") if isinstance(m, dict) else None
+            if not isinstance(inner, list):
+                continue
+            for h in inner:
+                cmd = str(h.get("command", "")) if isinstance(h, dict) else ""
+                if "qmd-recall-hook.py" not in cmd:
+                    continue
+                try:
+                    parts = shlex.split(cmd, posix=not kitlib.is_windows())
+                except ValueError:
+                    parts = cmd.split()
+                for i, part in enumerate(parts):
+                    if part.strip('"') == "--collection" and i + 1 < len(parts):
+                        return parts[i + 1].strip('"')
+    return None
 
 
 def remove_hook_entries(settings, needle):
@@ -88,6 +126,11 @@ def main(argv=None):
 
     print("Agent memory starter kit — removing from %s" % claude_dir)
     settings = claude_dir / "settings.json"
+    if not args.collection:
+        found = installed_collection(settings)
+        if found:
+            collection = found
+            say("installed collection read from settings.json: %s" % collection)
     n = remove_hook_entries(settings, "qmd-recall-hook.py")
     n += remove_hook_entries(settings, "session-handoff-hook.py")
     say("removed %d hook entr%s from settings.json" % (n, "y" if n == 1 else "ies"))
