@@ -10,3 +10,6 @@ canvas_state.json
 __pycache__/
 *.pyc
 .DS_Store
+
+# local-only data — never commit (see README: "What belongs in local/")
+**/local/

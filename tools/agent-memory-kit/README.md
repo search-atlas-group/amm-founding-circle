@@ -59,6 +59,13 @@ already broken, and validated before it is replaced.
 
 **Restart Claude Code when the installer finishes.**
 
+The installer resolves `qmd` once and bakes its absolute path into the hook command it
+writes to `settings.json`, alongside the absolute interpreter and hook path. That is
+deliberate: hooks run with the environment the runtime happened to start with, and a `qmd`
+installed under nvm or a custom npm prefix is frequently not on that PATH. A PATH lookup
+remains as the fallback if the binary later moves. Re-run the installer after changing
+Node versions.
+
 ## Verify it works
 
 Type this into Claude Code:
@@ -69,13 +76,24 @@ what did we decide about migrations that add a non-null column
 
 The agent should answer from the example memo about backfill plans, without grepping for
 files first. If you want to see the raw hook output, the installer prints a copy-pasteable
-command that runs it by hand and prints the JSON it pushes.
+command that runs it by hand and prints the JSON it pushes. It looks like this:
+
+```bash
+python3 ~/.claude/hooks/qmd-recall-hook.py --collection brain --no-dedupe \
+  --prompt "what did we decide about migrations that add a non-null column"
+```
+
+**Run it as many times as you like — it prints every time.** `--no-dedupe` is what makes it
+repeatable. In a real session the hook remembers what it already pushed and does not repeat
+a note, and without that flag a hand-run inherits the same memory: the first run prints, the
+second is silent, and you would read a working setup as broken.
 
 A vague prompt, a slash command, or anything under 25 characters prints nothing. Silence is
-correct behaviour, not a failure.
+correct behaviour, not a failure — but if a *specific* prompt prints nothing, the hook now
+says why on stderr (for example, that it cannot find `qmd`) instead of exiting quietly.
 
 `./test.sh` (or `test.bat`) runs the whole install against a throwaway home folder and
-checks 63 things automatically. It never touches your real config or notes.
+checks everything automatically. It never touches your real config or notes.
 
 ## Daily refresh
 
@@ -115,8 +133,12 @@ Your notes folder and your search index are left exactly as they are.
   picks up the new PATH, then `npm i -g qmd`.
 - **A new note is not being found.** The index is stale. Run `qmd update`, then set up the
   daily refresh above.
-- **The hook prints nothing even for a specific question.** Your notes may score below the
-  cut-off. Lower it: set `BRAIN_MIN_SCORE=70` in your environment, or check the note's
+- **The hook prints nothing even for a specific question, and you ran it twice.** Add
+  `--no-dedupe`. Without it the second and later runs of the same hand-check are silent by
+  design.
+- **The hook prints nothing even for a specific question.** Run it by hand and read
+  stderr — it names the reason (a missing `qmd`, most often). Otherwise your notes may
+  score below the cut-off. Lower it: set `BRAIN_MIN_SCORE=70` in your environment, or check the note's
   `description` line, which is the text search matches against.
 - **Windows says `python` is not recognised.** Install Python from python.org with "Add
   python.exe to PATH" ticked, or run the installer as `py install.py`.
@@ -128,7 +150,7 @@ Your notes folder and your search index are left exactly as they are.
 ```
 install.py / install.sh / install.bat        installer, one code path for every OS
 uninstall.py / uninstall.sh / uninstall.bat  removes everything except your notes
-test.py / test.sh / test.bat                 63-check self test in a throwaway home
+test.py / test.sh / test.bat                 self test in a throwaway home (87 checks)
 kitlib.py                                    path, quoting and lookup helpers
 merge_settings.py                            safe settings.json hook merge and removal
 refresh.py                                   re-index script, installed with your paths baked in

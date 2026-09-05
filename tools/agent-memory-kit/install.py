@@ -63,9 +63,11 @@ def collection_registered(qmd, name):
     return False
 
 
-def merge_settings(settings, event, command, timeout=5, remove=False):
+def merge_settings(settings, event, command, timeout=5, remove=False, match=None):
     cmd = [sys.executable, str(KIT / "merge_settings.py"), str(settings), event, command,
            "--timeout", str(timeout)]
+    if match:
+        cmd += ["--match", match]
     if remove:
         cmd.append("--remove")
     r = subprocess.run(cmd, capture_output=True, text=True)
@@ -126,10 +128,27 @@ def main(argv=None):
     # ------------------------------------------------------------ 3. index
     step("3/%d  index the notes as collection '%s'" % (TOTAL, collection))
     if collection_registered(qmd, collection):
-        say("already registered")
+        say("already registered — leaving it as it is")
     else:
-        run_qmd(qmd, ["collection", "add", str(brain_dir), "--name", collection], check=True)
-        say("registered %s" % brain_dir)
+        rc, out, err = run_qmd(qmd, ["collection", "add", str(brain_dir), "--name", collection])
+        if rc == 0:
+            say("registered %s" % brain_dir)
+        elif collection_registered(qmd, collection):
+            # A name or path qmd already knows about under a shape our lister missed.
+            say("qmd already knows collection '%s' — leaving it as it is" % collection)
+        else:
+            print()
+            say("Could not register '%s' as a qmd collection." % collection)
+            say("qmd said:")
+            for line in ((out or "") + (err or "")).strip().splitlines()[:8]:
+                say("    %s" % line)
+            say("")
+            say("This usually means the name or the folder is already indexed under a")
+            say("different name. Check with:   qmd collection list")
+            say("Then either re-run with --collection <a free name>, or drop the old one:")
+            say("    qmd collection remove %s" % collection)
+            say("Nothing else has been changed.")
+            return 1
     if args.skip_index:
         say("first index skipped (--skip-index)")
     else:
@@ -154,14 +173,17 @@ def main(argv=None):
         settings.parent.mkdir(parents=True, exist_ok=True)
         settings.write_text("{}\n", encoding="utf-8")
     merge_settings(settings, "UserPromptSubmit",
-                   kitlib.hook_command(recall, ["--collection", collection]))
+                   kitlib.hook_command(recall, ["--collection", collection, "--qmd", qmd]),
+                   match="qmd-recall-hook.py")
+    say("qmd path baked into the hook command: %s" % qmd)
 
     handoff = hooks_dir / "session-handoff-hook.py"
     if args.handoff_hook:
         shutil.copy2(KIT / "hooks" / "session-handoff-hook.py", handoff)
         make_executable(handoff)
         merge_settings(settings, "SessionEnd",
-                       kitlib.hook_command(handoff, ["--brain-dir", str(brain_dir)]))
+                       kitlib.hook_command(handoff, ["--brain-dir", str(brain_dir)]),
+                       match="session-handoff-hook.py")
         say("session-end handoff stubs enabled")
     else:
         say("session-end handoff hook NOT installed (re-run with --handoff-hook to enable)")
@@ -179,7 +201,9 @@ def main(argv=None):
     step("6/%d  refresh script" % TOTAL)
     refresh = hooks_dir / "refresh-brain.py"
     tmpl = (KIT / "refresh.py").read_text(encoding="utf-8")
-    tmpl = tmpl.replace("@@BRAIN_DIR@@", str(brain_dir)).replace("@@COLLECTION@@", collection)
+    tmpl = (tmpl.replace("@@BRAIN_DIR@@", str(brain_dir))
+                .replace("@@COLLECTION@@", collection)
+                .replace("@@QMD@@", str(qmd)))
     refresh.write_text(tmpl, encoding="utf-8")
     make_executable(refresh)
     say("installed %s" % refresh)
@@ -208,10 +232,12 @@ Verify search works:
 
 Verify the hook fires:
 
-    "%(py)s" "%(recall)s" --collection %(collection)s --prompt "what did we decide about migrations that add a non-null column"
+    "%(py)s" "%(recall)s" --collection %(collection)s --no-dedupe --prompt "what did we decide about migrations that add a non-null column"
 
 That prints one line of JSON containing "additionalContext" — exactly what is pushed into
-the agent before it thinks. A vague prompt prints nothing, which is also correct.
+the agent before it thinks. `--no-dedupe` is what makes it repeatable: without it the hook
+remembers what it already pushed and the second run is silent. A vague prompt prints
+nothing, which is also correct.
 
 Keep the index fresh by scheduling:
 
