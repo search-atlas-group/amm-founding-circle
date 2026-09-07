@@ -1,0 +1,280 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Model &amp; Gear Router — the pattern</title>
+<style>
+  :root{
+    --bg:#fbfaf8; --panel:#ffffff; --line:#dfdbd4; --ink:#1a1c20; --dim:#6e7480;
+    --gold:#9a7014; --green:#1c7a52; --red:#b3324a; --blue:#1f6aa5; --purple:#6b4bab;
+    --mono:ui-monospace,SFMono-Regular,"SF Mono",Menlo,monospace;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);
+       font:15px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Inter,sans-serif;
+       -webkit-font-smoothing:antialiased}
+  .wrap{max-width:1060px;margin:0 auto;padding:52px 26px 72px}
+  h1{margin:0 0 6px;font-size:32px;font-weight:650;letter-spacing:-.02em}
+  .sub{margin:0 0 26px;color:var(--dim);font-size:16px}
+  figure{margin:0 0 62px}
+  figcaption{font:600 11px/1 var(--mono);letter-spacing:.16em;text-transform:uppercase;
+             color:var(--gold);margin-bottom:20px}
+  .note{color:var(--dim);font-size:14px;margin:14px 0 0}
+  svg{display:block;width:100%;height:auto;overflow:visible}
+  .box{fill:var(--panel);stroke:var(--line)}
+  .lbl{fill:var(--ink);font:600 12.5px -apple-system,sans-serif}
+  .lblb{fill:var(--ink);font:600 14px -apple-system,sans-serif}
+  .lbl2{fill:var(--dim);font:11px var(--mono)}
+  .cap{fill:var(--dim);font:10.5px var(--mono);letter-spacing:.08em}
+  .flow{stroke:#c3beb5;stroke-width:1.5;fill:none}
+  footer{margin-top:20px;padding-top:22px;border-top:1px solid var(--line);
+         color:var(--dim);font-size:13px}
+  code{font-family:var(--mono);font-size:12.5px;background:#f5f3ef;border:1px solid var(--line);
+       padding:1.5px 6px;border-radius:3px}
+  @media(max-width:640px){.wrap{padding:32px 16px}h1{font-size:24px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<h1>Model &amp; gear router</h1>
+<p class="sub">Pick a model per task, the way you would assign work to different people — instead of running everything through one setting.</p>
+
+<!-- FIG 1 -->
+<figure>
+  <figcaption>The decision, per task</figcaption>
+  <svg viewBox="0 0 1000 340" role="img" aria-label="Routing decision flow">
+    <defs>
+      <marker id="a" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto">
+        <path d="M0,0 L7,3.5 L0,7 z" fill="#c3beb5"/></marker>
+      <marker id="ag" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto">
+        <path d="M0,0 L7,3.5 L0,7 z" fill="#9a7014"/></marker>
+      <marker id="agy" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto">
+        <path d="M0,0 L7,3.5 L0,7 z" fill="#6e7480"/></marker>
+    </defs>
+
+    <rect x="0" y="155" width="96" height="50" rx="3" class="box" stroke="#c3beb5"/>
+    <text x="48" y="178" class="lbl" text-anchor="middle">Task</text>
+    <text x="48" y="194" class="lbl2" text-anchor="middle">arrives</text>
+
+    <path class="flow" d="M102,180 H132" marker-end="url(#a)"/>
+    <polygon points="138,180 200,138 262,180 200,222" class="box"/>
+    <text x="200" y="176" class="lbl2" text-anchor="middle">under 15 min?</text>
+    <text x="200" y="192" class="lbl2" text-anchor="middle">read-only?</text>
+
+    <path class="flow" d="M200,222 V286 H294" marker-end="url(#a)"/>
+    <text x="210" y="248" class="cap">YES</text>
+    <rect x="300" y="262" width="180" height="48" rx="3" class="box"/>
+    <text x="390" y="283" class="lbl" text-anchor="middle">Answer inline</text>
+    <text x="390" y="299" class="lbl2" text-anchor="middle">no worker spawned</text>
+
+    <path stroke="#9a7014" stroke-width="2" fill="none" d="M262,180 H310" marker-end="url(#ag)"/>
+    <text x="266" y="168" class="cap" fill="#9a7014">DISPATCH</text>
+    <rect x="316" y="132" width="180" height="96" rx="3" fill="#fdf7e8" stroke="#9a7014"/>
+    <text x="406" y="158" class="lblb" text-anchor="middle">Orchestrator</text>
+    <text x="406" y="174" class="lbl2" text-anchor="middle">picks the gear</text>
+    <rect x="328" y="182" width="156" height="18" rx="2" fill="#fff" stroke="#d9b968"/>
+    <text x="406" y="195" class="lbl2" text-anchor="middle" fill="#7a5a10">TIER = model × effort</text>
+    <rect x="328" y="204" width="156" height="18" rx="2" fill="#fff" stroke="#d9b968"/>
+    <text x="406" y="217" class="lbl2" text-anchor="middle" fill="#7a5a10">MISSION = the verb</text>
+
+    <path class="flow" d="M496,180 H534" marker-end="url(#a)"/>
+    <polygon points="540,180 600,138 660,180 600,222" class="box"/>
+    <text x="600" y="176" class="lbl2" text-anchor="middle">needs your</text>
+    <text x="600" y="192" class="lbl2" text-anchor="middle">hooks &amp; memory?</text>
+
+    <path stroke="#9a7014" stroke-width="2" fill="none" d="M600,138 V86 H694" marker-end="url(#ag)"/>
+    <text x="610" y="112" class="cap" fill="#9a7014">YES</text>
+    <rect x="700" y="58" width="300" height="56" rx="3" fill="#fdf7e8" stroke="#9a7014"/>
+    <text x="716" y="80" class="lbl" fill="#7a5a10">In-session agent</text>
+    <text x="716" y="98" class="lbl2" fill="#7a5a10">your rules, skills, memory travel with it</text>
+
+    <path stroke="#6e7480" stroke-width="2" fill="none" d="M600,222 V278 H694" marker-end="url(#agy)"/>
+    <text x="610" y="250" class="cap">NO</text>
+    <rect x="700" y="250" width="300" height="56" rx="3" class="box"/>
+    <text x="716" y="272" class="lbl">Headless one-shot</text>
+    <text x="716" y="290" class="lbl2">any provider · bare, no harness</text>
+  </svg>
+  <p class="note">A headless worker cannot ask you a follow-up question. It will guess instead, and you will not see it guess.</p>
+</figure>
+
+<!-- FIG 2 -->
+<figure>
+  <figcaption>A gear is two dials, not one</figcaption>
+  <svg viewBox="0 0 1000 300" role="img" aria-label="Tier and mission dials">
+    <text x="0" y="14" class="cap" fill="#9a7014">TIER — HORSEPOWER · SET BY THE HARNESS</text>
+    <rect x="0" y="26" width="188" height="46" rx="3" fill="#fdf7e8" stroke="#9a7014"/>
+    <text x="12" y="46" class="lbl">top</text><text x="12" y="63" class="lbl2">high / max effort</text>
+    <rect x="203" y="26" width="188" height="46" rx="3" fill="#fdf7e8" stroke="#c9a13a"/>
+    <text x="215" y="46" class="lbl">mid</text><text x="215" y="63" class="lbl2">medium effort</text>
+    <rect x="406" y="26" width="188" height="46" rx="3" class="box"/>
+    <text x="418" y="46" class="lbl">small</text><text x="418" y="63" class="lbl2">low effort</text>
+    <rect x="609" y="26" width="188" height="46" rx="3" class="box"/>
+    <text x="621" y="46" class="lbl">cheap</text><text x="621" y="63" class="lbl2">low effort</text>
+    <text x="812" y="52" class="lbl2">3–7 levels.</text>
+    <text x="812" y="68" class="lbl2">More and you</text>
+    <text x="812" y="84" class="lbl2">can't tell them apart.</text>
+
+    <text x="0" y="122" class="cap" fill="#1c7a52">MISSION — THE VERB · SET BY YOUR PROMPT</text>
+    <g>
+      <rect x="0" y="134" width="152" height="38" rx="3" fill="#eef9f3" stroke="#8ccbb0"/>
+      <text x="14" y="158" class="lbl" fill="#14593c">grind</text>
+      <rect x="164" y="134" width="152" height="38" rx="3" fill="#eef9f3" stroke="#8ccbb0"/>
+      <text x="178" y="158" class="lbl" fill="#14593c">quick</text>
+      <rect x="328" y="134" width="152" height="38" rx="3" fill="#eef9f3" stroke="#8ccbb0"/>
+      <text x="342" y="158" class="lbl" fill="#14593c">build</text>
+      <rect x="492" y="134" width="152" height="38" rx="3" fill="#eef9f3" stroke="#8ccbb0"/>
+      <text x="506" y="158" class="lbl" fill="#14593c">write</text>
+      <rect x="656" y="134" width="152" height="38" rx="3" fill="#eef9f3" stroke="#8ccbb0"/>
+      <text x="670" y="158" class="lbl" fill="#14593c">tend</text>
+      <rect x="820" y="134" width="180" height="38" rx="3" fill="#eef9f3" stroke="#8ccbb0"/>
+      <text x="834" y="158" class="lbl" fill="#14593c">recon</text>
+
+      <rect x="0" y="182" width="152" height="38" rx="3" fill="#eef9f3" stroke="#8ccbb0"/>
+      <text x="14" y="206" class="lbl" fill="#14593c">synthesize</text>
+      <rect x="164" y="182" width="152" height="38" rx="3" fill="#eef9f3" stroke="#8ccbb0"/>
+      <text x="178" y="206" class="lbl" fill="#14593c">red-team</text>
+      <rect x="328" y="182" width="152" height="38" rx="3" fill="#eef9f3" stroke="#8ccbb0"/>
+      <text x="342" y="206" class="lbl" fill="#14593c">variants</text>
+      <rect x="492" y="182" width="152" height="38" rx="3" fill="#eef9f3" stroke="#8ccbb0"/>
+      <text x="506" y="206" class="lbl" fill="#14593c">orchestrate</text>
+      <rect x="656" y="182" width="152" height="38" rx="3" fill="#eef9f3" stroke="#8ccbb0"/>
+      <text x="670" y="206" class="lbl" fill="#14593c">deepest</text>
+    </g>
+
+    <line x1="0" y1="246" x2="1000" y2="246" stroke="#dfdbd4"/>
+    <text x="0" y="272" class="lbl">Two gears can share a tier and behave completely differently.</text>
+    <text x="0" y="292" class="lbl2">Same engine, different orders — and the mission is the dial most people never touch.</text>
+  </svg>
+</figure>
+
+<!-- FIG 3 -->
+<figure>
+  <figcaption>Job class decides the provider</figcaption>
+  <svg viewBox="0 0 1000 400" role="img" aria-label="Job class to provider routing">
+    <defs>
+      <marker id="c" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto">
+        <path d="M0,0 L6,3 L0,6 z" fill="#c3beb5"/></marker>
+    </defs>
+    <text x="0" y="14" class="cap">WHAT THE WORK IS</text>
+    <text x="1000" y="14" class="cap" text-anchor="end">WHERE IT GOES</text>
+
+    <rect x="0" y="26" width="330" height="40" rx="3" class="box"/>
+    <text x="14" y="51" class="lbl">Bulk mechanical · high volume · low judgment</text>
+    <path class="flow" d="M336,46 C480,46 520,46 634,46" marker-end="url(#c)"/>
+    <rect x="640" y="26" width="360" height="40" rx="3" fill="#f3efff" stroke="#6b4bab"/>
+    <text x="654" y="51" class="lbl" fill="#4e3585">Your cheapest capable provider</text>
+
+    <rect x="0" y="78" width="330" height="40" rx="3" class="box"/>
+    <text x="14" y="103" class="lbl">Many large inputs, read together</text>
+    <path class="flow" d="M336,98 C480,98 520,98 634,98" marker-end="url(#c)"/>
+    <rect x="640" y="78" width="360" height="40" rx="3" fill="#eaf4fb" stroke="#1f6aa5"/>
+    <text x="654" y="103" class="lbl" fill="#15507e">Your longest-context provider</text>
+
+    <rect x="0" y="130" width="330" height="40" rx="3" fill="#fdf1f3" stroke="#e0a8b5"/>
+    <text x="14" y="149" class="lbl">Reviewing what another model wrote</text>
+    <text x="14" y="164" class="lbl2" fill="#b3324a">never the same family as the author</text>
+    <path stroke="#b3324a" stroke-width="1.5" fill="none" d="M336,150 C480,150 520,150 634,150" marker-end="url(#c)"/>
+    <rect x="640" y="130" width="360" height="40" rx="3" fill="#eef9f3" stroke="#1c7a52"/>
+    <text x="654" y="155" class="lbl" fill="#14593c">A different model family — always</text>
+
+    <rect x="0" y="182" width="330" height="40" rx="3" class="box"/>
+    <text x="14" y="207" class="lbl">Small, fast, tightly specified</text>
+    <path class="flow" d="M336,202 C480,202 520,202 634,202" marker-end="url(#c)"/>
+    <rect x="640" y="182" width="360" height="40" rx="3" fill="#eef9f3" stroke="#1c7a52"/>
+    <text x="654" y="207" class="lbl" fill="#14593c">Your fast small model</text>
+
+    <rect x="0" y="234" width="330" height="40" rx="3" class="box"/>
+    <text x="14" y="259" class="lbl">Cross-check on an implementation</text>
+    <path class="flow" d="M336,254 C480,254 520,254 634,254" marker-end="url(#c)"/>
+    <rect x="640" y="234" width="360" height="40" rx="3" fill="#eaf4fb" stroke="#1f6aa5"/>
+    <text x="654" y="259" class="lbl" fill="#15507e">A coding model outside that family</text>
+
+    <rect x="0" y="286" width="330" height="40" rx="3" fill="#fdf7e8" stroke="#9a7014"/>
+    <text x="14" y="305" class="lbl" fill="#7a5a10">Judgment · edits · needs the harness</text>
+    <text x="14" y="320" class="lbl2" fill="#7a5a10">hooks, skills, memory, rules</text>
+    <path stroke="#9a7014" stroke-width="2" fill="none" d="M336,306 C480,306 520,306 634,306" marker-end="url(#c)"/>
+    <rect x="640" y="286" width="360" height="40" rx="3" fill="#fdf7e8" stroke="#9a7014"/>
+    <text x="654" y="311" class="lbl" fill="#7a5a10">Your main model, in-session</text>
+
+    <rect x="0" y="338" width="330" height="40" rx="3" fill="#f2f0ec" stroke="#c3beb5" stroke-dasharray="4 3"/>
+    <text x="14" y="363" class="lbl2">Can't be specified without a follow-up question</text>
+    <path class="flow" stroke-dasharray="4 3" d="M336,358 C480,358 520,358 634,358" marker-end="url(#c)"/>
+    <rect x="640" y="338" width="360" height="40" rx="3" fill="#f2f0ec" stroke="#c3beb5" stroke-dasharray="4 3"/>
+    <text x="654" y="363" class="lbl2">Nobody — it stays in-session</text>
+  </svg>
+</figure>
+
+<!-- FIG 4 -->
+<figure>
+  <figcaption>Fanning out in parallel</figcaption>
+  <svg viewBox="0 0 1000 300" role="img" aria-label="Parallel fan out and merge">
+    <defs>
+      <marker id="d" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto">
+        <path d="M0,0 L7,3.5 L0,7 z" fill="#c3beb5"/></marker>
+      <marker id="dg" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto">
+        <path d="M0,0 L7,3.5 L0,7 z" fill="#9a7014"/></marker>
+    </defs>
+    <rect x="0" y="118" width="150" height="64" rx="3" fill="#fdf7e8" stroke="#9a7014"/>
+    <text x="75" y="145" class="lblb" text-anchor="middle">Orchestrator</text>
+    <text x="75" y="163" class="lbl2" text-anchor="middle">splits the work</text>
+
+    <path stroke="#9a7014" stroke-width="1.5" fill="none" d="M156,150 C220,150 220,36 296,36" marker-end="url(#dg)"/>
+    <path stroke="#9a7014" stroke-width="1.5" fill="none" d="M156,150 C220,150 220,112 296,112" marker-end="url(#dg)"/>
+    <path stroke="#9a7014" stroke-width="1.5" fill="none" d="M156,150 C220,150 220,188 296,188" marker-end="url(#dg)"/>
+    <path stroke="#9a7014" stroke-width="1.5" fill="none" d="M156,150 C220,150 220,264 296,264" marker-end="url(#dg)"/>
+
+    <rect x="302" y="14" width="300" height="44" rx="3" fill="#f3efff" stroke="#6b4bab"/>
+    <text x="316" y="41" class="lbl" fill="#4e3585">cheapest · bulk pass</text>
+    <rect x="302" y="90" width="300" height="44" rx="3" fill="#eaf4fb" stroke="#1f6aa5"/>
+    <text x="316" y="117" class="lbl" fill="#15507e">long-context · read the big inputs</text>
+    <rect x="302" y="166" width="300" height="44" rx="3" fill="#eef9f3" stroke="#1c7a52"/>
+    <text x="316" y="193" class="lbl" fill="#14593c">other family · red-team the result</text>
+    <rect x="302" y="242" width="300" height="44" rx="3" fill="#fdf7e8" stroke="#9a7014"/>
+    <text x="316" y="269" class="lbl" fill="#7a5a10">in-session · the build itself</text>
+
+    <path class="flow" d="M608,36 C700,36 700,150 776,150" marker-end="url(#d)"/>
+    <path class="flow" d="M608,112 C700,112 700,150 776,150" marker-end="url(#d)"/>
+    <path class="flow" d="M608,188 C700,188 700,150 776,150" marker-end="url(#d)"/>
+    <path class="flow" d="M608,264 C700,264 700,150 776,150" marker-end="url(#d)"/>
+
+    <rect x="782" y="118" width="218" height="64" rx="3" fill="#fdf7e8" stroke="#9a7014"/>
+    <text x="891" y="145" class="lblb" text-anchor="middle">Merge stays here</text>
+    <text x="891" y="163" class="lbl2" text-anchor="middle">sequencing never leaves</text>
+
+    <text x="302" y="300" class="lbl2">Independent branches only, each specified well enough to run without a follow-up question.</text>
+  </svg>
+</figure>
+
+<!-- FIG 5 -->
+<figure>
+  <figcaption>Precedence — who wins a disagreement</figcaption>
+  <svg viewBox="0 0 1000 190" role="img" aria-label="Routing precedence stack">
+    <defs>
+      <marker id="e" markerWidth="8" markerHeight="8" refX="4" refY="7" orient="auto">
+        <path d="M0,0 L8,0 L4,8 z" fill="#c3beb5"/></marker>
+    </defs>
+    <rect x="0" y="10" width="1000" height="44" rx="3" fill="#f6e9c2" stroke="#9a7014" stroke-width="2"/>
+    <text x="18" y="31" class="lblb" fill="#7a5a10">1 — The gear or model you typed</text>
+    <text x="18" y="47" class="lbl2" fill="#7a5a10">always wins, no exceptions</text>
+    <line x1="500" y1="56" x2="500" y2="68" stroke="#c3beb5" stroke-width="1.5" marker-end="url(#e)"/>
+    <rect x="0" y="72" width="700" height="44" rx="3" fill="#fdf7e8" stroke="#c9a13a"/>
+    <text x="18" y="93" class="lblb" fill="#7a5a10">2 — The orchestrator's own choice</text>
+    <text x="18" y="109" class="lbl2" fill="#7a5a10">picked by job class · stated in a clause · never asks</text>
+    <line x1="350" y1="118" x2="350" y2="130" stroke="#c3beb5" stroke-width="1.5" marker-end="url(#e)"/>
+    <rect x="0" y="134" width="400" height="44" rx="3" fill="#f2f0ec" stroke="#c3beb5" stroke-dasharray="4 3"/>
+    <text x="18" y="155" class="lblb">3 — Whatever an automatic router picks</text>
+    <text x="18" y="171" class="lbl2">last resort · nothing defaults here</text>
+  </svg>
+  <p class="note">Automatic routers optimise for their own objective — usually cost. That is a fine objective and it is not always yours. Opt in deliberately, per task, or not at all.</p>
+</figure>
+
+<footer>
+  Companion to <code>skills/model-gear-router/SKILL.md</code> in the AMM Founding Circle repo.
+  Fill in <code>gears.template.md</code> with your own providers.
+</footer>
+
+</div>
+</body>
+</html>

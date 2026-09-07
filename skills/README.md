@@ -72,7 +72,7 @@ The **agentic-ladder rung** column is a suggested autonomy level (L1–L10): sin
 
 ---
 
-## B. Agentic Engineering (19 adopted)
+## B. Agentic Engineering (20 adopted)
 
 ### Instinct / learning loop
 
@@ -90,6 +90,7 @@ The **agentic-ladder rung** column is a suggested autonomy level (L1–L10): sin
 | Skill | What it does | When to use | Inputs → Outputs | Rung |
 |-------|--------------|-------------|------------------|------|
 | [agent-runbook](agent-runbook/SKILL.md) | Routes engineering tasks across 12+ execution modes into a composed pipeline with mandatory gates. | Before any non-trivial action, or when unsure which execution mode fits. | Task + stage → composed 5-stage pipeline (Clarify→Execute→Review→Verify→Ship) with decision gates. | L6 |
+| [model-gear-router](model-gear-router/SKILL.md) | Picks which provider/model runs each sub-task automatically from an orchestrator layer, instead of one model doing every job. | Setting up an orchestrator that fans work to several models; a job is burning an expensive model on cheap work. | Job class + gear table → routed dispatch (tier + mission), same-family review ban enforced, explicit choice always wins. | L4 |
 | [codebase-map](codebase-map/SKILL.md) | Generates a lightweight index of directory structure + function/class signatures. | Proactively when a repo lacks a map, or "map/index this codebase." | Repo path → `.claude/codebase-map.md` + meta JSON + Obsidian copy. | L3 |
 | [thread-to-spec](thread-to-spec/SKILL.md) | Converts a product/marketing/eng discussion into a scoped implementation spec with acceptance checks. | When a conversation/thread needs to become executable work. | Thread/transcript/notes → spec (outcome, decisions, scope, vertical slices, verification). | L3 |
 | [python-style](python-style/SKILL.md) | Enforces Python style — Ruff lint on every change, Homebrew Python flags, python-dotenv env loading. | Proactively when editing any `.py` file or installing Python packages. | Python file → Ruff-checked/auto-fixed code + correct env-loading patterns. | L3 |
