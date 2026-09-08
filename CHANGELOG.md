@@ -2,6 +2,11 @@
 
 All notable changes to this repo. Dates are YYYY-MM-DD.
 
+## 2026-09-08
+### Added
+- **`skills/model-gear-router/`** — picks the provider and model per task from an orchestrator layer instead of one model doing every job: the tier/mission split, a job-class routing table, the in-session vs headless trade, the inline threshold, parallel fan-out rules, and a precedence order that keeps your explicit choice above any automatic router. Ships with `gears.template.md` to fill in with your own providers.
+- **`handouts/model-gear-router-pattern.html`** — the same routing as five diagrams (the per-task decision, the two dials, job class to provider, fan-out and merge, precedence). Covered in the 2026-09-03 cohort session.
+
 ## 2026-09-03
 ### Added
 - **`tools/agent-memory-kit/`** — pushed recall for Claude Code: a local search index (qmd) over your markdown notes plus a prompt hook that injects the top 3 matching notes before the agent thinks. Cross-platform installers (`install.sh` / `install.bat`), `/remember` command, `brain-search` skill, brain template, self-test (`test.sh` / `test.bat`), uninstaller. Covered in the 2026-09-03 cohort session.
