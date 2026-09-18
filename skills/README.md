@@ -1,9 +1,9 @@
 # Skills Index — AMM Founding Circle
 
-This repository carries **64 skills** under `skills/`, organized into seven groups:
+This repository carries **65 skills** under `skills/`, organized into seven groups:
 
 - **A. Marketing & AEO/SEO** — the original 16, referenced by canonical number `#1`–`#16` throughout the two orchestrators (`client-onboarding-os` and `aeo-llm-content-planner`). These chain into each other: foundation skills feed diagnostics, diagnostics feed the planner, and the planner + onboarding OS sequence everything else.
-- **B. Agentic Engineering** — 26 skills (19 adopted + 7 built for the cohort) covering the instinct/learning loop, build & code tooling, orchestration, reporting, routing, and safety. No canonical numbering.
+- **B. Agentic Engineering** — 27 skills (19 adopted + 8 built for the cohort) covering the instinct/learning loop, build & code tooling, orchestration, reporting, routing, and safety. No canonical numbering.
 - **C. Security** — the standalone posture-audit skill.
 - **D. Always-on (L5)** — 9 skills that take your agent from "runs when I'm watching" to "runs while I sleep": the mental model, hosting, capacity, durability, consistency, monitoring, goal-driven runs, capability gaps, and the morning brief that proves it worked.
 - **E. Autonomy tier (L7 · L9 · L10)** — 3 skills for the top of the ladder, each composing the Always-on pieces: the multi-model council that stops you trusting one answer on high-stakes work (L7), the autonomy budget that lets you hand off a multi-day job on rails and walk away (L9), and commanding the whole fleet from your phone (L10).
@@ -72,7 +72,7 @@ The **agentic-ladder rung** column is a suggested autonomy level (L1–L10): sin
 
 ---
 
-## B. Agentic Engineering (20 adopted)
+## B. Agentic Engineering (21 adopted)
 
 ### Instinct / learning loop
 
@@ -100,6 +100,7 @@ The **agentic-ladder rung** column is a suggested autonomy level (L1–L10): sin
 | [clickup-api](clickup-api/SKILL.md) | ClickUp v3 API conventions — channel/DM rules, thread-reply endpoints, message-prefix requirement. | Before sending ClickUp messages, creating channels, or calling endpoints. | Message/channel spec → correct POST endpoint routes. | L3 |
 | [dispatch-and-brief](dispatch-and-brief/SKILL.md) | Splits one big job across parallel agents and writes each a tight, self-contained brief — context engineering made practical (split → brief → gate). | A job too big for one pass; parallel agents coming back thin or overlapping; your main chat clogged with raw output. | Big job → sliced briefs per agent → parallel drafts → one gated result, main thread stays lean. | L4 |
 | [share-your-foundation](share-your-foundation/SKILL.md) | Packages your rules, skills, and brand kit into one repo a teammate (or your second machine) clones and installs with a single command. | Onboarding a teammate onto your stack; your setup won't follow you between machines; you keep re-sending config. | Your CLAUDE.md + skills + brand kit → a clone-and-install repo — "clone this, run ./install.sh, you're me." | L4 |
+| [per-client-memory-router](per-client-memory-router/SKILL.md) | Partitions agent memory into one global store plus one isolated store per client, then gates execution through a concurrency-limited router so no single client's job queue can starve the rest. | One agent stack serves multiple clients; a client's context ever leaked into another client's output; parallel client jobs are timing out or burning quota unevenly. | Client roster + job stream → global/per-client memory split + per-client and global concurrency caps. | L5 |
 
 ### Autonomy / unattended
 
