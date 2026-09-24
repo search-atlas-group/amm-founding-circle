@@ -11,8 +11,9 @@ artifact.
 1. **Ingest:** add a candidate to [`backlog.md`](backlog.md) using [`intake-template.md`](intake-template.md), with its source, member value, evidence path, owner, and next action.
 2. **Classify:** mark it `Idea`, `Draft`, `Ready`, or `Shared`; assign a target Mon/Tue/Thu session.
 3. **Select:** before each session, copy the chosen `Ready` items into [`session-packet-template.md`](session-packet-template.md), replacing placeholders with the actual agenda, demo setup, and follow-up.
-4. **Verify:** before the session, confirm every linked file exists and the demo works without relying on an unverified claim or inaccessible source.
-5. **Close the loop:** after the session, record what was actually shown, move the item to `Shared`, and add the next action or permanent-artifact destination.
+4. **Package (optional):** if a `Ready` item needs a real visual build (a deck, a demo video, a polished handout) rather than a plain walkthrough, add it to [`creative-board.md`](creative-board.md). Only JD flips `Send?` to `Yes` — nothing is dispatched to the creative team on its own.
+5. **Verify:** before the session, confirm every linked file exists and the demo works without relying on an unverified claim or inaccessible source.
+6. **Close the loop:** after the session, record what was actually shown, move the item to `Shared`, and add the next action or permanent-artifact destination.
 
 Standing weekly task (added 2026-09-23, JD directive): the AMM program PM checks this folder every sweep for freshness and runs the pipeline above. Silence is not a clean run. See `../CONTRIBUTING.md` and the repo's "no week without a commit" rule.
 
@@ -24,6 +25,7 @@ Standing weekly task (added 2026-09-23, JD directive): the AMM program PM checks
 | [`backlog.md`](backlog.md) | Candidate artifacts, ideas, and research worth surfacing in a future session | Seeded 2026-09-23 and refreshed every sweep |
 | [`intake-template.md`](intake-template.md) | Required fields for adding new candidates | Prevents ideas from entering the backlog without an owner, evidence, session target, or next action |
 | [`session-packet-template.md`](session-packet-template.md) | Working packet for the next Mon/Tue/Thu session | Turns `Ready` items into a verified, concrete agenda and demo plan |
+| [`creative-board.md`](creative-board.md) | JD's dispatch board for sending `Ready` items to the creative team for a visual build | Only JD's `Yes` in the `Send?` column triggers a `creative-director` brief; nothing auto-dispatches |
 
 ## How this differs from the rest of the repo
 
