@@ -43,6 +43,7 @@ New to a client? The capstone **[client-onboarding-os](skills/client-onboarding-
 | [`docs/`](docs/) | Operating model, getting-started, content boundaries, agent-authoring guide. |
 | [`templates/`](templates/) · [`essays/`](essays/) · [`handouts/`](handouts/) | Reusable starting points · ideas behind the practice · printable security references. |
 | [`examples/`](examples/) | Sample (redacted) outputs so you can see what skills produce. |
+| [`weekly-session-content/`](weekly-session-content/README.md) | Staging area for the Mon/Tue/Thu cadence — what's ready to show next, and the backlog of candidates behind it. |
 
 ## The skills, in one line
 
