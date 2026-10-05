@@ -21,5 +21,8 @@ if (Test-Path (Join-Path $ToolkitDir ".git")) { git -C $ToolkitDir fetch -q orig
 Write-Ok "AMM toolkit ready"
 Write-Step "4/4" "Installing Herdr"
 if (Get-Command herdr -ErrorAction SilentlyContinue) { Write-Ok "Herdr already installed" } else { powershell -ExecutionPolicy Bypass -c "irm $HerdrInstallUrl | iex"; Write-Ok "Herdr installed" }
-Write-WarnLine "Borg desktop is not available for Windows yet; use https://app.getborg.com"
+Write-WarnLine "Borg desktop is not available for Windows yet; opening the web version."
+Start-Process "https://app.getborg.com"
+if (Get-Command herdr -ErrorAction SilentlyContinue) { Start-Process powershell -ArgumentList "-NoExit","-Command","herdr" }
+if (Test-Path (Join-Path $WorkspaceDir "shep\bin\shep")) { Write-Ok "SHEP is ready in $WorkspaceDir\shep\bin\shep" }
 Write-Host "`nSetup complete. Run the onboarding audit from your AMM portal." -ForegroundColor Green
