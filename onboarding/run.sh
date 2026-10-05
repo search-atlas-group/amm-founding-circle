@@ -19,6 +19,11 @@ if [[ -z "$CODE" || -z "$PORTAL" ]]; then
   echo "Press Run audit on the Onboarding page of your portal and copy the command it shows."
   exit 64
 fi
+# Everything happens from this one command: install anything missing, update the repos, then run the audit.
+QUICKSTART="$(mktemp)"
+curl -fsSL https://raw.githubusercontent.com/search-atlas-group/amm-founding-circle/main/quickstart.sh -o "$QUICKSTART"
+bash "$QUICKSTART"
+
 for tool in git python3; do
   command -v "$tool" >/dev/null 2>&1 || { echo "$tool is not installed. Do step 1 on the Onboarding page (set up your coding environment), then paste this again."; exit 69; }
 done
