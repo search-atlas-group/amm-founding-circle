@@ -79,11 +79,6 @@ else
   fi
 fi
 
-cat <<DONE
-
-${BOLD}Setup complete.${NC}
-The AMM onboarding audit can now find everything it needs.
-Run it from your portal, or from this folder:
-  $WORKSPACE_DIR/onboarding/onboard.sh --publish
-
-DONE
+printf "
+%sEnvironment ready.%s
+" "$BOLD" "$NC"
