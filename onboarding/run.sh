@@ -29,7 +29,7 @@ miss() { echo "  [missing] $1"; echo "            Fix: $2"; }
 command -v node   >/dev/null 2>&1 && ok "Node.js"     || miss "Node.js"     "run step 1 on the Onboarding page"
 command -v claude >/dev/null 2>&1 && ok "Claude Code" || miss "Claude Code" "run step 1 on the Onboarding page"
 if [[ "$(uname -s)" == "Darwin" ]]; then
-  [[ -d /Applications/Borg.app || -d "$HOME/Applications/Borg.app" ]] && ok "Borg" || miss "Borg" "install it from step 2 on the Onboarding page"
+  [[ -d /Applications/Borg.app || -d "$HOME/Applications/Borg.app" ]] && ok "Borg" || miss "Borg" "download it from step 2 on the Onboarding page (or use https://app.getborg.com)"
 fi
 [[ -d "$HOME/.claude/commands" ]] && ls "$HOME/.claude/commands" 2>/dev/null | grep -q . && ok "SearchAtlas slash commands" || miss "SearchAtlas slash commands" "run step 1 on the Onboarding page"
 echo
