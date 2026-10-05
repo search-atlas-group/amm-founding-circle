@@ -4,13 +4,14 @@
 #   curl -fsSL https://raw.githubusercontent.com/search-atlas-group/amm-founding-circle/main/onboarding/run.sh | bash -s -- <code> <portal address>
 #
 # It finds your Founding Circle folder wherever it is (or downloads it to ~/amm-founding-circle the first time),
-# brings it up to date, then runs the audit. The audit reads what exists on this computer, never what is inside
+# keeps it and the AMM toolkit beside it up to date (cloning the toolkit if missing), then runs the audit. The audit reads what exists on this computer, never what is inside
 # your files, and sends only rung statuses and counts to your portal.
 set -euo pipefail
 
 CODE="${1:-}"
 PORTAL="${2:-}"
 REPO_URL="https://github.com/search-atlas-group/amm-founding-circle.git"
+TOOLKIT_URL="https://github.com/search-atlas-group/amm-toolkit.git"
 DEFAULT_DIR="$HOME/amm-founding-circle"
 
 if [[ -z "$CODE" || -z "$PORTAL" ]]; then
@@ -48,8 +49,10 @@ if [[ -z "$DIR" ]]; then
   echo "Downloading the Founding Circle folder to $DEFAULT_DIR ..."
   git clone -q "$REPO_URL" "$DEFAULT_DIR"
   DIR="$DEFAULT_DIR"
+  HOME_PARENT="$(dirname "$DIR")"
 else
   echo "Using your Founding Circle folder: $DIR"
+  HOME_PARENT="$(dirname "$DIR")"
   # Guarantee the latest: fetch, fast-forward, then verify the folder matches GitHub's main. If something of the
   # member's own blocks the update, never run the stale copy: run a clean copy of the latest instead.
   if ! git -C "$DIR" fetch -q origin main 2>/dev/null; then
@@ -68,6 +71,22 @@ else
     fi
   fi
 fi
+
+# The toolkit (slash commands, setup) lives beside the Founding Circle. Same guarantee: clone it if missing, else
+# bring it up to date. It never blocks the audit.
+TK="$HOME_PARENT/amm-toolkit"
+if [[ -d "$TK/.git" ]]; then
+  git -C "$TK" fetch -q origin main 2>/dev/null && git -C "$TK" merge --ff-only -q origin/main 2>/dev/null || true
+  if [[ "$(git -C "$TK" rev-parse HEAD 2>/dev/null)" == "$(git -C "$TK" rev-parse origin/main 2>/dev/null)" ]]; then
+    echo "Toolkit up to date ($(git -C "$TK" rev-parse --short HEAD))."
+  else
+    echo "Toolkit left as it is (your own changes, or GitHub unreachable)."
+  fi
+else
+  echo "Downloading the AMM toolkit to $TK ..."
+  git clone -q "$TOOLKIT_URL" "$TK" 2>/dev/null && echo "Toolkit ready." || echo "Could not download the toolkit. The audit still runs."
+fi
+echo
 
 [[ -f "$DIR/onboarding/portal.py" ]] || { echo "This copy is too old and could not be updated. Delete it and paste the command again to download a fresh one."; exit 1; }
 chmod +x "$DIR/onboarding/onboard.sh" 2>/dev/null || true
