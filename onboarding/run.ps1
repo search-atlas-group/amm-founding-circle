@@ -13,6 +13,7 @@ param(
 
 $ErrorActionPreference = "Stop"
 $RepoUrl = "https://github.com/search-atlas-group/amm-founding-circle.git"
+$ToolkitUrl = "https://github.com/search-atlas-group/amm-toolkit.git"
 $DefaultDir = Join-Path $HOME "amm-founding-circle"
 
 foreach ($tool in @("git")) {
@@ -39,8 +40,10 @@ if (-not $dir) {
     Write-Host "Downloading the Founding Circle folder to $DefaultDir ..."
     git clone -q $RepoUrl $DefaultDir
     $dir = $DefaultDir
+    $parent = Split-Path -Parent $dir
 } else {
     Write-Host "Using your Founding Circle folder: $dir"
+    $parent = Split-Path -Parent $dir
     # Guarantee the latest: fetch, fast-forward, then verify the folder matches GitHub's main. If something of the
     # member's own blocks the update, never run the stale copy: run a clean copy of the latest instead.
     git -C $dir fetch -q origin main 2>$null
@@ -61,6 +64,19 @@ if (-not $dir) {
         }
     }
 }
+
+# The toolkit (slash commands, setup) lives beside the Founding Circle. Clone it if missing, else bring it up to date.
+$tk = Join-Path $parent "amm-toolkit"
+if (Test-Path (Join-Path $tk ".git")) {
+    git -C $tk fetch -q origin main 2>$null
+    git -C $tk merge --ff-only -q origin/main 2>$null
+    if ((git -C $tk rev-parse HEAD) -eq (git -C $tk rev-parse origin/main)) { Write-Host "Toolkit up to date." } else { Write-Host "Toolkit left as it is (your own changes, or GitHub unreachable)." }
+} else {
+    Write-Host "Downloading the AMM toolkit to $tk ..."
+    git clone -q $ToolkitUrl $tk 2>$null
+    if ($LASTEXITCODE -eq 0) { Write-Host "Toolkit ready." } else { Write-Host "Could not download the toolkit. The audit still runs." }
+}
+Write-Host ""
 
 if (-not (Test-Path (Join-Path $dir "onboarding\portal.py"))) {
     Write-Host "This copy is too old and could not be updated. Delete it and paste the command again to download a fresh one."
