@@ -7,9 +7,16 @@ Windows-native entrypoint (no Git Bash / WSL required).
   .\onboarding\onboard.ps1 -InstallSkills        install this repo's skills first
   .\onboarding\onboard.ps1 -Share jane-smith     write a file you can send to JD
   .\onboarding\onboard.ps1 -NoOpen               don't auto-open the readout
+  .\onboarding\onboard.ps1 -Connect -Portal <address>   link this machine to the AMM portal
+  .\onboarding\onboard.ps1 -Publish [-Yes]     scan, then send your result to the portal
+  .\onboarding\onboard.ps1 -Pair <code> -Portal <address>   connect with the portal's one-time code, keep listening
+  .\onboarding\onboard.ps1 -Run <code> -Portal <address>   run the audit the portal asked for, once
+  .\onboarding\onboard.ps1 -Listen              wait for the portal's Run audit button (Ctrl+C stops)
+  .\onboarding\onboard.ps1 -Disconnect         forget the portal token
 
 Everything is presence-only: it checks whether files and commands exist, never
-what is inside them. Nothing is uploaded. Safe to run as many times as you like.
+what is inside them. The scan makes no network call; only -Connect and
+-Publish do, and only when you type them. Safe to run as many times as you like.
 
 If PowerShell blocks this script from running, either right-click it and choose
 "Run with PowerShell", or run once in this terminal:
@@ -21,7 +28,17 @@ param(
     [switch]$Ask,
     [switch]$InstallSkills,
     [string]$Share = "",
-    [switch]$NoOpen
+    [switch]$NoOpen,
+    [switch]$Connect,
+    [switch]$Disconnect,
+    [switch]$Publish,
+    [switch]$Yes,
+    [string]$Portal = "",
+    [string]$Pair = "",
+    [string]$Run = "",
+    [switch]$RunSaved,
+    [switch]$Listen,
+    [switch]$NoBackground
 )
 
 $ErrorActionPreference = "Stop"
@@ -75,6 +92,69 @@ function Run-Py {
     if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 }
 
+# --- portal connection (no scan) --------------------------------------------
+$ConnectorTask = "AMM portal connector"
+if ($Disconnect) {
+    Unregister-ScheduledTask -TaskName $ConnectorTask -Confirm:$false -ErrorAction SilentlyContinue
+    Push-Location $Here
+    try { Run-Py @("portal.py", "--disconnect") } finally { Pop-Location }
+    exit 0
+}
+if ($Pair -ne "") {
+    Push-Location $Here
+    try {
+        if ($Portal -ne "") { Run-Py @("portal.py", "--pair", $Pair, "--portal", $Portal) }
+        else { Run-Py @("portal.py", "--pair", $Pair) }
+    } finally { Pop-Location }
+    if (-not $NoBackground) {
+        try {
+            $exe = $PyCmd[0]
+            $argList = if ($PyCmd.Count -gt 1) { "$($PyCmd[1]) `"$Here\portal.py`" --listen" } else { "`"$Here\portal.py`" --listen" }
+            $action = New-ScheduledTaskAction -Execute $exe -Argument $argList -WorkingDirectory $Here
+            $trigger = New-ScheduledTaskTrigger -AtLogOn
+            Register-ScheduledTask -TaskName $ConnectorTask -Action $action -Trigger $trigger -Force | Out-Null
+            Start-ScheduledTask -TaskName $ConnectorTask
+            Write-Host "All set. Press Run audit in the portal any time this computer is on."
+            exit 0
+        } catch {
+            Write-Host "Could not install the background connector ($($_.Exception.Message))."
+        }
+    }
+    Write-Host "Keep this window open: it is the connector. Press Run audit in the portal."
+    Push-Location $Here
+    try { Run-Py @("portal.py", "--listen") } finally { Pop-Location }
+    exit 0
+}
+if ($Run -ne "" -or $RunSaved) {
+    Push-Location $Here
+    try {
+        $a = @("portal.py", "--run")
+        if ($Run -ne "") { $a += $Run }
+        if ($Portal -ne "") { $a += @("--portal", $Portal) }
+        Run-Py $a
+    } finally { Pop-Location }
+    exit 0
+}
+if ($Listen) {
+    Push-Location $Here
+    try { Run-Py @("portal.py", "--listen") } finally { Pop-Location }
+    exit 0
+}
+if ($Connect) {
+    Push-Location $Here
+    try {
+        if ($Portal -ne "") { Run-Py @("portal.py", "--connect", "--portal", $Portal) }
+        else { Run-Py @("portal.py", "--connect") }
+    } finally { Pop-Location }
+    exit 0
+}
+
+# --- publish preflight: fail before the audit if not connected ---------------
+if ($Publish) {
+    Push-Location $Here
+    try { Run-Py @("portal.py", "--preflight") } finally { Pop-Location }
+}
+
 Write-Host "AMM Founding Circle — ladder check"
 Write-Host "repo: $Repo"
 Write-Host ""
@@ -119,6 +199,13 @@ try {
     if ($Share -ne "") {
         Write-Host ""
         Run-Py @("share.py", $Share)
+    }
+
+    # --- step 5: publish to the portal (opt-in) ----------------------------
+    if ($Publish) {
+        Write-Host ""
+        if ($Yes) { Run-Py @("portal.py", "--publish", "--yes") }
+        else { Run-Py @("portal.py", "--publish") }
     }
 } finally {
     Pop-Location

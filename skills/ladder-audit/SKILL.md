@@ -78,10 +78,10 @@ order; do not let them skip to the shiny rung.
 ## Privacy
 
 Presence-only: it checks whether files and commands *exist*, never what is
-inside them. No secrets are read, no documents are opened, and there is no
-network call anywhere in the flow. The readout is a file on their disk.
+inside them. No secrets are read, no documents are opened, and the audit makes
+no network call unless they choose to publish. The readout is a file on their disk.
 
-Sharing with the program is a separate, manual, opt-in step. The shared payload
+Sharing with the program is a separate, manual, opt-in step (`--share` writes a file; `--publish` sends the same stripped payload to the AMM portal after they connect and confirm). The shared payload
 is stripped of file paths, repo names and client names, and a guard refuses to
 write it if anything path-like slips in. Never share it on their behalf without
 asking.

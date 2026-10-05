@@ -101,12 +101,37 @@ minutes with `--ask` and your number stops being a guess.
 Answer honestly. An inflated rung doesn't get you anything except worse
 coaching, and nobody sees your answers unless you choose to share them.
 
+## See your results in the portal
+
+Optional. In the AMM portal open **/onboarding**, choose **Connect your audit**
+and create a token. Then:
+
+```bash
+./onboarding/onboard.sh --connect --portal <address>   # paste the token (hidden), once
+./onboarding/onboard.sh --publish                       # scan, review, answer y/N
+./onboarding/onboard.sh --disconnect                    # forget the token
+```
+
+Windows: `.\onboarding\onboard.ps1 -Connect -Portal <address>`, `-Publish`
+(add `-Yes` to skip the question), `-Disconnect`.
+
+- **What is sent:** only the share payload (the same one `--share` writes, after
+  the same leak guard): your ten rung statuses, system score, reach and floor,
+  one status per check, and your installed skill count. It is shown to you
+  before it goes. No file paths, repo names, client names or file contents.
+- **Your name** always comes from the token, never from what you type.
+- **Where the token lives:** `~/.config/amm-portal/connection.json` (Windows:
+  `%APPDATA%\amm-portal\connection.json`), readable only by you. It is never
+  printed. `--disconnect` deletes the file; you can also revoke the token in the portal.
+- Nothing is ever published unless you run `--publish`.
+
 ## Privacy — read this bit
 
 - **Presence-only.** It checks whether files and commands *exist*. It does not
   read what is inside your documents, your client work, or your credentials.
-- **Nothing is uploaded.** There is no network call anywhere in this flow. The
-  readout is a file on your disk.
+- **The audit uploads nothing.** The scan and the readout make no network call.
+  The readout is a file on your disk. Only `--connect` and `--publish` (see
+  "See your results in the portal") touch the network, and only when you type them.
 - **Sharing is opt-in and manual.** `--share` writes a small JSON file, tells
   you where it is, and asks you to look at it before you send it. Even then the
   payload is stripped of file paths, repo names and client names — only "check X
@@ -126,6 +151,7 @@ from session attendance. But it is your call, every time.
 | File | What it is |
 |---|---|
 | `onboard.sh` | the one command (macOS / Linux) |
+| `portal.py` | optional connect / publish to the AMM portal (the only network code) |
 | `onboard.ps1` | the one command (Windows, native PowerShell) |
 | `probes.py` | the low-level presence checks |
 | `objectives.py` | what each rung is for, and every way to satisfy it |
