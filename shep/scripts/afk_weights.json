@@ -1,0 +1,8 @@
+{
+  "bead": 0.25,
+  "unblocks": 0.15,
+  "momentum": 0.15,
+  "afk_fit": 0.30,
+  "loop": 0.10,
+  "rot": 0.05
+}

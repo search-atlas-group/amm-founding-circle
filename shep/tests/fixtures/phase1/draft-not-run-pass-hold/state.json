@@ -1,0 +1,11 @@
+{
+  "run_id": "mission-1",
+  "status": "draft",
+  "current_owner_role": "planner",
+  "current_bottleneck": "unknown",
+  "source_sha": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "contract_digest": "49e90265816202230437fb76d0b1ac6591fb6cec9dc48b320c7ba3dc01fd6028",
+  "verification": {
+    "last_status": "not_run"
+  }
+}

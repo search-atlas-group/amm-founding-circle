@@ -1,0 +1,32 @@
+#!/usr/bin/env bash
+#
+# happy-cc — Happy (phone-reachable Claude Code) routed through the AI Gateway.
+#
+# Used as MISSION_GOAL_ROUTER_RUNTIME for Shep's away-mode batches. launch.py
+# passes that value straight to herdr as the pane command, so a mission launched
+# this way is BOTH an ordinary herdr pane (Shep keeps its stall detection,
+# auto-reap and nudge engine) and a Happy session the operator can drive from
+# their phone after they have left.
+#
+# --yolo because nobody is at the keyboard: an unattended pane that stops on a
+# permission prompt is an unattended pane that does nothing all night.
+#
+# Credentials are never written, echoed, or logged here — claude-gw owns the
+# gateway key and this only forwards the base URL it already resolved.
+set -euo pipefail
+
+if ! command -v happy >/dev/null 2>&1; then
+    echo "happy-cc: happy is not installed; away-mode panes would be unreachable from the phone" >&2
+    exit 127
+fi
+
+# Prefer an explicitly exported gateway base; otherwise let claude-gw's own
+# configuration answer. Deliberately no hardcoded URL: a stale endpoint baked in
+# here would route unattended agents somewhere nobody is watching.
+BASE_URL="${AIG_BASE_URL:-${ANTHROPIC_BASE_URL:-}}"
+
+if [ -n "$BASE_URL" ]; then
+    exec happy --yolo --claude-env "ANTHROPIC_BASE_URL=${BASE_URL}" "$@"
+fi
+
+exec happy --yolo "$@"

@@ -1,0 +1,223 @@
+{
+  "cases": [
+    {
+      "id": "valid-short-intent",
+      "pane_lines": [
+        "running tests",
+        "3 failed"
+      ],
+      "status": "idle",
+      "operational_candidate": "Fix the three failing tests, then run the suite again.",
+      "intent_candidate": "fix the failing tests",
+      "expect_intent_valid": true,
+      "expect_risk_category": {
+        "operational": "safe_continuation",
+        "intent": "safe_continuation"
+      }
+    },
+    {
+      "id": "intent-too-long",
+      "pane_lines": [
+        "build output"
+      ],
+      "status": "idle",
+      "operational_candidate": "Continue with the build and report the result.",
+      "intent_candidate": "please go ahead and continue working on the remaining build steps until everything passes, and once that is done rerun the full suite, then report back with a short summary of what changed",
+      "expect_intent_valid": false,
+      "expect_risk_category": {
+        "operational": "safe_continuation"
+      }
+    },
+    {
+      "id": "intent-question-form",
+      "pane_lines": [
+        "waiting"
+      ],
+      "status": "idle",
+      "operational_candidate": "Continue the current task.",
+      "intent_candidate": "are you done yet?",
+      "expect_intent_valid": false,
+      "expect_risk_category": {
+        "operational": "safe_continuation"
+      }
+    },
+    {
+      "id": "intent-praise",
+      "pane_lines": [
+        "all green"
+      ],
+      "status": "done",
+      "operational_candidate": "Wrap up and summarize what changed.",
+      "intent_candidate": "nice work looks good",
+      "expect_intent_valid": false,
+      "expect_risk_category": {
+        "operational": "safe_continuation"
+      }
+    },
+    {
+      "id": "intent-no-nudge",
+      "pane_lines": [
+        "scrolling logs"
+      ],
+      "status": "working",
+      "operational_candidate": "Continue processing the log batch.",
+      "intent_candidate": "NO_NUDGE",
+      "expect_intent_valid": false,
+      "expect_risk_category": {
+        "operational": "safe_continuation"
+      }
+    },
+    {
+      "id": "intent-null",
+      "pane_lines": [
+        "blank pane"
+      ],
+      "status": "idle",
+      "operational_candidate": "Continue the current task.",
+      "intent_candidate": null,
+      "expect_intent_valid": false,
+      "expect_risk_category": {
+        "operational": "safe_continuation"
+      }
+    },
+    {
+      "id": "merge-risk",
+      "pane_lines": [
+        "MR ready"
+      ],
+      "status": "idle",
+      "operational_candidate": "Merge the MR once CI is green.",
+      "intent_candidate": "merge the MR now",
+      "expect_intent_valid": true,
+      "expect_risk_category": {
+        "operational": "merge",
+        "intent": "merge"
+      }
+    },
+    {
+      "id": "push-risk",
+      "pane_lines": [
+        "branch ahead"
+      ],
+      "status": "idle",
+      "operational_candidate": "Run git push to origin after the tests pass.",
+      "intent_candidate": "git push the branch",
+      "expect_intent_valid": true,
+      "expect_risk_category": {
+        "operational": "push",
+        "intent": "push"
+      }
+    },
+    {
+      "id": "safe-continuation",
+      "pane_lines": [
+        "paused"
+      ],
+      "status": "idle",
+      "operational_candidate": "Continue where you left off.",
+      "intent_candidate": "keep going",
+      "expect_intent_valid": true,
+      "expect_risk_category": {
+        "operational": "safe_continuation",
+        "intent": "safe_continuation"
+      }
+    },
+    {
+      "id": "destructive",
+      "pane_lines": [
+        "dirty tree"
+      ],
+      "status": "stalled",
+      "operational_candidate": "Run rm -rf on the stale worktree, then retry the build.",
+      "intent_candidate": "resume the cleanup",
+      "expect_intent_valid": true,
+      "expect_risk_category": {
+        "operational": "destructive",
+        "intent": "safe_continuation"
+      }
+    },
+    {
+      "id": "destructive-negated",
+      "pane_lines": [
+        "dirty tree"
+      ],
+      "status": "stalled",
+      "operational_candidate": "Do not run rm -rf on the worktree; explain the blocker.",
+      "intent_candidate": "resume the cleanup",
+      "expect_intent_valid": true,
+      "expect_risk_category": {
+        "operational": "unknown",
+        "intent": "safe_continuation"
+      }
+    },
+    {
+      "id": "send-gated",
+      "pane_lines": [
+        "draft ready"
+      ],
+      "status": "done",
+      "operational_candidate": "Post to the product channel once the summary is ready.",
+      "intent_candidate": "wrap up the summary",
+      "expect_intent_valid": true,
+      "expect_risk_category": {
+        "operational": "send_gated",
+        "intent": "safe_continuation"
+      }
+    },
+    {
+      "id": "unknown-shape",
+      "pane_lines": [
+        "odd state"
+      ],
+      "status": "idle",
+      "operational_candidate": "Summarize the diff hunk ordering.",
+      "intent_candidate": "summarize the diff",
+      "expect_intent_valid": true,
+      "expect_risk_category": {
+        "operational": "unknown",
+        "intent": "unknown"
+      }
+    },
+    {
+      "id": "stalled-escalation",
+      "pane_lines": [
+        "no output 30m"
+      ],
+      "status": "stalled",
+      "operational_candidate": "Name the exact blocker or finish the current step.",
+      "intent_candidate": "what is blocking",
+      "expect_intent_valid": true,
+      "expect_risk_category": {
+        "operational": "safe_continuation",
+        "intent": "unknown"
+      }
+    },
+    {
+      "id": "blocked-worker-compound-merge",
+      "pane_lines": [
+        "SAFE_TO_CLOSE: remaining deployment work needs Harbor login",
+        "Running 1 shell command"
+      ],
+      "status": "working",
+      "operational_candidate": "Before wrapping, run the project tests, commit anything uncommitted and merge this in.",
+      "intent_candidate": "continue",
+      "expect_intent_valid": false,
+      "expect_risk_category": {
+        "operational": "merge"
+      }
+    },
+    {
+      "id": "single-word-intent",
+      "pane_lines": [
+        "prompt"
+      ],
+      "status": "idle",
+      "operational_candidate": "Continue the current task.",
+      "intent_candidate": "continue",
+      "expect_intent_valid": false,
+      "expect_risk_category": {
+        "operational": "safe_continuation"
+      }
+    }
+  ]
+}

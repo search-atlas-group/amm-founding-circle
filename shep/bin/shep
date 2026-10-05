@@ -1,0 +1,54 @@
+#!/bin/sh
+set -eu
+
+SCRIPT_PATH=$0
+while [ -L "$SCRIPT_PATH" ]; do
+    TARGET=$(readlink "$SCRIPT_PATH")
+    case "$TARGET" in
+        /*) SCRIPT_PATH=$TARGET ;;
+        *) SCRIPT_PATH=$(dirname -- "$SCRIPT_PATH")/$TARGET ;;
+    esac
+done
+SCRIPT_DIR=$(CDPATH= cd -- "$(dirname -- "$SCRIPT_PATH")" && pwd)
+# Version integrity: `shep` is expected to run canonical main. A checkout left
+# on a feature branch silently changes what every invocation runs, which is the
+# recurring stale/wrong-version failure. Detached HEAD (submodule installs) is
+# allowed -- that is a deliberate pin, not drift.
+BR=$(git -C "$SCRIPT_DIR/.." branch --show-current 2>/dev/null || true)
+if [ -n "$BR" ] && [ "$BR" != "main" ] && [ "${SHEP_ALLOW_BRANCH:-}" != "1" ]; then
+    echo "shep: canonical checkout is on '$BR', not main (SHEP_ALLOW_BRANCH=1 to override)" >&2
+    exit 1
+fi
+# Behind-checkout warning: local refs only (no network here -- the control
+# loop fetches every pass). A mismatch means this checkout is behind what we
+# already know main is. Warn, don't block: running one-behind is far safer
+# than running an unmerged branch.
+LOCAL=$(git -C "$SCRIPT_DIR/.." rev-parse HEAD 2>/dev/null || true)
+ORIGIN=$(git -C "$SCRIPT_DIR/.." rev-parse origin/main 2>/dev/null || true)
+if [ -n "$LOCAL" ] && [ -n "$ORIGIN" ] && [ "$LOCAL" != "$ORIGIN" ]; then
+    echo "shep: checkout is behind origin/main ($ORIGIN) -- git pull" >&2
+fi
+# Interpreter integrity: shep.py uses PEP 604 unions (`int | None`) at class
+# scope, so a 3.9 interpreter dies at import with a bare TypeError that names
+# neither shep nor the version. Bare `python3` is 3.11 in an interactive shell
+# here but /usr/bin/python3 (3.9) under launchd and login shells, so the failure
+# only ever shows up in the unattended path -- the one nobody is watching.
+# Resolve a new-enough interpreter ourselves rather than trusting PATH.
+PY=""
+for CANDIDATE in "${SHEP_PYTHON:-}" python3 python3.13 python3.12 python3.11; do
+    [ -n "$CANDIDATE" ] || continue
+    command -v "$CANDIDATE" >/dev/null 2>&1 || continue
+    if "$CANDIDATE" -c 'import sys; raise SystemExit(0 if sys.version_info >= (3, 10) else 1)' 2>/dev/null; then
+        PY=$CANDIDATE
+        break
+    fi
+done
+if [ -z "$PY" ]; then
+    echo "shep: needs python >= 3.10 (set SHEP_PYTHON to one)" >&2
+    exit 1
+fi
+if [ "${1:-}" = "doctor" ]; then
+    shift
+    exec "$PY" "$SCRIPT_DIR/../scripts/shep_doctor.py" "$@"
+fi
+exec "$PY" "$SCRIPT_DIR/../scripts/shep.py" "$@"

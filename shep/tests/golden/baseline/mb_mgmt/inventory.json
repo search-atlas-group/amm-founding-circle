@@ -1,0 +1,33 @@
+{
+  "ancestor": "mb-mgmt",
+  "git_head": "ace78be9ff2b594b82d73ca59c8cbd9a5ab1c7d0",
+  "entrypoint": "scripts/shep.py",
+  "entrypoint_lines": 4835,
+  "probe": {"mode": "sanitized_help", "exit_code": 0, "stderr": ""},
+  "cli_flags": ["--dump-json", "--control-once", "--auto-nudge", "--auto-reap", "--dry-run", "--max-actions", "--action-log", "--control-state", "--control-lock", "--snapshot", "--snapshot-json", "--propose", "--deliver", "--theme", "--demo", "--sweep", "--send", "--mission-create", "--mission-list", "--mission-mode", "--mission-base", "--json"],
+  "keymap": {
+    "q_or_escape": "quit",
+    "j_or_down": "select next row",
+    "k_or_up": "select previous row",
+    "mouse_button1_row": "select row only",
+    "r": "refresh",
+    "a": "toggle automatic drafting",
+    "t": "cycle theme",
+    "i": "draft intent",
+    "x_then_x": "reap with confirmation",
+    "m_then_Y": "spawn continuation mission",
+    "M": "open Missions view",
+    "N_then_Y": "send fleet-safe nudges",
+    "n": "review/send/redraft/edit selected nudge"
+  },
+  "schemas": ["shep-snapshot/v1", "shep-missions/v1", "atlas-mission-deck/v1"],
+  "row_fields": {
+    "herdr": ["context", "cwd", "id", "label", "session_label", "source", "status", "target", "workspace_id"],
+    "tmux": ["context", "cwd", "id", "label", "source", "status", "target"],
+    "happy": ["context", "continuation", "cwd", "elapsed", "flavor", "happiness", "happy_session_id", "id", "in_herdr", "label", "pid", "reap_ready", "reap_reason", "shep_status", "source", "started_by", "status", "target", "tty"]
+  },
+  "state": ["MISSION_ENGINE_DIR/shep-deck-cache.json", "MISSION_ENGINE_DIR/shep-nudge-state.json", "MISSION_ENGINE_DIR/missions.json", "reports/data/shep-actions/events.jsonl", "reports/data/shep-actions/state.json", "reports/data/shep-nudge-outcomes/"],
+  "subprocesses": ["agent-command resolve", "herdr pane read", "herdr_ctl.py session list/send/close/start", "tmux list-sessions/list-panes/capture-pane/send-keys/kill-pane", "happy daemon list", "ps", "git rev-parse", "mission-sense", "mission-recommend", "mission-launch", "gateway model command"],
+  "environment": ["SHEP_HERDR_CTL", "FLEET_MONITOR_HERDR_CTL", "MISSION_ENGINE_DIR", "SHEP_MISSION_SENSE_SCRIPT", "SHEP_MISSION_RECOMMEND_SCRIPT", "SHEP_MISSION_LAUNCH_SCRIPT", "SHEP_STALL_SECONDS", "FLEET_MONITOR_STALL_SECONDS", "SHEP_NUDGE_ENGINE", "SHEP_NUDGE_STATE", "SHEP_NUDGE_CMD", "SHEP_NUDGE_MODEL", "SHEP_TELEMETRY_CHANNEL", "SHEP_ACTION_LOG", "SHEP_OUTCOMES_DIR", "SHEP_MISSIONS_PATH", "SHEP_THEME", "FLEET_MONITOR_THEME", "SHEP_ASCII"],
+  "unique_behaviors": ["headless Happy inventory", "snapshot/propose/deliver CLI", "persistent mission deck and mission queue", "Missions view", "bounded headless control", "action ledger", "outcome telemetry", "nudge quality fixtures"]
+}

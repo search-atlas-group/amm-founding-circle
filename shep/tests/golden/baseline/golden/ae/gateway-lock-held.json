@@ -1,0 +1,1 @@
+{"surface":"gateway-lock-held","argv":["acquire_gateway_recovery_leader","<state-root>/fleet-cache","twice"],"exit_code":0,"stderr":"","stdout_json":{"first_acquired":true,"second_acquired":false}}

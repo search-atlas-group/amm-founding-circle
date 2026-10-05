@@ -1,0 +1,37 @@
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+.venv/
+dist/
+build/
+*.egg-info/
+.DS_Store
+
+# Agent/session runtime state (per-machine, disposable)
+.omc/
+.claude/
+
+# Live runtime telemetry only: the action ledger and nudge outcomes are
+# append-only and machine-specific, so they grow on every run. Curated reports
+# elsewhere under reports/ stay tracked and can be committed.
+reports/data/
+
+# Local issue/planning trackers. These were machine-local databases that lived
+# on one laptop and were invisible to everyone else; live work items belong in
+# docs/open-work.md, which is tracked. Removed 2026-09-17.
+.beads/
+.sdlc/
+
+# Property-test cache
+.hypothesis/
+
+# Syncthing conflict artifacts: stale snapshots of files that kept evolving.
+*.sync-conflict-*
+
+# Beads / Dolt files (added by bd init)
+.dolt/
+*.db
+.beads-credential-key

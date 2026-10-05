@@ -1,0 +1,1 @@
+{"surface":"control-dry-run","argv":["--control-once","--dry-run","--action-log","<state-root>/actions.jsonl","--control-state","<state-root>/control-state.json","--control-lock","<state-root>/control.lock"],"exit_code":2,"stdout":"","stderr_class":"argparse-unrecognized-arguments","unavailable":true}

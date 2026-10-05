@@ -1,0 +1,102 @@
+{
+  "cases": [
+    {
+      "id": "overnight-abstention-drain",
+      "observations": [
+        {"context": "waiting", "candidate": "NO_NUDGE"},
+        {"context": "waiting", "candidate": "NO_NUDGE", "advance_seconds": 300},
+        {"context": "waiting", "candidate": "NO_NUDGE", "advance_seconds": 300}
+      ],
+      "expected": {"model_calls": 1, "sends": 0, "held": 0, "progress": 0, "exhausted_reason": "abstained"}
+    },
+    {
+      "id": "overnight-semantic-duplicate-drain",
+      "prior_nudges": ["Run pytest on test_sessions.py and fix the failures."],
+      "observations": [
+        {"context": "3 failed in test_sessions.py", "candidate": "Fix the test_sessions.py failures by running pytest."},
+        {"context": "3 failed in test_sessions.py", "candidate": "Run pytest and fix test_sessions.py.", "advance_seconds": 300}
+      ],
+      "expected": {"model_calls": 1, "sends": 0, "held": 0, "progress": 0, "exhausted_reason": "duplicate"}
+    },
+    {
+      "id": "own-input-echo-is-not-work",
+      "baseline_context": "Codex turn timed out",
+      "prior_nudges": ["Run `git status` and inspect the diff for changes."],
+      "prior_sent": true,
+      "observations": [
+        {"context": "Codex turn timed out\nRun `git status` and inspect the diff for changes.", "candidate": "Run pytest."}
+      ],
+      "expected": {"model_calls": 0, "sends": 0, "held": 0, "progress": 0, "exhausted_reason": "no_new_evidence"}
+    },
+    {
+      "id": "new-test-failure-after-prior-nudge",
+      "outcome_expectation": "progress",
+      "baseline_context": "Run `git status` and inspect the diff for changes.",
+      "prior_nudges": ["Run `git status` and inspect the diff for changes."],
+      "prior_sent": true,
+      "observations": [
+        {"context": "Run `git status` and inspect the diff for changes.\npytest: 2 failed in tests/test_sessions.py", "candidate": "Run pytest tests/test_sessions.py -q and fix the two failures."},
+        {"context": "pytest: 12 passed", "candidate": "NO_NUDGE", "advance_seconds": 300}
+      ],
+      "expected": {"model_calls": 2, "sends": 1, "held": 0, "progress": 1, "exhausted_reason": "abstained"}
+    },
+    {
+      "id": "gateway-failure-is-bounded",
+      "observations": [
+        {"context": "pytest failed", "candidate": null},
+        {"context": "pytest failed", "candidate": null, "advance_seconds": 301},
+        {"context": "pytest failed", "candidate": null, "advance_seconds": 1801},
+        {"context": "pytest failed", "candidate": null, "advance_seconds": 7201}
+      ],
+      "expected": {"model_calls": 3, "sends": 0, "held": 0, "progress": 0, "exhausted_reason": "draft_unavailable"}
+    },
+    {
+      "id": "headless-happy-stays-fail-closed",
+      "observations": [
+        {"source": "happy", "status": "unobserved", "context": "", "candidate": "Run pytest."}
+      ],
+      "expected": {"model_calls": 0, "sends": 0, "held": 0, "progress": 0, "exhausted_reason": null}
+    },
+    {
+      "id": "working-session-is-not-interrupted",
+      "observations": [
+        {"status": "working", "context": "Running pytest", "candidate": "Wait for pytest."}
+      ],
+      "expected": {"model_calls": 0, "sends": 0, "held": 0, "progress": 0, "exhausted_reason": null}
+    },
+    {
+      "id": "merge-remains-human-gated",
+      "observations": [
+        {"context": "MR !42 is green and ready", "candidate": "Merge MR !42 and report the result."}
+      ],
+      "expected": {"model_calls": 1, "sends": 0, "held": 1, "progress": 0, "exhausted_reason": null}
+    },
+    {
+      "id": "specific-timeout-recovery-progresses",
+      "outcome_expectation": "progress",
+      "observations": [
+        {"context": "Command timed out while running pytest tests/test_api.py", "candidate": "Run pytest tests/test_api.py -q and inspect the first failure."},
+        {"context": "tests/test_api.py: 18 passed", "candidate": "NO_NUDGE", "advance_seconds": 300}
+      ],
+      "expected": {"model_calls": 2, "sends": 1, "held": 0, "progress": 1, "exhausted_reason": "abstained"}
+    },
+    {
+      "id": "transport-failure-is-not-a-send",
+      "observations": [
+        {"context": "pytest failed in tests/test_api.py", "candidate": "Run pytest tests/test_api.py -q.", "send_ok": false},
+        {"context": "pytest failed in tests/test_api.py", "candidate": "Run pytest tests/test_api.py -q.", "send_ok": false, "advance_seconds": 301},
+        {"context": "pytest failed in tests/test_api.py", "candidate": "Run pytest tests/test_api.py -q.", "send_ok": false, "advance_seconds": 1801},
+        {"context": "pytest failed in tests/test_api.py", "candidate": "Run pytest tests/test_api.py -q.", "send_ok": false, "advance_seconds": 7201}
+      ],
+      "expected": {"model_calls": 1, "sends": 0, "send_attempts": 3, "failed_sends": 3, "held": 0, "progress": 0, "exhausted_reason": "send_failed"}
+    },
+    {
+      "id": "successful-send-can-remain-unresolved",
+      "outcome_expectation": "unresolved",
+      "observations": [
+        {"context": "pytest failed in tests/test_api.py", "candidate": "Run pytest tests/test_api.py -q."}
+      ],
+      "expected": {"model_calls": 1, "sends": 1, "held": 0, "progress": 0, "exhausted_reason": null}
+    }
+  ]
+}

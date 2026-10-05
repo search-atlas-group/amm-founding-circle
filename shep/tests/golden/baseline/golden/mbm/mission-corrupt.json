@@ -1,0 +1,1 @@
+{"surface":"mission-corrupt","argv":["--mission-list","--json"],"exit_code":2,"stderr":"","stdout_json":{"ok":false,"error_class":"mission-store-unreadable-json"}}

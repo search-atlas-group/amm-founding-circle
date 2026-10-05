@@ -1,0 +1,14 @@
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-ra"
+pythonpath = ["."]
+
+[tool.ruff]
+target-version = "py311"
+line-length = 88
+
+[tool.ruff.lint]
+select = ["F"]
+
+# Tooling configuration only. Packaging is intentionally deferred until the
+# separately reviewed src/shep migration.

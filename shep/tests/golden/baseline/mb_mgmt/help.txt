@@ -1,0 +1,37 @@
+usage: shep.py [-h] [--dump-json] [--control-once] [--auto-nudge]
+               [--auto-reap] [--dry-run] [--max-actions MAX_ACTIONS]
+               [--action-log ACTION_LOG] [--control-state CONTROL_STATE]
+               [--control-lock CONTROL_LOCK] [--snapshot] [--snapshot-json]
+               [--propose] [--deliver] [--theme {classic,ocean,contrast,mono}]
+               [--demo] [--sweep] [--send] [--mission-create GOAL]
+               [--mission-list] [--mission-mode {inline,fleet}]
+               [--mission-base MISSION_BASE] [--json]
+
+Options captured from the sanitized executable probe:
+  -h, --help
+  --dump-json
+  --control-once
+  --auto-nudge
+  --auto-reap
+  --dry-run
+  --max-actions MAX_ACTIONS
+  --action-log ACTION_LOG
+  --control-state CONTROL_STATE
+  --control-lock CONTROL_LOCK
+  --snapshot
+  --snapshot-json
+  --propose
+  --deliver
+  --theme {classic,ocean,contrast,mono}
+  --demo
+  --sweep
+  --send
+  --mission-create GOAL
+  --mission-list
+  --mission-mode {inline,fleet}
+  --mission-base MISSION_BASE
+  --json
+
+Probe exit: 0
+Probe stderr: empty
+Note: prose help was reduced to the stable usage and option surface; no live state was queried.
