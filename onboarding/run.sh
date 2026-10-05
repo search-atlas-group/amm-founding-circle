@@ -28,18 +28,6 @@ for tool in git python3; do
   command -v "$tool" >/dev/null 2>&1 || { echo "$tool is not installed. Do step 1 on the Onboarding page (set up your coding environment), then paste this again."; exit 69; }
 done
 
-# Setup check: the audit tells you what is missing and how to fix it. Nothing here stops the audit.
-echo "Checking your agentic setup:"
-ok()   { echo "  [ok]      $1"; }
-miss() { echo "  [missing] $1"; echo "            Fix: $2"; }
-command -v node   >/dev/null 2>&1 && ok "Node.js"     || miss "Node.js"     "run step 1 on the Onboarding page"
-command -v claude >/dev/null 2>&1 && ok "Claude Code" || miss "Claude Code" "run step 1 on the Onboarding page"
-if [[ "$(uname -s)" == "Darwin" ]]; then
-  [[ -d /Applications/Borg.app || -d "$HOME/Applications/Borg.app" ]] && ok "Borg" || miss "Borg" "download it from step 2 on the Onboarding page (or use https://app.getborg.com)"
-fi
-[[ -d "$HOME/.claude/commands" ]] && ls "$HOME/.claude/commands" 2>/dev/null | grep -q . && ok "SearchAtlas slash commands" || miss "SearchAtlas slash commands" "run step 1 on the Onboarding page"
-[[ -x "$DIR/shep/bin/shep" ]] && ok "SHEP command deck" || miss "SHEP command deck" "run ./shep/bin/shep --help from the Founding Circle folder"
-echo
 
 is_folder() { [[ -d "$1/onboarding" && -d "$1/.git" ]]; }
 
@@ -77,6 +65,19 @@ else
     fi
   fi
 fi
+
+# Setup check: the audit tells you what is missing and how to fix it. Nothing here stops the audit.
+echo "Checking your agentic setup:"
+ok()   { echo "  [ok]      $1"; }
+miss() { echo "  [missing] $1"; echo "            Fix: $2"; }
+command -v node   >/dev/null 2>&1 && ok "Node.js"     || miss "Node.js"     "the quickstart above should have installed it"
+command -v claude >/dev/null 2>&1 && ok "Claude Code" || miss "Claude Code" "install it from the AMM toolkit setup"
+if [[ "$(uname -s)" == "Darwin" ]]; then
+  [[ -d /Applications/Borg.app || -d "$HOME/Applications/Borg.app" ]] && ok "Borg" || miss "Borg" "download it from step 2 on the Onboarding page (or use https://app.getborg.com)"
+fi
+[[ -d "$HOME/.claude/commands" ]] && ls "$HOME/.claude/commands" 2>/dev/null | grep -q . && ok "SearchAtlas slash commands" || miss "SearchAtlas slash commands" "run step 1 on the Onboarding page"
+[[ -x "$DIR/shep/bin/shep" ]] && ok "SHEP command deck" || miss "SHEP command deck" "run ./shep/bin/shep --help from the Founding Circle folder"
+echo
 
 # The toolkit (slash commands, setup) lives beside the Founding Circle. Same guarantee: clone it if missing, else
 # bring it up to date. It never blocks the audit.
