@@ -1,0 +1,422 @@
+openapi: 3.1.0
+info:
+  title: Shep Mission API
+  version: 1.0.0
+  description: >-
+    Local authenticated mission control over the Shep Unix-domain socket.
+    Queueing never starts work. Dispatch requires a fresh human approval and
+    a current revision.
+servers:
+  - url: http://shep.local
+    description: Logical URL namespace; transport is the local Unix socket.
+security:
+  - bearerAuth: []
+paths:
+  /v1/health:
+    get:
+      operationId: health
+      responses:
+        '200':
+          description: Shep is ready.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Health'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+  /v1/missions:
+    get:
+      operationId: listMissions
+      parameters:
+        - $ref: '#/components/parameters/Status'
+        - $ref: '#/components/parameters/Limit'
+        - $ref: '#/components/parameters/Cursor'
+      responses:
+        '200':
+          description: Stable, bounded mission page.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MissionPage'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+    post:
+      operationId: createMission
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateMission'
+      responses:
+        '201':
+          description: Mission queued.
+          headers:
+            Location:
+              schema:
+                type: string
+            ETag:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MissionEnvelope'
+        '200':
+          description: Idempotent replay of the original create.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MissionEnvelope'
+        '409':
+          $ref: '#/components/responses/Conflict'
+  /v1/missions/{mission_id}:
+    parameters:
+      - $ref: '#/components/parameters/MissionId'
+    get:
+      operationId: getMission
+      responses:
+        '200':
+          description: Current mission state.
+          headers:
+            ETag:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MissionEnvelope'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /v1/missions/{mission_id}/receipts:
+    parameters:
+      - $ref: '#/components/parameters/MissionId'
+    get:
+      operationId: listReceipts
+      responses:
+        '200':
+          description: Bounded lifecycle receipts.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items]
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Receipt'
+  /v1/missions/{mission_id}/actions/approve:
+    post:
+      operationId: approveMission
+      parameters:
+        - $ref: '#/components/parameters/MissionId'
+        - $ref: '#/components/parameters/IfMatch'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Approval'
+      responses:
+        '200':
+          description: Human approval recorded; work is not started.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ActionResult'
+        '409':
+          $ref: '#/components/responses/Conflict'
+  /v1/missions/{mission_id}/actions/dispatch:
+    post:
+      operationId: dispatchMission
+      parameters:
+        - $ref: '#/components/parameters/MissionId'
+        - $ref: '#/components/parameters/IfMatch'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+      responses:
+        '202':
+          description: Bounded executor accepted the dispatch.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ActionResult'
+        '409':
+          $ref: '#/components/responses/Conflict'
+  /v1/missions/{mission_id}/actions/cancel:
+    post:
+      operationId: cancelMission
+      parameters:
+        - $ref: '#/components/parameters/MissionId'
+        - $ref: '#/components/parameters/IfMatch'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+      responses:
+        '202':
+          description: Cancellation was accepted for bounded processing.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ActionResult'
+        '409':
+          $ref: '#/components/responses/Conflict'
+  /v1/missions/{mission_id}/events:
+    post:
+      operationId: recordMissionEvent
+      parameters:
+        - $ref: '#/components/parameters/MissionId'
+        - $ref: '#/components/parameters/IfMatch'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Event'
+      responses:
+        '202':
+          description: Allow-listed evidence accepted.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ActionResult'
+        '409':
+          $ref: '#/components/responses/Conflict'
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+  parameters:
+    MissionId:
+      name: mission_id
+      in: path
+      required: true
+      schema:
+        type: string
+    IfMatch:
+      name: If-Match
+      in: header
+      required: true
+      schema:
+        type: string
+    IdempotencyKey:
+      name: Idempotency-Key
+      in: header
+      required: true
+      schema:
+        type: string
+        minLength: 8
+    Status:
+      name: status
+      in: query
+      required: false
+      schema:
+        type: string
+        enum: [queued, approved, dispatching, running, review, landed, failed, cancelled, blocked]
+    Limit:
+      name: limit
+      in: query
+      required: false
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 100
+        default: 50
+    Cursor:
+      name: cursor
+      in: query
+      required: false
+      schema:
+        type: string
+  responses:
+    Unauthorized:
+      description: Missing or invalid bearer token.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorEnvelope'
+    NotFound:
+      description: Mission was not found.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorEnvelope'
+    Conflict:
+      description: Revision or idempotency conflict.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorEnvelope'
+    ServiceUnavailable:
+      description: Shep is present but not ready.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorEnvelope'
+  schemas:
+    Health:
+      type: object
+      additionalProperties: false
+      required: [schema, status, service_version]
+      properties:
+        schema:
+          const: shep-health/v1
+        status:
+          const: ready
+        service_version:
+          type: string
+    CreateMission:
+      type: object
+      additionalProperties: false
+      required: [goal, mode, base]
+      properties:
+        goal:
+          type: string
+          minLength: 1
+        mode:
+          type: string
+          enum: [inline, fleet]
+        base:
+          type: string
+          minLength: 1
+    Mission:
+      type: object
+      additionalProperties: false
+      required: [schema, id, goal, mode, status, revision, created_at, updated_at]
+      properties:
+        schema:
+          const: shep-mission/v1
+        id:
+          type: string
+        goal:
+          type: string
+        mode:
+          type: string
+          enum: [inline, fleet]
+        status:
+          type: string
+        revision:
+          type: integer
+          minimum: 0
+        source_sha:
+          type: [string, 'null']
+        review:
+          type: [object, 'null']
+        created_at:
+          type: number
+        updated_at:
+          type: number
+        artifacts:
+          type: object
+    MissionEnvelope:
+      type: object
+      required: [mission]
+      properties:
+        mission:
+          $ref: '#/components/schemas/Mission'
+    MissionPage:
+      type: object
+      required: [items, next_cursor]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/Mission'
+        next_cursor:
+          type: [string, 'null']
+    Approval:
+      type: object
+      additionalProperties: false
+      required: [actor, reason]
+      properties:
+        actor:
+          type: string
+          minLength: 1
+        reason:
+          type: string
+          minLength: 1
+    Event:
+      type: object
+      additionalProperties: false
+      required: [event_id, event_type, actor, expected_revision]
+      properties:
+        event_id:
+          type: string
+        event_type:
+          type: string
+          enum: [created, approved, dispatch_started, worker_completed, reviewed, landed, blocked, failed, cancelled]
+        actor:
+          type: string
+        expected_revision:
+          type: integer
+          minimum: 0
+        source_sha:
+          type: [string, 'null']
+        evidence_refs:
+          type: array
+          items:
+            type: string
+    Receipt:
+      type: object
+      required: [schema, receipt_id, request_id, mission_id, actor, action, outcome, created_at]
+      properties:
+        schema:
+          const: shep-receipt/v1
+        receipt_id:
+          type: string
+        request_id:
+          type: string
+        mission_id:
+          type: string
+        actor:
+          type: string
+        action:
+          type: string
+        outcome:
+          type: string
+          enum: [accepted, rejected, blocked, ambiguous, failed]
+        created_at:
+          type: string
+          format: date-time
+    ActionResult:
+      type: object
+      required: [mission, receipt]
+      properties:
+        mission:
+          $ref: '#/components/schemas/Mission'
+        receipt:
+          $ref: '#/components/schemas/Receipt'
+    ErrorEnvelope:
+      type: object
+      required: [error]
+      properties:
+        error:
+          type: object
+          required: [code, message, request_id]
+          properties:
+            code:
+              type: string
+            message:
+              type: string
+            request_id:
+              type: string
+            details:
+              type: object

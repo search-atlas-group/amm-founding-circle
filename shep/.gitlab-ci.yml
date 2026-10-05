@@ -1,0 +1,14 @@
+stages:
+  - verify
+
+verify:
+  stage: verify
+  image: python:3.12-slim
+  before_script:
+    - python -m pip install --disable-pip-version-check pytest ruff
+  script:
+    - python tools/shep_qa.py
+    - python -m pytest -q
+    - python -m ruff check scripts tests
+    - python -m compileall -q scripts
+    - python tests/golden/baseline/verify_baseline.py --portable

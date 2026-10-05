@@ -1,0 +1,1 @@
+{"surface":"help","argv":["--help"],"exit_code":0,"stderr":"","flags":["--dump-json","--control-once","--auto-nudge","--auto-reap","--dry-run","--max-actions","--action-log","--control-state","--control-lock","--snapshot","--snapshot-json","--propose","--deliver","--theme","--demo","--sweep","--send","--mission-create","--mission-list","--mission-mode","--mission-base","--json"]}

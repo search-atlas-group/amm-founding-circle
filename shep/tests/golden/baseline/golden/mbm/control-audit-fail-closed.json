@@ -1,0 +1,1 @@
+{"surface":"control-audit-fail-closed","exit_code":0,"stderr":"","stdout_json":{"audit_errors":0,"dry_run":false,"failed":0,"nudged":0,"planned":[{"action":"nudge","target":"herdr:sandbox-pane","text":"Continue with the next task."}],"reaped":0,"refused":1},"transport_called":false}

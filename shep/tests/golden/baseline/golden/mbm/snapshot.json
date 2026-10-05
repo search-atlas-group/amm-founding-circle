@@ -1,0 +1,1 @@
+{"surface":"snapshot","argv":["--snapshot-json"],"exit_code":0,"stderr":"","stdout_json":{"schema":"shep-snapshot/v1","generated_at":"<timestamp:1>","counts":{"panels":0,"in_herdr":0,"outside_herdr":0,"happy":0,"not_happy":0,"working":0,"idle":0,"blocked":0,"unobserved":0,"reap_ready":0,"nudge_proposed":0,"nudge_held":0,"nudge_sent":0,"nudge_sent_unresolved":0},"panels":[]}}

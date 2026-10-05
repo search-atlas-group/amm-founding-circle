@@ -1,0 +1,1 @@
+{"surface":"control-corrupt-state","exit_code":0,"stderr":"","stdout_json":{"audit_errors":0,"dry_run":true,"failed":0,"nudged":0,"planned":[],"reaped":0,"refused":0},"observation":"ancestor treats corrupt cooldown state as empty during dry-run; standalone spec supersedes this with fail-closed send suppression"}

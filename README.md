@@ -67,3 +67,13 @@ See [CONTRIBUTING.md](CONTRIBUTING.md). A `scripts/pre-commit` hook blocks secre
 ## License
 
 MIT — see [LICENSE](LICENSE).
+
+## SHEP
+
+The Founding Circle includes the approved SHEP community release in `shep/`. It is the governed terminal command deck used by the AMM agentic environment. Run it after the audit command has downloaded or updated this repo:
+
+```bash
+./shep/bin/shep --help
+```
+
+SHEP needs Python 3.10 or newer. See `shep/README.md` for its supported workstation tools and verification commands.

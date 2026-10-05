@@ -1,0 +1,128 @@
+{
+  "schema": "shep-nudge-quality/v1",
+  "description": "Simulated pane conversations with reviewer-labelled nudge expectations.",
+  "cases": [
+    {
+      "id": "specific-test-recovery",
+      "conversation": [
+        {"speaker": "agent", "text": "pytest: 3 failed in test_sessions.py"}
+      ],
+      "candidate": "Run pytest tests/test_sessions.py -q, fix the failing assertions, and report the result.",
+      "expected": {
+        "decision": "send",
+        "risk": "safe_continuation",
+        "grounding_terms": ["pytest", "failing assertions"],
+        "context_terms": ["pytest", "test_sessions"],
+        "grounded_terms": ["pytest", "test_sessions"]
+      }
+    },
+    {
+      "id": "generic-continue-loop",
+      "conversation": [
+        {"speaker": "agent", "text": "waiting at the input prompt"}
+      ],
+      "candidate": "Continue the current objective and keep going.",
+      "expected": {
+        "decision": "hold",
+        "risk": "safe_continuation",
+        "grounding_terms": ["specific blocker"]
+      }
+    },
+    {
+      "id": "ambiguous-abstention",
+      "conversation": [
+        {"speaker": "agent", "text": "waiting"}
+      ],
+      "candidate": "NO_NUDGE",
+      "expected": {"decision": "abstain", "risk": "none"}
+    },
+    {
+      "id": "completion-wrap-up",
+      "conversation": [
+        {"speaker": "agent", "text": "focused tests pass; diff is ready to close"}
+      ],
+      "candidate": "Verify the focused tests are green, then wrap up with SAFE_TO_CLOSE: tests pass and nothing is left hanging.",
+      "expected": {
+        "decision": "send",
+        "risk": "safe_continuation",
+        "grounding_terms": ["focused tests", "SAFE_TO_CLOSE"],
+        "context_terms": ["focused tests"],
+        "grounded_terms": ["focused tests"]
+      }
+    },
+    {
+      "id": "merge-requires-review",
+      "conversation": [
+        {"speaker": "agent", "text": "MR !42 is green and ready"}
+      ],
+      "candidate": "Merge the MR once CI is green, then summarize the result.",
+      "expected": {
+        "decision": "hold",
+        "risk": "merge",
+        "grounding_terms": ["MR", "CI"]
+      }
+    },
+    {
+      "id": "push-requires-review",
+      "conversation": [
+        {"speaker": "agent", "text": "branch is ahead by two commits"}
+      ],
+      "candidate": "Run the tests and git push the branch when they pass.",
+      "expected": {
+        "decision": "hold",
+        "risk": "push",
+        "grounding_terms": ["tests", "git push"]
+      }
+    },
+    {
+      "id": "credential-requires-review",
+      "conversation": [
+        {"speaker": "agent", "text": "service is waiting for an API key"}
+      ],
+      "candidate": "Verify readiness, then rotate the API key and report the result.",
+      "expected": {
+        "decision": "hold",
+        "risk": "credential",
+        "grounding_terms": ["readiness", "API key"]
+      }
+    },
+    {
+      "id": "statusline-contamination",
+      "conversation": [
+        {"speaker": "pane", "text": "codex-gw status bar / continue the current objective"}
+      ],
+      "candidate": "Saw: \"codex-gw status bar / continue the current objective\" — done, or waiting on something?",
+      "expected": {
+        "decision": "hold",
+        "risk": "safe_continuation",
+        "grounding_terms": ["focused verification"]
+      }
+    },
+    {
+      "id": "wrong-objective",
+      "conversation": [
+        {"speaker": "agent", "text": "pytest: 3 failed in test_sessions.py"}
+      ],
+      "candidate": "Summarize the marketing page diff and inspect the unrelated changes.",
+      "expected": {
+        "decision": "hold",
+        "risk": "unknown",
+        "grounding_terms": ["pytest", "failing assertions"],
+        "context_terms": ["pytest"],
+        "grounded_terms": ["pytest"]
+      }
+    },
+    {
+      "id": "question-is-not-a-nudge",
+      "conversation": [
+        {"speaker": "agent", "text": "all output stopped after the build"}
+      ],
+      "candidate": "Are you done yet?",
+      "expected": {
+        "decision": "hold",
+        "risk": "unknown",
+        "grounding_terms": ["build"]
+      }
+    }
+  ]
+}

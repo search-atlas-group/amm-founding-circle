@@ -1,0 +1,1 @@
+{"surface":"gateway-corrupt","argv":["load_gateway_recovery_state","<state-root>/fleet-cache"],"exit_code":0,"stderr":"","stdout_json":{"result":null},"fail_closed":"null disables recovery sends"}

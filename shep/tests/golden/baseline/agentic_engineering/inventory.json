@@ -1,0 +1,32 @@
+{
+  "ancestor": "agentic-engineering",
+  "git_head": "073b2025e51430b8eecdf6d097fb0e30436fe86f",
+  "entrypoint": "stack/fleetmon/fleet_monitor.py",
+  "entrypoint_lines": 4392,
+  "probe": {"mode": "sanitized_help", "exit_code": 0, "stderr": ""},
+  "cli_flags": ["--dump-json", "--theme", "--demo"],
+  "keymap": {
+    "q_or_escape": "quit",
+    "j_or_down": "select next row",
+    "k_or_up": "select previous row",
+    "mouse_button1_row": "select row only",
+    "r": "refresh",
+    "a": "toggle automatic drafting",
+    "t": "cycle theme",
+    "i": "draft intent",
+    "x_then_x": "reap with confirmation",
+    "m_then_Y": "spawn continuation mission",
+    "N_then_Y": "send fleet-safe nudges",
+    "n": "review/send/redraft/edit selected nudge"
+  },
+  "schemas": ["nudge-quality-receipt/v1 represented by schema_version=1", "gateway recovery state and JSONL lifecycle receipts"],
+  "row_fields": {
+    "herdr": ["context", "cwd", "gateway_input_ready", "gateway_interruption", "gateway_recovery_blocked", "id", "label", "source", "status", "target", "workspace_id"],
+    "tmux": ["context", "cwd", "gateway_input_ready", "gateway_interruption", "gateway_recovery_blocked", "id", "label", "source", "status", "target", "tty"],
+    "process": ["context", "cwd", "gateway_input_ready", "gateway_interruption", "gateway_recovery_blocked", "id", "label", "pid", "ppid", "source", "status", "target", "tty"]
+  },
+  "state": ["FLEET_MONITOR_CACHE_DIR/gateway-recovery.lock", "FLEET_MONITOR_CACHE_DIR/gateway-recovery-state.json", "FLEET_MONITOR_CACHE_DIR/gateway-recovery-audit.jsonl", "FLEET_MONITOR_CACHE_DIR/nudge-quality-receipts.jsonl"],
+  "subprocesses": ["agent-command resolve", "herdr_ctl.py session list/send/close/start", "tmux list-sessions/list-panes/capture-pane/send-keys/kill-pane", "ps process inventory", "lsof process cwd inventory", "gateway model command", "AI Gateway subscription-accounts HTTP read"],
+  "environment": ["FLEET_MONITOR_HERDR_CTL", "FLEET_MONITOR_STALL_SECONDS", "FLEET_MONITOR_GATEWAY_GRACE_SECONDS", "FLEET_MONITOR_CACHE_DIR", "FLEET_MONITOR_THEME", "FLEETMON_ASCII"],
+  "unique_behaviors": ["foreground agent process visibility", "durable single-leader transient gateway recovery", "AI Gateway quota and pool header", "versioned nudge-quality and rejection receipts", "operational candidate compaction", "real PTY curses smoke", "source-managed launcher and onboarding aliases"]
+}

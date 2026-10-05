@@ -1,0 +1,12 @@
+usage: fleet_monitor.py [-h] [--dump-json]
+                        [--theme {classic,ocean,contrast,mono}] [--demo]
+
+Options captured from the sanitized executable probe:
+  -h, --help
+  --dump-json
+  --theme {classic,ocean,contrast,mono}
+  --demo
+
+Probe exit: 0
+Probe stderr: empty
+Note: prose help was reduced to the stable usage and option surface; no live state was queried.
