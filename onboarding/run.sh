@@ -38,7 +38,7 @@ is_folder() { [[ -d "$1/onboarding" && -d "$1/.git" ]]; }
 
 DIR=""
 for d in "${AMM_FOUNDING_CIRCLE_DIR:-}" "$PWD" "$PWD/amm-founding-circle" "$DEFAULT_DIR" \
-         "$HOME"/Desktop/amm-founding-circle "$HOME"/Desktop/*/amm-founding-circle \
+         "$HOME"/Desktop/amm-founding-circle "$HOME"/Desktop/*/amm-founding-circle "$HOME"/Desktop/*/*/amm-founding-circle \
          "$HOME"/Documents/amm-founding-circle "$HOME"/Documents/*/amm-founding-circle \
          "$HOME"/Developer/amm-founding-circle "$HOME"/Code/amm-founding-circle "$HOME"/code/amm-founding-circle; do
   [[ -n "$d" ]] && is_folder "$d" && { DIR="$d"; break; }
@@ -50,11 +50,25 @@ if [[ -z "$DIR" ]]; then
   DIR="$DEFAULT_DIR"
 else
   echo "Using your Founding Circle folder: $DIR"
-  if ! git -C "$DIR" pull --ff-only -q 2>/dev/null; then
-    echo "Could not update it automatically (you have changes of your own there). Running the version you have."
+  # Guarantee the latest: fetch, fast-forward, then verify the folder matches GitHub's main. If something of the
+  # member's own blocks the update, never run the stale copy: run a clean copy of the latest instead.
+  if ! git -C "$DIR" fetch -q origin main 2>/dev/null; then
+    echo "Could not reach GitHub to check for updates. Running the version you have."
+  else
+    git -C "$DIR" merge --ff-only -q origin/main 2>/dev/null || true
+    if [[ "$(git -C "$DIR" rev-parse HEAD)" == "$(git -C "$DIR" rev-parse origin/main)" ]]; then
+      echo "Up to date ($(git -C "$DIR" rev-parse --short HEAD))."
+    else
+      echo "Your folder has changes of your own that block the update, so it was left alone."
+      FRESH="$(mktemp -d)"
+      LATEST="$(git -C "$DIR" rev-parse --short origin/main)"
+      git -C "$DIR" archive origin/main | tar -x -C "$FRESH"
+      DIR="$FRESH"
+      echo "Running a clean copy of the latest ($LATEST)."
+    fi
   fi
 fi
 
-[[ -f "$DIR/onboarding/portal.py" ]] || { echo "This copy is too old and could not be updated. Run: git -C \"$DIR\" pull"; exit 1; }
+[[ -f "$DIR/onboarding/portal.py" ]] || { echo "This copy is too old and could not be updated. Delete it and paste the command again to download a fresh one."; exit 1; }
 chmod +x "$DIR/onboarding/onboard.sh" 2>/dev/null || true
 exec "$DIR/onboarding/onboard.sh" --run "$CODE" --portal "$PORTAL"

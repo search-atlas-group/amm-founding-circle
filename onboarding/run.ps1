@@ -41,12 +41,29 @@ if (-not $dir) {
     $dir = $DefaultDir
 } else {
     Write-Host "Using your Founding Circle folder: $dir"
-    git -C $dir pull --ff-only -q 2>$null
-    if ($LASTEXITCODE -ne 0) { Write-Host "Could not update it automatically (you have changes of your own there). Running the version you have." }
+    # Guarantee the latest: fetch, fast-forward, then verify the folder matches GitHub's main. If something of the
+    # member's own blocks the update, never run the stale copy: run a clean copy of the latest instead.
+    git -C $dir fetch -q origin main 2>$null
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host "Could not reach GitHub to check for updates. Running the version you have."
+    } else {
+        git -C $dir merge --ff-only -q origin/main 2>$null
+        $head = (git -C $dir rev-parse HEAD).Trim()
+        $latest = (git -C $dir rev-parse origin/main).Trim()
+        if ($head -eq $latest) {
+            Write-Host "Up to date ($($head.Substring(0,7)))."
+        } else {
+            Write-Host "Your folder has changes of your own that block the update, so it was left alone."
+            $fresh = Join-Path ([System.IO.Path]::GetTempPath()) ("amm-fc-" + [guid]::NewGuid().ToString("N"))
+            git clone -q --depth 1 --branch main $RepoUrl $fresh
+            $dir = $fresh
+            Write-Host "Running a clean copy of the latest ($($latest.Substring(0,7)))."
+        }
+    }
 }
 
 if (-not (Test-Path (Join-Path $dir "onboarding\portal.py"))) {
-    Write-Host "This copy is too old and could not be updated. Run: git -C `"$dir`" pull"
+    Write-Host "This copy is too old and could not be updated. Delete it and paste the command again to download a fresh one."
     exit 1
 }
 & (Join-Path $dir "onboarding\onboard.ps1") -Run $Code -Portal $Portal
