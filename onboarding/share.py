@@ -93,7 +93,9 @@ def assert_clean(payload: dict) -> list[str]:
     path, a home directory, or a URL.
     """
     problems: list[str] = []
-    suspicious = re.compile(r"(/Users/|/home/|~/|[A-Za-z]:\\\\|https?://|\.mcp\.json|\.git\b)")
+    # Same pattern as the portal's server-side guard (amm-portal src/lib/scan-upload.ts PATH_LIKE): one literal
+    # backslash after the drive letter, so a real Windows path like C:\Users\jane is caught.
+    suspicious = re.compile(r"(/Users/|/home/|~/|[A-Za-z]:\\|https?://|\.mcp\.json|\.git\b)", re.IGNORECASE)
 
     def walk(node, trail: str) -> None:
         if isinstance(node, dict):

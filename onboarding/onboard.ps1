@@ -1,5 +1,5 @@
 <#
-AMM Founding Circle — onboard this machine and see where you are on the ladder.
+AMM Founding Circle: onboard this machine and see where you are on the ladder.
 Windows-native entrypoint (no Git Bash / WSL required).
 
   .\onboarding\onboard.ps1                       scan, then open your readout
@@ -46,7 +46,7 @@ $ErrorActionPreference = "Stop"
 $Here = Split-Path -Parent $MyInvocation.MyCommand.Path
 $Repo = Split-Path -Parent $Here
 
-# --- step 0: preflight — find a python3 ------------------------------------
+# --- step 0: preflight: find a python3 -------------------------------------
 # Get-Command alone is not enough: a bare Windows install without Python ships
 # a "python"/"python3" App Execution Alias stub that Get-Command finds fine but
 # which just pops the Microsoft Store and exits nonzero. Actually run --version.
@@ -66,7 +66,9 @@ function Test-PyCandidate {
 
 function Find-Python {
     foreach ($candidate in @(@("python3"), @("py", "-3"), @("python"))) {
-        if (Test-PyCandidate $candidate) { return $candidate }
+        # The leading comma keeps a one-element candidate an array: PowerShell unrolls a returned
+        # @("python3") to the string "python3", and $PyCmd[0] would then be "p".
+        if (Test-PyCandidate $candidate) { return ,$candidate }
     }
     return $null
 }
@@ -108,11 +110,18 @@ if ($Pair -ne "") {
     } finally { Pop-Location }
     if (-not $NoBackground) {
         try {
-            $exe = $PyCmd[0]
+            # Task Scheduler does not search PATH the way this terminal does, so give it the full path. Prefer the
+            # windowless pythonw/pyw beside it so a console window does not sit open at every logon.
+            $exe = (Get-Command $PyCmd[0] -CommandType Application | Select-Object -First 1).Source
+            $quiet = Join-Path (Split-Path -Parent $exe) ($(if ($PyCmd[0] -eq "py") { "pyw.exe" } else { "pythonw.exe" }))
+            if (Test-Path $quiet) { $exe = $quiet }
             $argList = if ($PyCmd.Count -gt 1) { "$($PyCmd[1]) `"$Here\portal.py`" --listen" } else { "`"$Here\portal.py`" --listen" }
             $action = New-ScheduledTaskAction -Execute $exe -Argument $argList -WorkingDirectory $Here
-            $trigger = New-ScheduledTaskTrigger -AtLogOn
-            Register-ScheduledTask -TaskName $ConnectorTask -Action $action -Trigger $trigger -Force | Out-Null
+            # A logon trigger for every user needs admin rights; one for this user does not.
+            $me = if ($env:USERDOMAIN) { "$env:USERDOMAIN\$env:USERNAME" } else { $env:USERNAME }
+            $trigger = New-ScheduledTaskTrigger -AtLogOn -User $me
+            $principal = New-ScheduledTaskPrincipal -UserId $me -LogonType Interactive -RunLevel Limited
+            Register-ScheduledTask -TaskName $ConnectorTask -Action $action -Trigger $trigger -Principal $principal -Force | Out-Null
             Start-ScheduledTask -TaskName $ConnectorTask
             Write-Host "All set. Press Run audit in the portal any time this computer is on."
             exit 0
@@ -155,7 +164,7 @@ if ($Publish) {
     try { Run-Py @("portal.py", "--preflight") } finally { Pop-Location }
 }
 
-Write-Host "AMM Founding Circle — ladder check"
+Write-Host "AMM Founding Circle: ladder check"
 Write-Host "repo: $Repo"
 Write-Host ""
 
@@ -164,9 +173,23 @@ if ($InstallSkills) {
     $installSh = Join-Path $Repo "skills\install.sh"
     if (Test-Path $installSh) {
         Write-Host "Installing this repo's skills..."
-        $bash = Get-Command bash -ErrorAction SilentlyContinue
+        # A bare "bash" can resolve to WSL's System32\bash.exe, which cannot see this Windows home folder the same
+        # way. Prefer the bash.exe that ships with Git for Windows, found from git.exe itself.
+        $bash = $null
+        $gitCmd = Get-Command git -CommandType Application -ErrorAction SilentlyContinue | Select-Object -First 1
+        if ($gitCmd) {
+            $gitRoot = Split-Path -Parent (Split-Path -Parent $gitCmd.Source)
+            foreach ($p in @("bin\bash.exe", "usr\bin\bash.exe")) {
+                if (Test-Path (Join-Path $gitRoot $p)) { $bash = Join-Path $gitRoot $p; break }
+            }
+        }
+        if (-not $bash) {
+            $found = Get-Command bash -CommandType Application -ErrorAction SilentlyContinue |
+                Where-Object { $_.Source -notlike "*\System32\*" -and $_.Source -notlike "*\WindowsApps\*" } | Select-Object -First 1
+            if ($found) { $bash = $found.Source }
+        }
         if ($bash) {
-            & bash $installSh
+            & $bash $installSh
             if ($LASTEXITCODE -ne 0) { Write-Host "  (skill install reported a problem -- the scan still works)" }
         } else {
             Write-Host "  (skills/install.sh needs bash -- install Git for Windows, or run -InstallSkills from Git Bash instead. The scan still works without it.)"

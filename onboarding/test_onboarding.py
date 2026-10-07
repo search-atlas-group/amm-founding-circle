@@ -389,6 +389,27 @@ def test_privacy_guard_actually_catches_a_leak():
     assert leaks and "/Users/" in leaks[0]
 
 
+def test_privacy_guard_catches_a_windows_path():
+    for leak in ("C:\\Users\\jane\\clients\\acme", "d:\\work\\notes.txt", "seen at C:\\Users\\x"):
+        assert share.assert_clean({"a": leak}), leak
+    assert share.assert_clean({"a": "rung 3: 2 of 4 met"}) == []
+
+
+def test_every_powershell_file_is_ascii_only():
+    # Windows PowerShell 5.1 reads a .ps1 without a BOM as the system code page (cp1252), so one em dash in a
+    # UTF-8 file becomes three characters, one of them a closing quote, and the script stops parsing. ASCII
+    # parses the same on every PowerShell.
+    repo = Path(__file__).resolve().parent.parent
+    offenders = []
+    for path in sorted(repo.rglob("*.ps1")):
+        if ".git" in path.parts:
+            continue
+        for n, line in enumerate(path.read_bytes().splitlines(), 1):
+            if any(b > 127 for b in line):
+                offenders.append(f"{path.relative_to(repo)}:{n}")
+    assert offenders == []
+
+
 def test_shared_rung_statuses_use_the_internal_vocabulary():
     result = lp.evaluate({})
     payload = share.build_payload("m", result, lp.assess(result))
