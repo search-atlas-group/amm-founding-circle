@@ -13,3 +13,6 @@ __pycache__/
 
 # local-only data — never commit (see README: "What belongs in local/")
 **/local/
+
+# internal session planning lives in the private brain, never here
+weekly-session-content/
