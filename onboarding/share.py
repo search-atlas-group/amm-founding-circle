@@ -23,6 +23,7 @@ from datetime import date
 from pathlib import Path
 
 import ladder_probe as probe_mod
+import setup_probe
 
 HERE = Path(__file__).resolve().parent
 SHARE_DIR = HERE / "share"
@@ -82,6 +83,7 @@ def build_payload(member: str, result: dict, verdict: dict) -> dict:
             "available": result["skills"]["available_total"],
         },
         "unanswered": verdict["unanswered"],
+        "setup": setup_probe.detect(),
     }
 
 

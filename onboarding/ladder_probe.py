@@ -318,6 +318,11 @@ def main(argv: list[str] | None = None) -> int:
         print(f"  [{mark}] {item['goal']} — {item['suggestion']}")
     if v["unanswered"]:
         print(f"\n{len(v['unanswered'])} question(s) unanswered — run with --ask.")
+    try:
+        import setup_probe
+        print("\n" + setup_probe.summary(setup_probe.detect()))
+    except Exception:
+        pass
     return 0
 
 

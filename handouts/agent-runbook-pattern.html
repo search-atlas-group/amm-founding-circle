@@ -1,4 +1,4 @@
-<title>The Runbook Pattern</title>
+<title>Agent Harness Template</title>
 <style>
   @font-face {
     font-family: 'Plex Mono';
@@ -392,8 +392,8 @@
   }
 
   .reveal{
-    opacity: 0;
-    transform: translateY(10px);
+    opacity: 1;
+    transform: none;
     transition: opacity 0.5s ease, transform 0.5s ease;
   }
   .reveal.in{ opacity: 1; transform: translateY(0); }
@@ -408,180 +408,177 @@
     section.block{ padding: 2.6rem 0; }
   }
 </style>
-
+</head>
+<body>
 <div class="page">
 
   <header class="hero">
-    <p class="eyebrow">Field notes — agentic ops</p>
-    <h1>Give an agent one job —<br>and never re-explain it</h1>
-    <p class="dek">This is the actual operating document behind a workstream I run entirely through an agent, no human coordinator in the loop. I'm sharing the shape of it, not the contents — swap in your own program, your own rules.</p>
-    <p class="note">Everything below in <span class="placeholder">teal</span> is a placeholder. The structure is real and running today; the names, IDs, and numbers have been swapped out.</p>
+    <p class="eyebrow">Agent harness template</p>
+    <h1>Build an agent that<br><span class="accent">knows what to do</span></h1>
+    <p class="dek">A practical template for turning one repeatable job into a reliable agent. Replace the example details with your own sources, rules, actions, and report format.</p>
+    <p class="note">The structure is reusable. The job, evidence, permissions, and thresholds are yours to define.</p>
   </header>
 
   <section class="block">
-    <h2>Why a good prompt still isn't a job</h2>
-    <p class="lede">A prompt gets you one good answer. A recurring workstream — member engagement, client onboarding, content review, whatever runs every week whether you're watching it or not — needs something else: an agent that remembers what it's for, knows what it isn't allowed to touch, and produces the same quality of output on run forty as it did on run one.</p>
-    <p class="lede">That's what a runbook is. Not a prompt — a job description, an org chart, and a style guide, written once and read by the agent instead of a person.</p>
-  </section>
-
-  <section class="block">
-    <h2>Five parts, written once</h2>
-    <ol class="parts">
-      <li><span class="num">1</span><span><span class="label">Identity &amp; scope</span><span class="desc">One sentence for the job title, plus an explicit "does not handle" list.</span></span></li>
-      <li><span class="num">2</span><span><span class="label">Watchlist</span><span class="desc">Exactly where it looks for work — and where it's not allowed to look.</span></span></li>
-      <li><span class="num">3</span><span><span class="label">Locked rules</span><span class="desc">The judgment calls you've already made, so it doesn't ask you twice.</span></span></li>
-      <li><span class="num">4</span><span><span class="label">Modes</span><span class="desc">How it behaves with nobody watching, versus when you give it a direct order.</span></span></li>
-      <li><span class="num">5</span><span><span class="label">Output contract</span><span class="desc">A format you — or another system — can parse without reading prose.</span></span></li>
-    </ol>
-  </section>
-
-  <section class="block">
-    <p class="eyebrow">1 · Identity &amp; scope</p>
-    <h2>One job, stated as a boundary</h2>
-    <div class="quote">
-      <p>"You are the <span class="placeholder">[Program]</span> PM — a product manager owning ONE workstream: <span class="placeholder">[program]</span> overall. You do not handle <span class="placeholder">[adjacent workstream A]</span>, <span class="placeholder">[adjacent workstream B]</span>, or <span class="placeholder">[adjacent workstream C]</span> — those have their own owners."</p>
-    </div>
-    <p class="lede" style="margin-bottom:0.7rem"><strong>What it owns, spelled out:</strong></p>
-    <ul class="plain">
-      <li>Engagement across the group it's responsible for</li>
-      <li>Program design and the value delivered each session</li>
-      <li>The one community space this program runs in</li>
-      <li>Resource and playbook publishing</li>
-      <li>Onboarding and offboarding</li>
-    </ul>
-    <p class="caption">The "does not handle" half matters more than the "owns" half. Without it, the agent creeps — it'll happily answer a billing question because it <em>can</em>, not because it should.</p>
-  </section>
-
-  <section class="block">
-    <p class="eyebrow">2 · Watchlist</p>
-    <h2>An allowlist, not "everything it can reach"</h2>
-    <p class="lede" style="margin-bottom:0.7rem"><strong>Checks every run:</strong></p>
-    <ul class="plain">
-      <li>Two named coordination channels — <span class="placeholder">[main channel]</span>, <span class="placeholder">[ops channel]</span></li>
-      <li>Tasks assigned to me in one specific queue</li>
-      <li>A short list of reference docs it re-reads for context</li>
-    </ul>
-    <p class="lede" style="margin-bottom:0.7rem"><strong>Hard-skips:</strong></p>
-    <p class="lede">Anything belonging to an adjacent program. If it sees something cross-boundary while scanning, it flags it for routing and takes no action — even if directly asked.</p>
-  </section>
-
-  <section class="block">
-    <p class="eyebrow">3 · Locked rules</p>
-    <h2>Judgment calls you don't want re-litigated</h2>
-    <p class="lede">Four real ones, genericized:</p>
-    <div class="rules">
-      <div class="rule">
-        <p class="r-title">No informal hierarchy inside the group.</p>
-        <p class="r-why"><b>Why:</b> the group is flat by design — routing engagement through an unofficial "senior member" undermines that.</p>
-      </div>
-      <div class="rule">
-        <p class="r-title">Coordination happens in one system, not wherever the message lands.</p>
-        <p class="r-why"><b>Why:</b> if status lives across three chat apps, nobody — including the agent — has one source of truth.</p>
-      </div>
-      <div class="rule">
-        <p class="r-title">Status updates lead with what's shipped, never with what's stuck.</p>
-        <p class="r-why"><b>Why:</b> an update that opens with the blocker reads as an excuse before it reads as progress.</p>
-      </div>
-      <div class="rule">
-        <p class="r-title">Ownership changes get stated plainly, immediately — never "temporary" once it's permanent.</p>
-        <p class="r-why"><b>Why:</b> stale framing ages badly. An agent still saying "covering until so-and-so returns" months later has stopped tracking reality.</p>
-      </div>
+    <h2>Start with one job</h2>
+    <p class="lede">Every morning, review the defined sources and leave the owner a brief containing only the items that require attention today.</p>
+    <div class="callout">
+      <strong>One job means one judgment.</strong>
+      <span>If the work needs a different purpose, different judgment rule, or different action, make it a separate agent.</span>
     </div>
   </section>
 
   <section class="block">
-    <p class="eyebrow">4 · Modes</p>
-    <h2>Passive by default, reactive on command</h2>
-    <div class="modes">
-      <div class="mode-card sweep">
-        <span class="mode-chip">Sweep · passive</span>
-        <p class="mode-desc">Runs on a timer. Nobody has to ask.</p>
-        <ol class="mode-steps">
-          <li>Read its own memory of the last run</li>
-          <li>Scan the watchlist</li>
-          <li>Diff against last time</li>
-          <li>Update its memory</li>
-          <li>Open or update a tracked item for anything that needs one</li>
-        </ol>
-      </div>
-      <div class="mode-card command">
-        <span class="mode-chip">Command · reactive</span>
-        <p class="mode-desc">Runs when you give it a direct instruction.</p>
-        <ol class="mode-steps">
-          <li>Read memory plus your instruction</li>
-          <li>Decide: question, directive, or just context</li>
-          <li>Act only inside its own lane</li>
-          <li>Log what it did</li>
-          <li>Reply in the strict output format</li>
-        </ol>
-      </div>
+    <h2>Trigger</h2>
+    <p>Run automatically at a scheduled time, such as 6:00 AM each weekday.</p>
+    <div class="grid two">
+      <div class="card"><span class="label">Schedule</span><strong>6:00 AM weekdays</strong><p>A recurring time-based review.</p></div>
+      <div class="card"><span class="label">Other triggers</span><strong>Event or threshold</strong><p>A form submission, unread client message, or new flagged issue.</p></div>
+    </div>
+    <p class="small">If nothing can fire the process without a person starting it, it is a workflow, not yet an autonomous agent.</p>
+  </section>
+
+  <section class="block">
+    <h2>Routing description</h2>
+    <div class="quote">Use this agent when the owner needs a recurring review of defined sources and a decision about what requires action. Do not use it for unrelated research, open-ended brainstorming, or actions outside its declared permissions.</div>
+    <p class="small">Write this for the router, not as a summary for a human. Say when to invoke the agent.</p>
+  </section>
+
+  <section class="block">
+    <h2>The five-step loop</h2>
+    <div class="steps">
+      <div class="step"><span class="step-no">01</span><div><h3>SENSE</h3><p>Read only the sources the agent is responsible for monitoring.</p><p class="muted">Inbox, calendar, task list, CRM, project folder, or flagged issues.</p><p class="small">Record which sources were reached, their freshness, and any source that was unavailable.</p></div></div>
+      <div class="step"><span class="step-no">02</span><div><h3>CORRELATE</h3><p>Group related signals into one situation before judging them.</p><p class="muted">Correlate by topic, person or account, project, related task, and time window.</p><p class="small">Check whether a later message, task, or completed action already resolves the earlier signal.</p></div></div>
+      <div class="step"><span class="step-no">03</span><div><h3>JUDGE</h3><p>Decide whether each correlated situation needs action.</p><div class="rule"><span class="label">The rule</span><strong>Flag an item only when there is positive evidence that action is still required and the latest relevant status does not show that it has already been handled.</strong></div></div></div>
+      <div class="step"><span class="step-no">04</span><div><h3>ACT</h3><p>Choose the action according to the confidence and trust level.</p><div class="chips"><span>Observe</span><span>Propose</span><span>Act</span></div><p class="small">The agent must never send external messages, delete data, move money, or make a high-stakes decision without explicit authorization.</p></div></div>
+      <div class="step"><span class="step-no">05</span><div><h3>REPORT</h3><p>Leave a short, traceable report after every run.</p><p class="muted">Sources reached, unavailable sources, items reviewed, items requiring action, items closed as handled, uncertain items, and actions proposed or performed.</p></div></div>
     </div>
   </section>
 
   <section class="block">
-    <p class="eyebrow">5 · Output contract</p>
-    <h2>Two lines, always</h2>
-    <p class="lede">Every run ends with two machine-parseable lines regardless of mode. A person can skim them; another system can parse them without an LLM re-reading the prose above.</p>
-    <div class="code-wrap"><pre class="code"><span class="k">[ACTIONS_TAKEN:</span> &lt;semicolon-separated list, or "none"&gt;<span class="k">]</span>
-<span class="k">[STATUS_SUGGESTION:</span> &lt;CLOSED|AWAITING-REPLY|BLOCKED|IN-PROGRESS|RECEIVED|UNCHANGED&gt;: &lt;one-line reason&gt;<span class="k">]</span></pre></div>
-  </section>
-
-  <section class="block">
-    <p class="eyebrow">Worked examples</p>
-    <h2>Judgment, not just rules</h2>
-    <p class="lede">Rules alone don't transfer judgment — examples do. The real runbook ends with real transcripts, so a new run matches the shape of a good one instead of just the letter of a rule. Three of them, genericized:</p>
-
-    <div class="transcript">
-      <div class="t-head"><span>Sweep — happy path</span><span class="tag">IN-PROGRESS</span></div>
-      <div class="t-body">
-        <p class="t-input">mode=SWEEP</p>
-        <p class="t-output">Normalized <span class="ph">[Task 24]</span> — added assignee, cleaned description, posted a status update. Opened <span class="ph">[Task 26]</span>, linked to the draft spec. Logged this week's read: 10 active, 0 at-risk, one member re-engaged after a quiet stretch. Flagged two members who've gone quiet for a check-in.</p>
-        <div class="code-wrap"><pre class="code"><span class="k">[ACTIONS_TAKEN:</span> normalized Task 24; opened Task 26; logged weekly read; flagged 2 for check-in<span class="k">]</span>
-<span class="k">[STATUS_SUGGESTION:</span> IN-PROGRESS: open items still in scope, engagement actively tracked<span class="k">]</span></pre></div>
-      </div>
-    </div>
-
-    <div class="transcript">
-      <div class="t-head"><span>Command — mid-execution</span><span class="tag">UNCHANGED</span></div>
-      <div class="t-body">
-        <p class="t-input">mode=COMMAND · instruction: "make sure this works with people's existing setup, not just a fresh one"</p>
-        <p class="t-output">Updated the spec's install section — it now covers integrating into an existing setup, not requiring a clean one. Added a subsection covering both paths. Comment posted to the tracked task.</p>
-        <div class="code-wrap"><pre class="code"><span class="k">[ACTIONS_TAKEN:</span> updated spec install section; posted status comment<span class="k">]</span>
-<span class="k">[STATUS_SUGGESTION:</span> UNCHANGED: directive accepted, still mid-draft<span class="k">]</span></pre></div>
-      </div>
-    </div>
-
-    <div class="transcript">
-      <div class="t-head"><span>Escalation — out of lane</span><span class="tag" style="color:var(--warn)">ROUTED</span></div>
-      <div class="t-body">
-        <p class="t-input">mode=COMMAND · instruction: "push this live for <span class="ph">[adjacent program]</span>'s thing"</p>
-        <p class="t-output">ROUTE — this belongs to <span class="ph">[adjacent program]</span>'s owner, not mine. Locked rule applies: hard-skip on another program's surface. Flagged for routing, no action taken.</p>
-        <div class="code-wrap"><pre class="code"><span class="k">[ACTIONS_TAKEN:</span> cross-boundary flag → adjacent program; no edit made<span class="k">]</span>
-<span class="k">[STATUS_SUGGESTION:</span> UNCHANGED: routed away, not in this agent's lane<span class="k">]</span></pre></div>
-      </div>
-      <p class="t-caption">This one's the point. A scoped agent asked to do someone else's job says no and tells you where it belongs — it doesn't do it anyway just because it technically could.</p>
+    <h2>Judge with explicit categories</h2>
+    <div class="grid two categories">
+      <div class="card"><span class="status action">ACTION REQUIRED</span><p>The owner must do something.</p></div>
+      <div class="card"><span class="status waiting">WAITING ON SOMEONE ELSE</span><p>No owner action is currently required.</p></div>
+      <div class="card"><span class="status closed">ALREADY HANDLED</span><p>Close it and do not report it as outstanding.</p></div>
+      <div class="card"><span class="status info">INFORMATIONAL</span><p>Useful context with no action needed.</p></div>
+      <div class="card"><span class="status uncertain">UNCERTAIN</span><p>Insufficient evidence, so do not act automatically.</p></div>
     </div>
   </section>
 
   <section class="block">
-    <p class="eyebrow">Does it work</p>
-    <h2>How I know it's working</h2>
-    <ul class="checklist">
-      <li><span class="ck">✓</span><span>Every open item has a real ticket somewhere — not "I'll remember"</span></li>
-      <li><span class="ck">✓</span><span>Every ticket gets a status comment after each run, unprompted</span></li>
-      <li><span class="ck">✓</span><span>Anything time-sensitive gets actioned inside its own window, not whenever the agent gets to it</span></li>
-      <li><span class="ck">✓</span><span>Nothing ships below the bar the price of admission justifies</span></li>
-      <li><span class="ck">✓</span><span>"What's the status of X" always has the same answer, whether you ask me or read the tracker</span></li>
+    <h2>Confidence is a decision gate</h2>
+    <p class="lede">Confidence is not a claim that the model is objectively accurate. It is the threshold that controls what the agent is allowed to do.</p>
+    <div class="thresholds">
+      <div class="threshold"><strong>Below 80%</strong><span>Observe only</span><p>Do not draft or act.</p></div>
+      <div class="threshold"><strong>80% to 94%</strong><span>Propose</span><p>Prepare a draft or recommendation for review.</p></div>
+      <div class="threshold"><strong>95% or higher</strong><span>Act, with limits</span><p>Perform only pre-approved, low-risk actions.</p></div>
+    </div>
+    <div class="warning"><strong>Always stop for high stakes.</strong><span>Any uncertainty involving money, deletion, legal matters, access, or external communication requires review regardless of the numerical score.</span></div>
+  </section>
+
+  <section class="block">
+    <h2>Worked examples</h2>
+    <div class="examples">
+      <article class="example"><span class="example-no">01</span><div><h3>Straightforward</h3><p><b>Input:</b> A client email asks for a status update. There is no later reply, task, or sent message addressing the request.</p><p><b>Expected:</b> Correlate it to the client account, classify it as <em>ACTION REQUIRED</em>, prepare a reply draft, assign a confidence score, and include it in the report. Do not send automatically.</p></div></article>
+      <article class="example"><span class="example-no">02</span><div><h3>Already handled elsewhere</h3><p><b>Input:</b> An earlier email asks for a document. A later message in a related thread confirms that the document was sent yesterday.</p><p><b>Expected:</b> Correlate both messages, classify the situation as <em>ALREADY HANDLED</em>, and exclude it from the outstanding-action list.</p></div></article>
+      <article class="example"><span class="example-no">03</span><div><h3>Edge case or low signal</h3><p><b>Input:</b> A task appears overdue, but the source does not show its owner, project, or recent activity.</p><p><b>Expected:</b> Classify it as <em>UNCERTAIN</em>, do not create a new action or contact anyone, and report the missing evidence.</p></div></article>
+      <article class="example"><span class="example-no">04</span><div><h3>Source failure</h3><p><b>Input:</b> The calendar cannot be reached, but the inbox and task list are available.</p><p><b>Expected:</b> Continue with available sources, mark the calendar unavailable, lower the run status to <em>DEGRADED</em>, and state that the report is incomplete.</p></div></article>
+    </div>
+  </section>
+
+  <section class="block">
+    <h2>Failure modes, visible recovery</h2>
+    <p class="lede">Degrade visibly and never fail silently.</p>
+    <div class="failure-list">
+      <div><strong>Source unavailable</strong><span>Continue with other sources, record the failure, and mark the report degraded.</span></div>
+      <div><strong>Source empty</strong><span>Record that it was checked and empty. Do not claim it was not reached.</span></div>
+      <div><strong>Conflicting signals</strong><span>Keep the situation uncertain and request review.</span></div>
+      <div><strong>Missing identity or ownership</strong><span>Do not assign blame or take action. Report the missing field.</span></div>
+      <div><strong>Action tool fails</strong><span>Do not retry a high-impact action blindly. Preserve the draft and record the failure.</span></div>
+      <div><strong>Duplicate signal</strong><span>Correlate it with existing signals before reporting it.</span></div>
+    </div>
+  </section>
+
+  <section class="block">
+    <h2>Trust ladder</h2>
+    <div class="ladder">
+      <div><span>01</span><strong>Observe</strong><p>Read-only review and reporting.</p></div>
+      <div><span>02</span><strong>Propose</strong><p>Prepare drafts and recommendations for approval.</p></div>
+      <div><span>03</span><strong>Act</strong><p>Execute explicitly approved, low-risk actions.</p></div>
+    </div>
+    <p class="small">Graduate only after reviewing a meaningful history of correct outputs, including straightforward cases, already-handled cases, edge cases, and source failures.</p>
+    <div class="callout"><strong>Always propose, never auto-execute:</strong><span>external messages, deletions, spending money, access changes, and legal, medical, or safety decisions.</span></div>
+  </section>
+
+  <section class="block">
+    <h2>Output contract</h2>
+    <div class="output"><pre># Morning Brief
+
+Run: &lt;timestamp&gt;
+Status: OK | DEGRADED | FAILED
+Sources reached: &lt;list&gt;
+Sources unavailable: &lt;list or None&gt;
+Items reviewed: &lt;number&gt;
+
+## Action required
+- &lt;item, evidence, next step, confidence&gt;
+
+## Waiting on others
+- &lt;item and current owner&gt;
+
+## Already handled
+- &lt;item and closing evidence&gt;
+
+## Uncertain
+- &lt;item, missing evidence, review needed&gt;
+
+## Actions proposed or performed
+- &lt;action, trust level, result&gt;</pre></div>
+  </section>
+
+  <section class="block">
+    <h2>Per-run state</h2>
+    <p>Keep a machine-readable record alongside the human-facing report. Downstream systems read the state; people read the brief.</p>
+    <div class="output"><pre>{
+  "agent": "&lt;agent-slug&gt;",
+  "last_run_iso": "2026-01-01T00:00:00Z",
+  "status": "OK|DEGRADED|FAILED",
+  "sources_reached": [],
+  "sources_unavailable": [],
+  "items_reviewed": 0,
+  "actions_required": 0,
+  "actions_proposed": 0,
+  "actions_performed": 0,
+  "uncertain_items": 0,
+  "confidence_threshold": 0.8,
+  "trust_level": "OBSERVE|PROPOSE|ACT",
+  "blocking_issue": null
+}</pre></div>
+  </section>
+
+  <section class="block">
+    <h2>Capacity and safety</h2>
+    <ul class="checks">
+      <li><span class="ck">✓</span><span>Run against a budgeted API key with a defined spending cap.</span></li>
+      <li><span class="ck">✓</span><span>Do not pool personal-subscription logins behind a proxy.</span></li>
+      <li><span class="ck">✓</span><span>Declare every tool the agent can use.</span></li>
+      <li><span class="ck">✓</span><span>Give the agent only the access required for its one job.</span></li>
+      <li><span class="ck">✓</span><span>Preserve the source evidence behind every decision.</span></li>
+      <li><span class="ck">✓</span><span>Require human review whenever the cost of a wrong action is high.</span></li>
     </ul>
   </section>
 
   <footer class="closer">
-    <h2>Copy the shape, not the content</h2>
-    <p>Scope → watchlist → locked rules → modes → output contract → examples. That skeleton doesn't care whether the workstream is member engagement, client onboarding, inbox triage, or content review. Write yours once, and stop re-explaining the job.</p>
-    <p class="sign">— run the same way, every week</p>
+    <h2>Adapt the template, keep the spine</h2>
+    <p>Replace the job, trigger, SENSE sources, CORRELATE rules, JUDGE categories, permitted ACT actions, REPORT fields, examples, and thresholds.</p>
+    <p>Keep the loop, the failure behavior, the examples, and the explicit autonomy boundary. Those are what make an agent understandable, testable, and safe to run.</p>
+    <p class="sign">SENSE → CORRELATE → JUDGE → ACT → REPORT</p>
   </footer>
 
 </div>
+
+>
 
 <script>
   (function(){
@@ -596,3 +593,5 @@
     targets.forEach(function(el){ io.observe(el); });
   })();
 </script>
+</body>
+</html>

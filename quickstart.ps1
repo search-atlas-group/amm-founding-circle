@@ -4,25 +4,41 @@ $ErrorActionPreference = "Stop"
 $ToolkitUrl = "https://github.com/search-atlas-group/amm-toolkit.git"
 $FcUrl = "https://github.com/search-atlas-group/amm-founding-circle.git"
 $HerdrInstallUrl = "https://herdr.dev/install.ps1"
+$WarpDownloadPage = "https://www.warp.dev/download"
 $WorkspaceDir = Join-Path $HOME "amm-founding-circle"
 function Write-Step([string]$n,[string]$m) { Write-Host "`n[$n] $m" -ForegroundColor Cyan }
 function Write-Ok([string]$m) { Write-Host "  OK  $m" -ForegroundColor Green }
 function Write-WarnLine([string]$m) { Write-Host "  !  $m" -ForegroundColor Yellow }
+function Test-WarpInstalled { (Get-Command warp -ErrorAction SilentlyContinue) -or (Test-Path (Join-Path $env:LOCALAPPDATA "Programs\Warp\warp.exe")) }
 
-Write-Step "1/4" "Checking prerequisites"
+Write-Step "1/5" "Checking prerequisites"
 if (-not (Get-Command git -ErrorAction SilentlyContinue)) { Write-WarnLine "Install Git for Windows first, then re-run."; exit 1 }
-Write-Step "2/4" "Getting the Founding Circle"
+Write-Step "2/5" "Getting the Founding Circle"
 if (Test-Path (Join-Path $WorkspaceDir ".git")) { git -C $WorkspaceDir fetch -q origin main; git -C $WorkspaceDir merge --ff-only -q origin main } else { git clone -q $FcUrl $WorkspaceDir }
 $env:AMM_FOUNDING_CIRCLE_DIR = $WorkspaceDir
 Write-Ok "Founding Circle ready at $WorkspaceDir"
-Write-Step "3/4" "Getting the AMM toolkit"
+Write-Step "3/5" "Getting the AMM toolkit"
 $ToolkitDir = Join-Path (Split-Path -Parent $WorkspaceDir) "amm-toolkit"
 if (Test-Path (Join-Path $ToolkitDir ".git")) { git -C $ToolkitDir fetch -q origin main; git -C $ToolkitDir merge --ff-only -q origin main } else { git clone -q $ToolkitUrl $ToolkitDir }
 Write-Ok "AMM toolkit ready"
-Write-Step "4/4" "Installing Herdr"
+Write-Step "4/5" "Installing Herdr"
 if (Get-Command herdr -ErrorAction SilentlyContinue) { Write-Ok "Herdr already installed" } else { powershell -ExecutionPolicy Bypass -c "irm $HerdrInstallUrl | iex"; Write-Ok "Herdr installed" }
+Write-Step "5/5" "Warp"
+$WarpReady = $false
+try {
+  if (Test-WarpInstalled) { Write-Ok "Warp already installed"; $WarpReady = $true }
+  elseif (Get-Command winget -ErrorAction SilentlyContinue) {
+    winget install --id Warp.Warp -e --silent --accept-package-agreements --accept-source-agreements
+    if ($LASTEXITCODE -eq 0) { Write-Ok "Warp installed"; $WarpReady = $true } else { Write-WarnLine "winget could not install Warp. Get it from $WarpDownloadPage" }
+  } else { Write-WarnLine "winget not found. Get Warp from $WarpDownloadPage" }
+} catch { Write-WarnLine "Warp did not install ($($_.Exception.Message)). Get it from $WarpDownloadPage" }
 Write-WarnLine "Borg desktop is not available for Windows yet; opening the web version."
 Start-Process "https://app.getborg.com"
 if (Get-Command herdr -ErrorAction SilentlyContinue) { Start-Process powershell -ArgumentList "-NoExit","-Command","herdr" }
+if ($WarpReady -and -not $env:CI -and -not $env:AMM_UNATTENDED -and -not $env:AMM_NO_OPEN) {
+  $warpExe = Join-Path $env:LOCALAPPDATA "Programs\Warp\warp.exe"
+  if (Test-Path $warpExe) { Start-Process $warpExe } else { try { Start-Process warp } catch { } }
+}
 if (Test-Path (Join-Path $WorkspaceDir "shep\bin\shep")) { Write-Ok "SHEP is ready in $WorkspaceDir\shep\bin\shep" }
+Write-Host "`nInstalled: coding environment, Herdr, Warp (terminal), SHEP. Borg opens in the browser." -ForegroundColor Green
 Write-Host "`nSetup complete. Run the onboarding audit from your AMM portal." -ForegroundColor Green

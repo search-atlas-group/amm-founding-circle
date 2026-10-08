@@ -976,3 +976,176 @@ def test_run_without_a_request_says_what_to_press(home, monkeypatch, capsys):
     portal._save("http://127.0.0.1:3000", TOKEN, "jane-smith")
     assert portal.main(["--run"]) == 0
     assert "Press Run audit" in capsys.readouterr().out
+
+
+# --- quickstart.sh: Warp step ----------------------------------------------
+
+
+def _warp_run(tmp_path, *, app=False, brew="ok", opened_env=None):
+    """Source quickstart.sh as a library and run install_warp/open_warp with fake tools."""
+    import subprocess
+
+    home = tmp_path / "home"
+    home.mkdir()
+    bindir = tmp_path / "bin"
+    bindir.mkdir()
+    log = tmp_path / "calls.log"
+    if app:
+        (home / "Applications" / "Warp.app").mkdir(parents=True)
+    for name, body in {
+        "uname": 'echo Darwin',
+        "open": f'echo "open $*" >> {log}',
+        "curl": f'echo "curl $*" >> {log}; exit 22',
+        "hdiutil": "exit 1",
+    }.items():
+        (bindir / name).write_text("#!/bin/sh\n" + body + "\n")
+    if brew:
+        code = "0" if brew == "ok" else "1"
+        (bindir / "brew").write_text(
+            f'#!/bin/sh\necho "brew $*" >> {log}\n'
+            + (f'[ "{code}" = 0 ] && mkdir -p "{home}/Applications/Warp.app"\n')
+            + f"exit {code}\n"
+        )
+    for f in bindir.iterdir():
+        f.chmod(0o755)
+    env = {"HOME": str(home), "PATH": f"{bindir}:/usr/bin:/bin", "AMM_QUICKSTART_LIB": "1",
+           "AMM_SYSTEM_APPS_DIR": str(tmp_path / "sysapps")}
+    env.update(opened_env or {})
+    script = (
+        f'source "{REPO}/quickstart.sh"; '
+        'if install_warp; then echo INSTALL_OK; else echo INSTALL_FAILED; fi; open_warp; echo DONE'
+    )
+    out = subprocess.run(["bash", "-c", script], env=env, capture_output=True, text=True)
+    return out.stdout + out.stderr, (log.read_text() if log.exists() else "")
+
+
+def test_quickstart_warp_already_installed_does_nothing(tmp_path):
+    out, calls = _warp_run(tmp_path, app=True)
+    assert "Warp already installed" in out and "INSTALL_OK" in out
+    assert "brew" not in calls and "curl" not in calls and "open " in calls
+
+
+def test_quickstart_warp_installs_via_brew_and_opens(tmp_path):
+    out, calls = _warp_run(tmp_path)
+    assert "brew install --cask warp" in calls and "INSTALL_OK" in out
+    assert "open " in calls and "Warp.app" in calls
+
+
+def test_quickstart_warp_failure_is_reported_not_fatal(tmp_path):
+    out, calls = _warp_run(tmp_path, brew="fail")
+    assert "INSTALL_FAILED" in out and "DONE" in out
+    assert "app.warp.dev/download?package=dmg" in calls
+    assert "open " not in calls
+
+
+def test_quickstart_warp_not_opened_under_ci(tmp_path):
+    out, calls = _warp_run(tmp_path, app=True, opened_env={"CI": "1"})
+    assert "DONE" in out and "open " not in calls
+
+
+# --- AI setup detection ----------------------------------------------------
+
+import setup_probe  # noqa: E402
+
+
+@pytest.fixture
+def fakehome(tmp_path, monkeypatch):
+    h = tmp_path / "home"
+    (h / ".claude").mkdir(parents=True)
+    work = tmp_path / "work"
+    work.mkdir()
+    monkeypatch.setenv("HOME", str(h))
+    monkeypatch.setattr(setup_probe.shutil, "which", lambda _n: None)
+    return h, work
+
+
+def test_setup_both_runtimes_search_atlas_in_claude_only(fakehome):
+    h, work = fakehome
+    (h / ".claude.json").write_text(json.dumps({
+        "mcpServers": {"searchatlas": {"type": "http", "url": "https://mcp.searchatlas.com/mcp"},
+                       "figma": {"command": "npx"}},
+        "projects": {str(work): {"mcpServers": {"proj": {"command": "x"}}},
+                     "/other/place": {"mcpServers": {"elsewhere": {"command": "x"}}}}}))
+    (h / ".claude" / "settings.json").write_text(json.dumps(
+        {"permissions": {"allow": ["a", "b"], "deny": ["c"], "defaultMode": "acceptEdits"}}))
+    (h / ".codex").mkdir()
+    (h / ".codex" / "config.toml").write_text('[mcp_servers.notion]\ncommand = "npx"\n')
+    s = setup_probe.detect(work)
+    assert s["runtimes"] == {"claude": True, "codex": True, "gemini": False}
+    names = {(x["name"], x["scope"]) for x in s["mcp"]["claude"]["servers"]}
+    assert names == {("searchatlas", "user"), ("figma", "user"), ("proj", "project")}
+    assert s["mcp"]["searchAtlas"] == {"claude": True, "codex": False}
+    assert s["mcp"]["codex"]["servers"] == [{"name": "notion", "searchAtlas": False, "scope": "user"}]
+    assert s["permissions"]["claude"] == {"mode": "acceptEdits", "allowRules": 2, "denyRules": 1}
+    assert "Suggestion" not in setup_probe.summary(s)
+
+
+def test_setup_search_atlas_in_codex_by_url_and_plugin_in_claude(fakehome):
+    h, work = fakehome
+    (h / ".codex").mkdir()
+    (h / ".codex" / "config.toml").write_text(
+        '[mcp_servers.sa]\nurl = "https://mcp.searchatlas.com/mcp"\n[mcp_servers.sa.env]\nK = "v"\n')
+    (h / ".claude" / "settings.json").write_text(json.dumps(
+        {"enabledPlugins": {"searchatlas@market": True}}))
+    s = setup_probe.detect(work)
+    assert s["mcp"]["searchAtlas"] == {"claude": True, "codex": True}
+    assert {"name": "searchatlas", "searchAtlas": True, "scope": "plugin"} in s["mcp"]["claude"]["servers"]
+    assert [x["name"] for x in s["mcp"]["codex"]["servers"]] == ["sa"]
+
+
+def test_setup_toml_fallback_matches_tomllib():
+    text = '[mcp_servers."a.b"]\nurl = "https://x.searchatlas.com"\n[mcp_servers.c]\ncommand = "npx"\n'
+    assert setup_probe._toml_fallback(text) == {"a.b": {"url": "https://x.searchatlas.com"},
+                                                "c": {"command": "npx"}}
+
+
+def test_setup_none_present_suggests_the_documented_command(fakehome):
+    _h, work = fakehome
+    s = setup_probe.detect(work)
+    assert s["mcp"]["searchAtlas"] == {"claude": False, "codex": False}
+    assert not s["mcp"]["claude"]["present"] and not s["mcp"]["codex"]["present"]
+    assert "claude mcp add searchatlas" in setup_probe.summary(s)
+
+
+def test_setup_malformed_files_do_not_crash(fakehome):
+    h, work = fakehome
+    (h / ".claude.json").write_text("{not json")
+    (h / ".claude" / "settings.json").write_text('["wrong", "shape"]')
+    (h / ".claude" / "settings.local.json").write_text(json.dumps({"permissions": "x", "enabledPlugins": 5}))
+    (h / ".codex").mkdir()
+    (h / ".codex" / "config.toml").write_bytes(b"\xff\xfe[[[ broken")
+    s = setup_probe.detect(work)
+    assert s["mcp"]["claude"] == {"present": False, "servers": []}
+    assert s["mcp"]["codex"] == {"present": False, "servers": []}
+    assert s["permissions"]["claude"] == {"mode": None, "allowRules": 0, "denyRules": 0}
+
+
+def test_setup_sends_no_secrets_urls_or_paths(fakehome):
+    h, work = fakehome
+    token, cred, path = "sk-SECRET-TOKEN-123", "user:hunter2@", "/Users/jane/clients/acme"
+    (h / ".claude.json").write_text(json.dumps({"mcpServers": {
+        "good": {"command": "node", "args": [path], "env": {"API_KEY": token}},
+        "https://bad.example/x": {"url": f"https://{cred}host.example/mcp",
+                                  "headers": {"Authorization": f"Bearer {token}"}},
+        "/Users/jane/evil": {"command": path},
+        "searchatlas": {"url": f"https://{cred}mcp.searchatlas.com/mcp?token={token}"}}}))
+    (h / ".codex").mkdir()
+    (h / ".codex" / "config.toml").write_text(
+        f'[mcp_servers.cx]\ncommand = "{path}"\nargs = ["--token", "{token}"]\n')
+    s = setup_probe.detect(work)
+    blob = json.dumps(s)
+    for secret in (token, "hunter2", "/Users/", "jane", "acme", "http", "example", "API_KEY"):
+        assert secret not in blob
+    assert sorted(x["name"] for x in s["mcp"]["claude"]["servers"]) == [
+        "good", "searchatlas", "unnamed"]  # two bad names collapse to one
+    assert s["mcp"]["searchAtlas"]["claude"] is True
+    result = lp.evaluate({})
+    payload = share.build_payload("m", result, lp.assess(result))
+    assert "setup" in payload and share.assert_clean(payload) == []
+
+
+def test_setup_caps_servers_per_runtime(fakehome):
+    h, work = fakehome
+    (h / ".claude.json").write_text(json.dumps(
+        {"mcpServers": {f"s{i}": {"command": "x"} for i in range(100)}}))
+    assert len(setup_probe.detect(work)["mcp"]["claude"]["servers"]) == 40
