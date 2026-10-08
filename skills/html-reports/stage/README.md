@@ -60,7 +60,7 @@ Body text caps at **60ch** so single lines don't span a 4K projector edge-to-edg
       "big_stat":        "2,030",                          # kind=big_stat
       "big_stat_label":  "transcripts scored",             # caption under big_stat
       "pull_quote":      "Just send me the URLs ...",      # kind=quote OR inline on content
-      "pull_quote_attr": "PM, Example Client weekly",         # attribution
+      "pull_quote_attr": "CMO, example client weekly",         # attribution
       "image_src":       "data:image/...,..." | "https://...", # kind=image — inline base64 preferred
       "image_alt":       "Alt text for the image",
       "image_caption":   "Caption under the image",
