@@ -265,19 +265,26 @@ def _finish(conn: dict, run_id: str, status: str, **extra) -> None:
 
 
 def run_requested_audit(conn: dict, run_id: str) -> str:
-    """One requested run: audit locally, leak-guard, publish, finish. Returns the end status."""
-    import ladder_probe as probe_mod
-    import share
+    """One requested run: audit locally, leak-guard, publish, finish. Returns the end status.
 
+    The portal marks the run as running the moment runs/next hands it out, so every way out of here has to call
+    _finish. That includes the audit modules failing to import (a file missing from this copy of the repo): the
+    imports live inside the try for that reason.
+    """
     _ran[0] = True
     print(f"Run requested from the portal ({run_id}).")
     try:
+        import ladder_probe as probe_mod
+        import share
+
         _say(conn, run_id, "Reading your agent setup on this computer. Nothing leaves it yet.")
         result = probe_mod.probe(probe_mod.load_answers())
         verdict = probe_mod.assess(result)
         _say(conn, run_id, "Scoring the ten rungs.")
         payload = share.build_payload(conn["slug"], result, verdict)
-    except Exception:  # a broken probe must end the run, not the connector
+    except Exception as err:  # a broken probe must end the run, not the connector
+        # The reason stays on this screen only; the portal gets the plain line and the failure code.
+        print(f"  {type(err).__name__}: {redact(str(err), conn.get('token'))}")
         _say(conn, run_id, "The audit could not finish on this computer.")
         _finish(conn, run_id, "failed", failure="audit_failed")
         return "failed"

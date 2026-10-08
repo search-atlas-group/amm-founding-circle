@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import json
 import os
+import sys
 from pathlib import Path
 
 
@@ -976,6 +977,121 @@ def test_run_without_a_request_says_what_to_press(home, monkeypatch, capsys):
     portal._save("http://127.0.0.1:3000", TOKEN, "jane-smith")
     assert portal.main(["--run"]) == 0
     assert "Press Run audit" in capsys.readouterr().out
+
+
+def test_run_ends_the_portal_run_when_an_audit_module_will_not_import(home, monkeypatch, capsys):
+    """2026-10-08 production failure: share.py imported setup_probe, which was never committed, so every fresh copy
+    raised ModuleNotFoundError at `import share`. The traceback killed the command before _finish, and the portal
+    showed "Audit running" until its 15-minute sweep. The run must end as failed, with no traceback."""
+    wire = _Wire()
+    monkeypatch.setattr(portal, "_request", wire)
+    monkeypatch.setitem(sys.modules, "share", None)  # makes `import share` raise ImportError
+    portal._ran[0] = False
+    assert portal.main(["--run", "ABCD-2345", "--portal", "http://127.0.0.1:3000"]) == 0
+    assert wire.finishes() == [{"status": "failed", "failure": "audit_failed"}]
+    assert "/api/scans/upload" not in [c[1] for c in wire.calls]
+    assert "The audit could not finish on this computer." in wire.logged()
+    out = capsys.readouterr().out
+    assert "Error: import of share" in out and "Traceback" not in out and TOKEN not in out
+
+
+def _local_imports(path: Path) -> set[str]:
+    """Names of sibling modules a file imports, at any depth (top level or inside a function)."""
+    import ast
+    names: set[str] = set()
+    for node in ast.walk(ast.parse(path.read_text(encoding="utf-8"))):
+        if isinstance(node, ast.Import):
+            names |= {a.name.split(".")[0] for a in node.names}
+        elif isinstance(node, ast.ImportFrom) and node.module and not node.level:
+            names.add(node.module.split(".")[0])
+    return {n for n in names if (path.parent / f"{n}.py").exists() or n not in sys.stdlib_module_names}
+
+
+def test_every_onboarding_module_imported_is_committed():
+    """A module that exists only on the author's machine passes every local test and breaks every member's copy."""
+    import shutil
+    import subprocess
+    here = Path(__file__).resolve().parent
+    git = shutil.which("git")
+    if not git or not (REPO / ".git").exists():
+        pytest.skip("not a git checkout")
+    tracked = subprocess.run([git, "-C", str(REPO), "ls-files", "onboarding"], capture_output=True, text=True,
+                             check=True).stdout.split()
+    tracked_names = {Path(p).stem for p in tracked if p.endswith(".py")}
+    if not tracked_names:
+        pytest.skip("onboarding is not tracked in this checkout")
+    third_party = {"pytest"}
+    missing = {}
+    for name in sorted(tracked_names):
+        need = _local_imports(here / f"{name}.py") - third_party - tracked_names
+        if need:
+            missing[name] = sorted(need)
+    assert missing == {}, f"imported but not committed: {missing}"
+
+
+def test_upload_path_modules_import_from_a_fresh_copy(tmp_path):
+    """Import the run path (portal -> ladder_probe, share -> setup_probe) in a clean interpreter from a copy of only
+    the committed files, the way a member's fresh clone does. The 2026-10-08 failure passed every in-place test."""
+    import shutil
+    import subprocess
+    here = Path(__file__).resolve().parent
+    git = shutil.which("git")
+    if not git or not (REPO / ".git").exists():
+        pytest.skip("not a git checkout")
+    tracked = subprocess.run([git, "-C", str(REPO), "ls-files", "--cached", "onboarding"], capture_output=True,
+                             text=True, check=True).stdout.split()
+    copy = tmp_path / "onboarding"
+    copy.mkdir()
+    for rel in tracked:
+        if rel.endswith(".py") or rel.endswith(".json"):
+            shutil.copy2(REPO / rel, copy / Path(rel).name)
+    code = "import portal, ladder_probe, share, setup_probe; print('ok')"
+    out = subprocess.run([sys.executable, "-I", "-c", f"import sys; sys.path.insert(0, {str(copy)!r}); {code}"],
+                         capture_output=True, text=True, cwd=str(tmp_path))
+    assert out.returncode == 0 and out.stdout.strip() == "ok", out.stderr[-600:]
+
+
+def _sa_check(tmp_path, *, commands=False, plugin_json=False, plugin_list=None):
+    """Run run.sh's has_sa_commands function alone, with a fake HOME and a fake `claude` on PATH."""
+    src = (Path(__file__).resolve().parent / "run.sh").read_text(encoding="utf-8")
+    start = src.index("has_sa_commands() {")
+    body = src[start:src.index("\n}\n", start) + 3]
+    home = tmp_path / "home"
+    (home / ".claude").mkdir(parents=True)
+    if commands:
+        (home / ".claude" / "commands").mkdir()
+        (home / ".claude" / "commands" / "scout.md").write_text("x")
+    if plugin_json:
+        (home / ".claude" / "plugins").mkdir()
+        (home / ".claude" / "plugins" / "installed_plugins.json").write_text(
+            json.dumps({"version": 2, "plugins": {"searchatlas@searchatlas": [{"scope": "user"}]}}))
+    bindir = tmp_path / "bin"
+    bindir.mkdir()
+    if plugin_list is not None:
+        fake = bindir / "claude"
+        fake.write_text("#!/bin/sh\ncat <<'EOF'\n" + plugin_list + "\nEOF\n")
+        fake.chmod(0o755)
+    script = "set -euo pipefail\n" + body + "if has_sa_commands; then echo HAVE; else echo MISS; fi\n"
+    env = {"HOME": str(home), "PATH": f"{bindir}:/usr/bin:/bin"}
+    out = subprocess_run(["bash", "-c", script], env)
+    return out.stdout.strip()
+
+
+def subprocess_run(cmd, env):
+    import subprocess
+    return subprocess.run(cmd, capture_output=True, text=True, env=env, timeout=20)
+
+
+@pytest.mark.skipif(os.name == "nt", reason="run.sh is the Mac and Linux command")
+@pytest.mark.parametrize("kw,expect", [
+    ({}, "MISS"),
+    ({"commands": True}, "HAVE"),
+    ({"plugin_json": True}, "HAVE"),
+    ({"plugin_list": "Installed plugins:\n  > searchatlas@synced\n    Status: loaded"}, "HAVE"),
+    ({"plugin_list": "Installed plugins:\n  > github@claude-plugins-official"}, "MISS"),
+])
+def test_run_sh_counts_the_searchatlas_plugin_as_slash_commands(tmp_path, kw, expect):
+    assert _sa_check(tmp_path, **kw) == expect
 
 
 # --- quickstart.sh: Warp step ----------------------------------------------

@@ -75,7 +75,19 @@ command -v claude >/dev/null 2>&1 && ok "Claude Code" || miss "Claude Code" "ins
 if [[ "$(uname -s)" == "Darwin" ]]; then
   [[ -d /Applications/Borg.app || -d "$HOME/Applications/Borg.app" ]] && ok "Borg" || miss "Borg" "download it from step 2 on the Onboarding page (or use https://app.getborg.com)"
 fi
-[[ -d "$HOME/.claude/commands" ]] && ls "$HOME/.claude/commands" 2>/dev/null | grep -q . && ok "SearchAtlas slash commands" || miss "SearchAtlas slash commands" "run step 1 on the Onboarding page"
+# Slash commands arrive two ways: copied into ~/.claude/commands by the toolkit setup, or as the searchatlas plugin
+# (`claude plugin install searchatlas`), which never touches that folder. Either one counts.
+has_sa_commands() {
+  local cfg="${CLAUDE_CONFIG_DIR:-$HOME/.claude}" f out
+  [[ -n "$(ls -A "$HOME/.claude/commands" 2>/dev/null)" ]] && return 0
+  for f in "$cfg/plugins/installed_plugins.json" "$HOME/.claude/plugins/installed_plugins.json"; do
+    [[ -f "$f" ]] && grep -qi searchatlas "$f" && return 0
+  done
+  command -v claude >/dev/null 2>&1 || return 1
+  out="$(claude plugin list </dev/null 2>/dev/null || true)"   # captured first: grep -q on a pipe trips pipefail
+  grep -qi searchatlas <<<"$out"
+}
+has_sa_commands && ok "SearchAtlas slash commands" || miss "SearchAtlas slash commands" "run step 1 on the Onboarding page"
 [[ -x "$DIR/shep/bin/shep" ]] && ok "SHEP command deck" || miss "SHEP command deck" "run ./shep/bin/shep --help from the Founding Circle folder"
 echo
 
