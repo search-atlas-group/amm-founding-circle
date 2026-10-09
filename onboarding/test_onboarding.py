@@ -11,8 +11,12 @@ from __future__ import annotations
 
 import json
 import os
+import shutil
+import subprocess
 import sys
 from pathlib import Path
+
+import pytest
 
 
 import ladder_probe as lp
@@ -23,6 +27,130 @@ import share
 import skills_index
 
 REPO = Path(__file__).resolve().parent.parent
+
+
+# --- quickstart clone reconciliation ----------------------------------------
+
+def _git(*args):
+    subprocess.run(["git", *map(str, args)], check=True, capture_output=True)
+
+
+def _quickstart_lib(command, home, cwd):
+    env = dict(os.environ, HOME=str(home), AMM_QUICKSTART_LIB="1", AMM_WORKSPACE="")
+    return subprocess.run(["bash", "-c", 'source "$1"; ' + command, "bash", str(REPO / "quickstart.sh")],
+                          cwd=cwd, env=env, text=True, capture_output=True, check=True).stdout
+
+
+def test_quickstart_prefers_existing_desktop_clone_over_default(tmp_path):
+    home = tmp_path / "home"
+    desktop = home / "Desktop" / "amm-founding-circle"
+    (desktop / "onboarding").mkdir(parents=True)
+    _git("init", desktop)
+    default = home / "amm-founding-circle"
+    (default / "onboarding").mkdir(parents=True)
+    _git("init", default)
+    assert _quickstart_lib('find_fc_folder', home, tmp_path).strip() == str(desktop)
+    # Both the installer and audit use this discovery before any clone command.
+    installer = (REPO / "quickstart.sh").read_text()
+    runner = (REPO / "onboarding/run.sh").read_text()
+    assert installer.index('SELECTED_DIR="$(find_fc_folder') < installer.index('git clone -q "$FC_URL"')
+    assert runner.index('DIR="$(find_fc_folder') < runner.index('bash "$QUICKSTART"')
+
+
+def test_full_quickstart_does_not_clone_default_when_desktop_exists(tmp_path):
+    home = tmp_path / "home"
+    desktop = home / "Desktop" / "amm-founding-circle"
+    (desktop / "onboarding").mkdir(parents=True)
+    _git("init", desktop)
+    (desktop / "member-notes.txt").write_text("do not overwrite")
+    toolkit = home / "Desktop" / "amm-toolkit"
+    toolkit.mkdir()
+    _git("init", toolkit)
+    (toolkit / "local-notes.txt").write_text("also keep")
+    (home / "Applications" / "Borg.app").mkdir(parents=True)
+    bindir = tmp_path / "bin"
+    bindir.mkdir()
+    git_log = tmp_path / "git-calls"
+    git = bindir / "git"
+    git.write_text(f'#!/bin/sh\nprintf "%s\\n" "$*" >> "{git_log}"\nexec "{shutil.which("git")}" "$@"\n')
+    git.chmod(0o755)
+    herdr = bindir / "herdr"
+    herdr.write_text("#!/bin/sh\nexit 0\n")
+    herdr.chmod(0o755)
+    env = dict(os.environ, HOME=str(home), PATH=f"{bindir}:{os.environ['PATH']}", CI="1", AMM_NO_OPEN="1", AMM_WORKSPACE="")
+    result = subprocess.run(["bash", str(REPO / "quickstart.sh")], cwd=tmp_path, env=env, text=True, capture_output=True)
+    assert result.returncode == 0, result.stdout + result.stderr
+    assert f"Selected Founding Circle folder: {desktop}" in result.stdout
+    assert "clone" not in git_log.read_text()
+    assert not (home / "amm-founding-circle").exists()
+    assert (desktop / "member-notes.txt").read_text() == "do not overwrite"
+    assert (toolkit / "local-notes.txt").read_text() == "also keep"
+
+
+def test_quickstart_dirty_clone_preserved(tmp_path):
+    home = tmp_path / "home"
+    desktop = home / "Desktop" / "amm-founding-circle"
+    (desktop / "onboarding").mkdir(parents=True)
+    _git("init", desktop)
+    (desktop / "member-notes.txt").write_text("keep this")
+    output = _quickstart_lib(f'update_repo "{desktop}" "Founding Circle"', home, tmp_path)
+    assert "local changes" in output
+    assert (desktop / "member-notes.txt").read_text() == "keep this"
+    assert not (home / "amm-founding-circle").exists()
+
+
+def test_claude_commands_create_update_and_preserve_member_edits(tmp_path):
+    home = tmp_path / "home"
+    home.mkdir()
+    config = tmp_path / "custom-claude"
+    toolkit = tmp_path / "amm-toolkit"
+    commands = toolkit / "commands"
+    commands.mkdir(parents=True)
+    (commands / "scout.md").write_text("first")
+    (commands / "plan.md").write_text("toolkit plan")
+    dest = config / "commands"
+    dest.mkdir(parents=True)
+    (dest / "plan.md").write_text("member plan")
+    env = dict(os.environ, HOME=str(home), AMM_QUICKSTART_LIB="1", CLAUDE_CONFIG_DIR=str(config))
+    script = 'source "$1"; install_claude_commands "$2"'
+    def install():
+        subprocess.run(["bash", "-c", script, "bash", str(REPO / "quickstart.sh"), str(toolkit)],
+                       env=env, cwd=tmp_path, text=True, capture_output=True, check=True)
+    install()
+    assert (dest / "scout.md").read_text() == "first"
+    assert (dest / "plan.md").read_text() == "member plan"
+    assert not (dest / ".amm-managed-plan.md.sha256").exists()
+    (commands / "scout.md").write_text("second")
+    install()
+    assert (dest / "scout.md").read_text() == "second"
+    (dest / "scout.md").write_text("member-edited")
+    (commands / "scout.md").write_text("third")
+    install()
+    assert (dest / "scout.md").read_text() == "member-edited"
+    assert not (dest / "herdr").exists() and not (dest / "shep").exists()
+
+
+def test_windows_reconciliation_contract():
+    # Static contract only: CI on macOS/Linux cannot execute Windows PowerShell 5.1.
+    quickstart = (REPO / "quickstart.ps1").read_text(encoding="utf-8-sig")
+    runner = (REPO / "onboarding/run.ps1").read_text(encoding="utf-8-sig")
+    for text in (quickstart, runner):
+        assert 'Join-Path $oneDrive "Desktop"' in text
+        assert 'Join-Path $oneDrive "Documents"' in text
+        assert 'Test-Folder' in text or 'Test-FcFolder' in text
+        assert 'Join-Path $root "amm-founding-circle"' in text
+    assert quickstart.index('$selected = Find-FcFolder') < quickstart.index('"clone", "-q", $FcUrl')
+    assert runner.index('$dir = Find-Folder') < runner.index('Invoke-RestMethod "$RawBase/quickstart.ps1"')
+    assert '"status", "--porcelain"' in quickstart or 'status --porcelain' in quickstart
+    assert '"merge", "--ff-only"' in quickstart
+    assert 'function Install-ClaudeCommands' in quickstart
+    assert 'Get-FileHash -LiteralPath $target' in quickstart
+    assert 'CLAUDE_CONFIG_DIR' in quickstart and 'CLAUDE_CONFIG_DIR' in runner
+    assert 'Install-ClaudeCommands $ToolkitDir' in quickstart
+    assert '"herdr"' not in quickstart.split('function Install-ClaudeCommands')[1].split('# A stock Windows install')[0]
+    assert 'Delete it' not in runner
+    for path in (REPO / "quickstart.ps1", REPO / "onboarding/run.ps1"):
+        assert path.read_bytes().startswith(b"\xef\xbb\xbf"), f"{path} must retain UTF-8 BOM for Windows PowerShell 5.1"
 
 
 # --- skills index ----------------------------------------------------------

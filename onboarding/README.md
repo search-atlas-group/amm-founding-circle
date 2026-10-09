@@ -167,7 +167,20 @@ and the rung of each skill comes from [`../skills/README.md`](../skills/README.m
 Neither is copied here — this reads them, so when a skill is added the scan
 knows about it immediately.
 
+## Already onboarded or seeing two Founding Circle folders?
+
+Do not delete or move either folder. In the AMM portal, open **Onboarding**, click **Run audit**, and paste the command the portal generates for your machine into Terminal (macOS/Linux) or PowerShell (Windows). It selects an existing valid clone from the current folder, Desktop, Documents, or OneDrive Desktop/Documents before using the default home folder, prints `Selected Founding Circle folder` and `Running audit from selected Founding Circle folder`, and keeps the toolkit beside that selected clone. Setup updates clean clones only by fast-forward; when a clone has local edits, is offline, or cannot fast-forward, it leaves it untouched and reports that limitation. The audit runs from the selected path.
+
+If two valid clones remain, use the printed audit path as the one to keep working in. Compare **both** folders first: run `git status --short` in each (on Windows, `git -C "C:\path\to\amm-founding-circle" status --short`) and inspect any untracked files as well as edits. Copy all local-only uncommitted work from **each** folder into a separate backup outside both repos before any manual consolidation. Confirm the backup contains those files, then manually copy only the work you want into the selected folder and inspect `git status --short` there. Re-run the portal-generated audit command and check its selected path. Keep the old folder and backup until you have confirmed the result; there is no automatic deletion or relocation. If an update is blocked, finish or save your edits and ask for help with the branch rather than resetting it.
+
+## Terminal commands versus Claude slash commands
+
+Setup copies the AMM toolkit's `commands/*.md` into `${CLAUDE_CONFIG_DIR:-~/.claude}/commands` on macOS/Linux, or `%CLAUDE_CONFIG_DIR%\commands` (default `%USERPROFILE%\.claude\commands`) on Windows. It creates the user-level commands folder if missing. A toolkit command is updated on later runs only when its installed copy still matches the installer-recorded hash; existing files without that record and user-edited commands are never overwritten. Other commands are left alone. If the toolkit could not be downloaded, the commands cannot be installed yet; rerun the portal-generated command when online.
+
+**Herdr** is a terminal command installed by its installer: run `herdr` in Terminal or PowerShell after setup (reopen the terminal if the newly installed command is not on PATH). **SHEP** is a terminal command included in the selected Founding Circle folder: on macOS/Linux, run `./shep/bin/shep --help` from that folder; on Windows, use Git Bash to run `./shep/bin/shep --help`. Neither is a Claude slash command, and neither binary is copied to the Claude commands folder. Windows has no Borg desktop app; use the web version.
+
 ## If something looks wrong
+
 
 The scan can be wrong. It looks in the usual places (`~/Desktop`, `~/Documents`,
 `~/Projects`, `~/dev`, `~/code`, `~/work`, `~/src`, `~/Sync`, three levels deep)

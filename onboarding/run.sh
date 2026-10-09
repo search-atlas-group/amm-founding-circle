@@ -22,49 +22,23 @@ fi
 # Everything happens from this one command: install anything missing, update the repos, then run the audit.
 QUICKSTART="$(mktemp)"
 curl -fsSL https://raw.githubusercontent.com/search-atlas-group/amm-founding-circle/main/quickstart.sh -o "$QUICKSTART"
+# Discover before setup, not after it has had a chance to clone a duplicate.
+AMM_QUICKSTART_LIB=1 source "$QUICKSTART"
+DIR="$(find_fc_folder || true)"
+if [[ -n "$DIR" ]]; then
+  echo "Selected Founding Circle folder: $DIR"
+  export AMM_WORKSPACE="$DIR"
+fi
 bash "$QUICKSTART"
 
 for tool in git python3; do
   command -v "$tool" >/dev/null 2>&1 || { echo "$tool is not installed. Do step 1 on the Onboarding page (set up your coding environment), then paste this again."; exit 69; }
 done
 
-
-is_folder() { [[ -d "$1/onboarding" && -d "$1/.git" ]]; }
-
-DIR=""
-for d in "${AMM_FOUNDING_CIRCLE_DIR:-}" "$PWD" "$PWD/amm-founding-circle" "$DEFAULT_DIR" \
-         "$HOME"/Desktop/amm-founding-circle "$HOME"/Desktop/*/amm-founding-circle "$HOME"/Desktop/*/*/amm-founding-circle \
-         "$HOME"/Documents/amm-founding-circle "$HOME"/Documents/*/amm-founding-circle \
-         "$HOME"/Developer/amm-founding-circle "$HOME"/Code/amm-founding-circle "$HOME"/code/amm-founding-circle; do
-  [[ -n "$d" ]] && is_folder "$d" && { DIR="$d"; break; }
-done
-
-if [[ -z "$DIR" ]]; then
-  echo "Downloading the Founding Circle folder to $DEFAULT_DIR ..."
-  git clone -q "$REPO_URL" "$DEFAULT_DIR"
-  DIR="$DEFAULT_DIR"
-  HOME_PARENT="$(dirname "$DIR")"
-else
-  echo "Using your Founding Circle folder: $DIR"
-  HOME_PARENT="$(dirname "$DIR")"
-  # Guarantee the latest: fetch, fast-forward, then verify the folder matches GitHub's main. If something of the
-  # member's own blocks the update, never run the stale copy: run a clean copy of the latest instead.
-  if ! git -C "$DIR" fetch -q origin main 2>/dev/null; then
-    echo "Could not reach GitHub to check for updates. Running the version you have."
-  else
-    git -C "$DIR" merge --ff-only -q origin/main 2>/dev/null || true
-    if [[ "$(git -C "$DIR" rev-parse HEAD)" == "$(git -C "$DIR" rev-parse origin/main)" ]]; then
-      echo "Up to date ($(git -C "$DIR" rev-parse --short HEAD))."
-    else
-      echo "Your folder has changes of your own that block the update, so it was left alone."
-      FRESH="$(mktemp -d)"
-      LATEST="$(git -C "$DIR" rev-parse --short origin/main)"
-      git -C "$DIR" archive origin/main | tar -x -C "$FRESH"
-      DIR="$FRESH"
-      echo "Running a clean copy of the latest ($LATEST)."
-    fi
-  fi
-fi
+DIR="$(find_fc_folder || true)"
+[[ -n "$DIR" ]] || { echo "No valid Founding Circle clone found after setup; no folders were removed."; exit 1; }
+echo "Running audit from selected Founding Circle folder: $DIR"
+HOME_PARENT="$(dirname "$DIR")"
 
 # Setup check: the audit tells you what is missing and how to fix it. Nothing here stops the audit.
 echo "Checking your agentic setup:"
@@ -79,7 +53,7 @@ fi
 # (`claude plugin install searchatlas`), which never touches that folder. Either one counts.
 has_sa_commands() {
   local cfg="${CLAUDE_CONFIG_DIR:-$HOME/.claude}" f out
-  [[ -n "$(ls -A "$HOME/.claude/commands" 2>/dev/null)" ]] && return 0
+  [[ -n "$(ls -A "$cfg/commands" 2>/dev/null)" ]] && return 0
   for f in "$cfg/plugins/installed_plugins.json" "$HOME/.claude/plugins/installed_plugins.json"; do
     [[ -f "$f" ]] && grep -qi searchatlas "$f" && return 0
   done
@@ -91,22 +65,11 @@ has_sa_commands && ok "SearchAtlas slash commands" || miss "SearchAtlas slash co
 [[ -x "$DIR/shep/bin/shep" ]] && ok "SHEP command deck" || miss "SHEP command deck" "run ./shep/bin/shep --help from the Founding Circle folder"
 echo
 
-# The toolkit (slash commands, setup) lives beside the Founding Circle. Same guarantee: clone it if missing, else
-# bring it up to date. It never blocks the audit.
+# Quickstart has already found or installed the toolkit beside the selected clone.
 TK="$HOME_PARENT/amm-toolkit"
-if [[ -d "$TK/.git" ]]; then
-  git -C "$TK" fetch -q origin main 2>/dev/null && git -C "$TK" merge --ff-only -q origin/main 2>/dev/null || true
-  if [[ "$(git -C "$TK" rev-parse HEAD 2>/dev/null)" == "$(git -C "$TK" rev-parse origin/main 2>/dev/null)" ]]; then
-    echo "Toolkit up to date ($(git -C "$TK" rev-parse --short HEAD))."
-  else
-    echo "Toolkit left as it is (your own changes, or GitHub unreachable)."
-  fi
-else
-  echo "Downloading the AMM toolkit to $TK ..."
-  git clone -q "$TOOLKIT_URL" "$TK" 2>/dev/null && echo "Toolkit ready." || echo "Could not download the toolkit. The audit still runs."
-fi
+[[ -d "$TK/.git" ]] && echo "Toolkit folder: $TK" || echo "Toolkit unavailable beside $DIR; audit will still run."
 echo
 
-[[ -f "$DIR/onboarding/portal.py" ]] || { echo "This copy is too old and could not be updated. Delete it and paste the command again to download a fresh one."; exit 1; }
+[[ -f "$DIR/onboarding/portal.py" ]] || { echo "This copy lacks onboarding/portal.py. Keep the folder; back up local work and seek help updating it. No folder was deleted."; exit 1; }
 chmod +x "$DIR/onboarding/onboard.sh" 2>/dev/null || true
 exec "$DIR/onboarding/onboard.sh" --run "$CODE" --portal "$PORTAL"

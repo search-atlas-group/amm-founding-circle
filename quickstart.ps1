@@ -1,4 +1,4 @@
-# AMM Founding Circle quickstart for Windows PowerShell.
+﻿# AMM Founding Circle quickstart for Windows PowerShell.
 # Usage: irm https://raw.githubusercontent.com/search-atlas-group/amm-founding-circle/main/quickstart.ps1 | iex
 # The portal's Run audit command (onboarding/run.ps1) runs this first, in its own PowerShell, before the audit.
 # Set AMM_NO_OPEN=1 to skip opening Borg's web page and a Herdr window (headless runs and tests).
@@ -7,7 +7,44 @@ $ToolkitUrl = "https://github.com/search-atlas-group/amm-toolkit.git"
 $FcUrl = "https://github.com/search-atlas-group/amm-founding-circle.git"
 $HerdrInstallUrl = "https://herdr.dev/install.ps1"
 $WarpDownloadPage = "https://www.warp.dev/download"
-$WorkspaceDir = Join-Path $HOME "amm-founding-circle"
+$WorkspaceDir = if ($env:AMM_WORKSPACE) { $env:AMM_WORKSPACE } else { Join-Path $HOME "amm-founding-circle" }
+function Test-FcFolder([string]$Path) {
+    return [bool]($Path -and (Test-Path (Join-Path $Path ".git")) -and (Test-Path (Join-Path $Path "onboarding")))
+}
+function Find-FcFolder {
+    foreach ($candidate in @($env:AMM_WORKSPACE, (Get-Location).Path, (Join-Path (Get-Location).Path "amm-founding-circle"))) {
+        if (Test-FcFolder $candidate) { return $candidate }
+    }
+    $roots = @((Join-Path $HOME "Desktop"), (Join-Path $HOME "Documents"))
+    $oneDrive = if ($env:OneDrive) { $env:OneDrive } else { Join-Path $HOME "OneDrive" }
+    $roots += @((Join-Path $oneDrive "Desktop"), (Join-Path $oneDrive "Documents"))
+    foreach ($root in $roots) {
+        if (Test-FcFolder (Join-Path $root "amm-founding-circle")) { return (Join-Path $root "amm-founding-circle") }
+        if (Test-Path $root) {
+            foreach ($child in (Get-ChildItem -Directory -ErrorAction SilentlyContinue $root)) {
+                $candidate = Join-Path $child.FullName "amm-founding-circle"
+                if (Test-FcFolder $candidate) { return $candidate }
+                foreach ($grandchild in (Get-ChildItem -Directory -ErrorAction SilentlyContinue $child.FullName)) {
+                    $candidate = Join-Path $grandchild.FullName "amm-founding-circle"
+                    if (Test-FcFolder $candidate) { return $candidate }
+                }
+            }
+        }
+    }
+    foreach ($candidate in @((Join-Path $HOME "Developer\amm-founding-circle"), (Join-Path $HOME "Code\amm-founding-circle"), (Join-Path $HOME "code\amm-founding-circle"), (Join-Path $HOME "amm-founding-circle"))) {
+        if (Test-FcFolder $candidate) { return $candidate }
+    }
+    return $null
+}
+function Update-Repo([string]$Path, [string]$Name) {
+    $prev = $ErrorActionPreference
+    $ErrorActionPreference = "Continue"
+    try { $dirty = & git -C $Path status --porcelain 2>$null; $statusOk = ($LASTEXITCODE -eq 0) } catch { $dirty = $null; $statusOk = $false } finally { $ErrorActionPreference = $prev }
+    if (-not $statusOk -or $dirty) { Write-WarnLine "$Name at $Path has local changes or cannot be inspected; leaving it unchanged."; return }
+    if (-not (Invoke-Git @("-C", $Path, "fetch", "-q", "origin", "main"))) { Write-WarnLine "$Name at $Path could not check for updates (offline or remote unavailable); using your existing copy."; return }
+    if (-not (Invoke-Git @("-C", $Path, "merge", "--ff-only", "-q", "FETCH_HEAD"))) { Write-WarnLine "$Name at $Path could not fast-forward; leaving it unchanged."; return }
+    Write-Ok "$Name updated at $Path"
+}
 function Write-Step([string]$n,[string]$m) { Write-Host "`n[$n] $m" -ForegroundColor Cyan }
 function Write-Ok([string]$m) { Write-Host "  OK  $m" -ForegroundColor Green }
 function Write-WarnLine([string]$m) { Write-Host "  !  $m" -ForegroundColor Yellow }
@@ -18,6 +55,32 @@ function Invoke-Git([string[]]$GitArgs) {
     $prev = $ErrorActionPreference
     $ErrorActionPreference = "Continue"
     try { & git @GitArgs 2>$null | Out-Null; return ($LASTEXITCODE -eq 0) } catch { return $false } finally { $ErrorActionPreference = $prev }
+}
+
+function Install-ClaudeCommands([string]$ToolkitPath) {
+    $source = Join-Path $ToolkitPath "commands"
+    if (-not (Test-Path $source -PathType Container)) { Write-WarnLine "Toolkit slash commands unavailable at $source; install them after the toolkit is downloaded."; return }
+    $config = if ($env:CLAUDE_CONFIG_DIR) { $env:CLAUDE_CONFIG_DIR } else { Join-Path $HOME ".claude" }
+    $dest = Join-Path $config "commands"
+    try { [void](New-Item -ItemType Directory -Force -Path $dest) } catch { Write-WarnLine "Cannot create Claude commands folder $dest; leaving existing files alone."; return }
+    $installed = 0; $updated = 0; $preserved = 0
+    foreach ($item in (Get-ChildItem -LiteralPath $source -File -Filter "*.md")) {
+        $target = Join-Path $dest $item.Name
+        $receipt = Join-Path $dest (".amm-managed-" + $item.Name + ".sha256")
+        try {
+            if (Test-Path -LiteralPath $target) {
+                if (-not (Test-Path -LiteralPath $target -PathType Leaf) -or -not (Test-Path -LiteralPath $receipt -PathType Leaf) -or
+                    (Get-Content -LiteralPath $receipt -Raw).Trim() -ne (Get-FileHash -LiteralPath $target -Algorithm SHA256).Hash) {
+                    $preserved++; continue
+                }
+                if ((Get-FileHash -LiteralPath $target -Algorithm SHA256).Hash -eq (Get-FileHash -LiteralPath $item.FullName -Algorithm SHA256).Hash) { continue }
+                $updated++
+            } else { $installed++ }
+            Copy-Item -LiteralPath $item.FullName -Destination $target
+            (Get-FileHash -LiteralPath $target -Algorithm SHA256).Hash.ToLowerInvariant() | Set-Content -LiteralPath $receipt -Encoding ASCII
+        } catch { Write-WarnLine "Could not install $($item.Name) ($($_.Exception.Message)); existing files left intact." }
+    }
+    Write-Ok "Claude slash commands in $dest`: $installed added, $updated updated, $preserved existing files preserved."
 }
 
 # A stock Windows install has App Execution Alias stubs that only open the Microsoft Store, so a command being found
@@ -54,24 +117,32 @@ if (-not (Test-Python) -and (Get-Command winget -ErrorAction SilentlyContinue)) 
     Update-SessionPath
 }
 Write-Step "2/5" "Getting the Founding Circle"
-if (Test-Path (Join-Path $WorkspaceDir ".git")) {
-    if (Invoke-Git @("-C", $WorkspaceDir, "fetch", "-q", "origin", "main")) { [void](Invoke-Git @("-C", $WorkspaceDir, "merge", "--ff-only", "-q", "origin/main")) }
+$selected = Find-FcFolder
+if ($selected) {
+    $WorkspaceDir = $selected
+    Update-Repo $WorkspaceDir "Founding Circle"
+} elseif (Test-Path $WorkspaceDir) {
+    Write-WarnLine "The default folder $WorkspaceDir exists but is not a valid Founding Circle clone. Leave it intact and choose a folder manually."
+    exit 1
 } elseif (-not (Invoke-Git @("clone", "-q", $FcUrl, $WorkspaceDir))) {
     Write-WarnLine "Could not download the Founding Circle. Check your internet connection, then re-run."; exit 1
 }
 $env:AMM_FOUNDING_CIRCLE_DIR = $WorkspaceDir
-Write-Ok "Founding Circle ready at $WorkspaceDir"
+Write-Ok "Selected Founding Circle folder: $WorkspaceDir"
 Write-Step "3/5" "Getting the AMM toolkit"
 $ToolkitDir = Join-Path (Split-Path -Parent $WorkspaceDir) "amm-toolkit"
 if (Test-Path (Join-Path $ToolkitDir ".git")) {
-    if (Invoke-Git @("-C", $ToolkitDir, "fetch", "-q", "origin", "main")) { [void](Invoke-Git @("-C", $ToolkitDir, "merge", "--ff-only", "-q", "origin/main")) }
-    Write-Ok "AMM toolkit ready"
-} elseif (Invoke-Git @("clone", "-q", $ToolkitUrl, $ToolkitDir)) { Write-Ok "AMM toolkit ready" } else { Write-WarnLine "Could not download the AMM toolkit. Re-run this later." }
-Write-Step "4/5" "Installing Herdr"
+    Update-Repo $ToolkitDir "AMM toolkit"
+} elseif (Test-Path $ToolkitDir) {
+    Write-WarnLine "Toolkit path $ToolkitDir exists but is not a Git clone; leaving it intact."
+} elseif (Invoke-Git @("clone", "-q", $ToolkitUrl, $ToolkitDir)) { Write-Ok "AMM toolkit ready at $ToolkitDir" } else { Write-WarnLine "Could not download the AMM toolkit. Re-run this later." }
+Install-ClaudeCommands $ToolkitDir
+Write-Step "4/5" "Installing Herdr terminal command"
 if (Get-Command herdr -ErrorAction SilentlyContinue) { Write-Ok "Herdr already installed" } else {
     $herdrOk = $false
     try { powershell -NoProfile -ExecutionPolicy Bypass -c "irm $HerdrInstallUrl | iex"; $herdrOk = ($LASTEXITCODE -eq 0) } catch { }
-    if ($herdrOk) { Write-Ok "Herdr installed" } else { Write-WarnLine "Herdr did not install. Re-run this later." }
+    Update-SessionPath
+    if ($herdrOk -and (Get-Command herdr -ErrorAction SilentlyContinue)) { Write-Ok "Herdr terminal command installed (run: herdr)" } else { Write-WarnLine "Herdr command is not on PATH yet. Reopen PowerShell or retry the Herdr installer." }
 }
 Write-Step "5/5" "Warp"
 $WarpReady = $false
@@ -91,6 +162,7 @@ if ($WarpReady -and -not $env:CI -and -not $env:AMM_UNATTENDED -and -not $env:AM
   $warpExe = Join-Path $env:LOCALAPPDATA "Programs\Warp\warp.exe"
   if (Test-Path $warpExe) { Start-Process $warpExe } else { try { Start-Process warp } catch { } }
 }
-if (Test-Path (Join-Path $WorkspaceDir "shep\bin\shep")) { Write-Ok "SHEP is ready in $WorkspaceDir\shep\bin\shep" }
-Write-Host "`nInstalled: coding environment, Herdr, Warp (terminal), SHEP. Borg opens in the browser." -ForegroundColor Green
+if (Test-Path (Join-Path $WorkspaceDir "shep\bin\shep")) { Write-Ok "SHEP terminal command: run from Git Bash: $WorkspaceDir\shep\bin\shep --help" }
+$ClaudeConfig = if ($env:CLAUDE_CONFIG_DIR) { $env:CLAUDE_CONFIG_DIR } else { Join-Path $HOME ".claude" }
+Write-Host "`nTerminal commands: herdr (if installed), SHEP (repo-local, use Git Bash). Claude slash commands: $ClaudeConfig\commands. Borg opens in the browser." -ForegroundColor Green
 Write-Host "`nSetup complete. Run the onboarding audit from your AMM portal." -ForegroundColor Green

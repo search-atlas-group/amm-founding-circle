@@ -62,6 +62,66 @@ open_warp(){
   local app; app="$(warp_app_path)" || return 0
   open "$app" >/dev/null 2>&1 || true
 }
+# Keep discovery in the downloaded quickstart too, so the audit and standalone setup agree.
+is_fc_folder(){ [[ -d "$1/.git" && -d "$1/onboarding" ]]; }
+find_fc_folder(){
+  local d root
+  [[ -n "${AMM_WORKSPACE:-}" ]] && is_fc_folder "$AMM_WORKSPACE" && { printf '%s\n' "$AMM_WORKSPACE"; return; }
+  for d in "$PWD" "$PWD/amm-founding-circle"; do
+    is_fc_folder "$d" && { printf '%s\n' "$d"; return; }
+  done
+  for root in "$HOME/Desktop" "$HOME/Documents" "${OneDrive:-${ONEDRIVE:-$HOME/OneDrive}}/Desktop" "${OneDrive:-${ONEDRIVE:-$HOME/OneDrive}}/Documents"; do
+    for d in "$root/amm-founding-circle" "$root"/*/amm-founding-circle "$root"/*/*/amm-founding-circle; do
+      is_fc_folder "$d" && { printf '%s\n' "$d"; return; }
+    done
+  done
+  for d in "$HOME/Developer/amm-founding-circle" "$HOME/Code/amm-founding-circle" "$HOME/code/amm-founding-circle" "$HOME/amm-founding-circle"; do
+    is_fc_folder "$d" && { printf '%s\n' "$d"; return; }
+  done
+  return 1
+}
+update_repo(){
+  local dir="$1" name="$2"
+  if [[ -n "$(git -C "$dir" status --porcelain)" ]]; then
+    warn "$name at $dir has local changes; leaving it unchanged. Save your work before updating."
+  elif ! git -C "$dir" fetch -q origin main; then
+    warn "$name at $dir could not check for updates (offline or remote unavailable); using your existing copy."
+  elif ! git -C "$dir" merge --ff-only -q FETCH_HEAD; then
+    warn "$name at $dir could not fast-forward; leaving it unchanged. Resolve the branch before updating."
+  else
+    ok "$name updated at $dir"
+  fi
+}
+install_claude_commands(){
+  local source="$1/commands" dest="${CLAUDE_CONFIG_DIR:-$HOME/.claude}/commands"
+  [[ -d "$source" ]] || { warn "Toolkit slash commands unavailable at $source; install them after the toolkit is downloaded."; return; }
+  mkdir -p "$dest" || { warn "Cannot create Claude commands folder $dest; leaving existing files alone."; return; }
+  python3 - "$source" "$dest" <<'PY'
+import hashlib
+import pathlib
+import shutil
+import sys
+
+source, dest = map(pathlib.Path, sys.argv[1:])
+installed = updated = preserved = 0
+for item in sorted(source.glob("*.md")):
+    target = dest / item.name
+    receipt = dest / (".amm-managed-" + item.name + ".sha256")
+    digest = lambda path: hashlib.sha256(path.read_bytes()).hexdigest()
+    if target.exists():
+        if not target.is_file() or not receipt.is_file() or receipt.read_text().strip() != digest(target):
+            preserved += 1
+            continue
+        if digest(target) == digest(item):
+            continue
+        updated += 1
+    else:
+        installed += 1
+    shutil.copy2(item, target)
+    receipt.write_text(digest(target) + "\n")
+print(f"Claude slash commands in {dest}: {installed} added, {updated} updated, {preserved} existing files preserved.")
+PY
+}
 if (return 0 2>/dev/null); then [[ "${AMM_QUICKSTART_LIB:-}" == 1 ]] && return 0; fi
 
 step "1/6" "Checking prerequisites"
@@ -80,31 +140,40 @@ else
 fi
 
 step "2/6" "Getting the Founding Circle"
-if [[ -d "$WORKSPACE_DIR/.git" ]]; then
-  git -C "$WORKSPACE_DIR" fetch -q origin main 2>/dev/null || true
-  git -C "$WORKSPACE_DIR" merge --ff-only -q origin/main 2>/dev/null || true
+SELECTED_DIR="$(find_fc_folder || true)"
+if [[ -n "$SELECTED_DIR" ]]; then
+  WORKSPACE_DIR="$SELECTED_DIR"
+  update_repo "$WORKSPACE_DIR" "Founding Circle"
+elif [[ -e "$WORKSPACE_DIR" ]]; then
+  fail "The default folder $WORKSPACE_DIR already exists but is not a valid Founding Circle clone. Leave it intact and choose a folder manually."
 else
-  git clone -q "$FC_URL" "$WORKSPACE_DIR"
+  git clone -q "$FC_URL" "$WORKSPACE_DIR" || fail "Could not download Founding Circle to $WORKSPACE_DIR. Check the connection and retry."
 fi
-ok "Founding Circle ready at $WORKSPACE_DIR"
+ok "Selected Founding Circle folder: $WORKSPACE_DIR"
 export AMM_FOUNDING_CIRCLE_DIR="$WORKSPACE_DIR"
 
 step "3/6" "Getting the AMM toolkit"
 TOOLKIT_DIR="$(dirname "$WORKSPACE_DIR")/amm-toolkit"
 if [[ -d "$TOOLKIT_DIR/.git" ]]; then
-  git -C "$TOOLKIT_DIR" fetch -q origin main 2>/dev/null || true
-  git -C "$TOOLKIT_DIR" merge --ff-only -q origin main 2>/dev/null || true
+  update_repo "$TOOLKIT_DIR" "AMM toolkit"
+elif [[ -e "$TOOLKIT_DIR" ]]; then
+  warn "Toolkit path $TOOLKIT_DIR exists but is not a Git clone; leaving it intact."
+elif ! git clone -q "$TOOLKIT_URL" "$TOOLKIT_DIR"; then
+  warn "Could not download the toolkit beside $WORKSPACE_DIR. Retry when online."
 else
-  git clone -q "$TOOLKIT_URL" "$TOOLKIT_DIR"
+  ok "AMM toolkit ready at $TOOLKIT_DIR"
 fi
-ok "AMM toolkit ready"
+install_claude_commands "$TOOLKIT_DIR"
 
-step "4/6" "Installing Herdr"
+step "4/6" "Installing Herdr terminal command"
 if command -v herdr >/dev/null 2>&1; then
   ok "Herdr already installed"
 else
-  curl -fsSL "$HERDR_INSTALL_URL" | sh
-  ok "Herdr installed"
+  if curl -fsSL "$HERDR_INSTALL_URL" | sh && command -v herdr >/dev/null 2>&1; then
+    ok "Herdr terminal command installed (run: herdr)"
+  else
+    warn "Herdr command is not on PATH yet. Reopen your terminal or retry the Herdr installer."
+  fi
 fi
 
 step "5/6" "Borg"
@@ -134,4 +203,4 @@ fi
 printf "
 %sEnvironment ready.%s
 " "$BOLD" "$NC"
-printf "  Installed: coding environment, Herdr, Borg installer, Warp. SHEP is in %s/shep.\n  %s\n" "$WORKSPACE_DIR" "$WARP_NOTE"
+printf "  Terminal commands: Herdr (run: herdr if installed), SHEP (run: %s/shep/bin/shep --help).\n  Claude slash commands: %s/commands.\n  %s\n" "$WORKSPACE_DIR" "${CLAUDE_CONFIG_DIR:-$HOME/.claude}" "$WARP_NOTE"
