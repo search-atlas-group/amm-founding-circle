@@ -4,7 +4,7 @@ Run the AMM onboarding audit the portal asked for. Safe to paste every time, fro
   & ([scriptblock]::Create((irm https://raw.githubusercontent.com/search-atlas-group/amm-founding-circle/main/onboarding/run.ps1))) -Code <code> -Portal <portal address>
 
 It installs anything missing (quickstart.ps1), finds your Founding Circle folder wherever it is (or downloads it to
-~\amm-founding-circle the first time), keeps it and the AMM toolkit beside it up to date, then runs the audit. Only
+~\amm-mothership\founding-circle the first time), keeps that Founding Circle copy current when safe, then runs the audit. It never creates a sibling toolkit folder. Only
 rung statuses and counts are sent to your portal.
 
 This runs as a pasted script block, not a file, so it stops with "return", never "exit": exit here would close the
@@ -17,9 +17,6 @@ param(
 
 $ErrorActionPreference = "Stop"
 $RawBase = "https://raw.githubusercontent.com/search-atlas-group/amm-founding-circle/main"
-$RepoUrl = "https://github.com/search-atlas-group/amm-founding-circle.git"
-$ToolkitUrl = "https://github.com/search-atlas-group/amm-toolkit.git"
-$DefaultDir = Join-Path $HOME "amm-founding-circle"
 
 # Run git without letting its stderr stop the script. Windows PowerShell 5.1 turns any stderr line from a native
 # command into an error record when stderr is redirected, and with ErrorActionPreference Stop that ends the run, even
@@ -57,7 +54,7 @@ foreach ($tool in @("git")) {
     }
 }
 
-# Discover before setup; otherwise setup may create a duplicate at ~\amm-founding-circle.
+# Discover before setup; otherwise setup may create a duplicate at ~\amm-mothership\founding-circle.
 function Test-Folder([string]$Path) {
     return [bool]($Path -and (Test-Path (Join-Path $Path "onboarding")) -and (Test-Path (Join-Path $Path ".git")))
 }
@@ -81,7 +78,7 @@ function Find-Folder {
             }
         }
     }
-    foreach ($c in @((Join-Path $HOME "Developer\amm-founding-circle"), (Join-Path $HOME "Code\amm-founding-circle"), (Join-Path $HOME "code\amm-founding-circle"), $DefaultDir)) {
+    foreach ($c in @((Join-Path $HOME "Developer\amm-founding-circle"), (Join-Path $HOME "Code\amm-founding-circle"), (Join-Path $HOME "code\amm-founding-circle"))) {
         if (Test-Folder $c) { return $c }
     }
     return $null
@@ -114,13 +111,28 @@ if (-not $dir) {
 }
 Write-Host "Running audit from selected Founding Circle folder: $dir"
 $parent = Split-Path -Parent $dir
+# Preserve local work and avoid running stale code when a clean updated copy is available.
+$dirty = Invoke-Git @("-C", $dir, "status", "--porcelain")
+if ($dirty) {
+    [void](Invoke-Git @("-C", $dir, "fetch", "-q", "origin", "main"))
+    if ($script:GitOk) {
+        $fresh = Join-Path ([System.IO.Path]::GetTempPath()) ("amm-audit-" + [guid]::NewGuid().ToString("N"))
+        [void](New-Item -ItemType Directory -Force -Path $fresh)
+        $archive = Join-Path $fresh "latest.tar"
+        [void](Invoke-Git @("-C", $dir, "archive", "--format=tar", "origin/main", "-o", $archive))
+        if ($script:GitOk -and (Get-Command tar -ErrorAction SilentlyContinue)) {
+            & tar -xf $archive -C $fresh
+            if ($LASTEXITCODE -eq 0) { $dir = $fresh; Write-Host "Local work was preserved; running the audit from a clean updated copy instead: $dir" }
+        }
+    }
+}
 
 # Setup check: the audit tells you what is missing and how to fix it. Nothing here stops the audit.
 Write-Host "Checking your agentic setup:"
 function Write-Have([string]$Name) { Write-Host "  [ok]      $Name" }
 function Write-Miss([string]$Name, [string]$Fix) { Write-Host "  [missing] $Name"; Write-Host "            Fix: $Fix" }
 if (Get-Command node -ErrorAction SilentlyContinue) { Write-Have "Node.js" } else { Write-Miss "Node.js" "install it from https://nodejs.org (LTS), then re-open PowerShell" }
-if (Get-Command claude -ErrorAction SilentlyContinue) { Write-Have "Claude Code" } else { Write-Miss "Claude Code" "install it from the AMM toolkit setup (step 1 on the Onboarding page)" }
+if (Get-Command claude -ErrorAction SilentlyContinue) { Write-Have "Claude Code" } else { Write-Miss "Claude Code" "run the Founding Circle setup again" }
 Write-Host "  [web]     Borg: there is no Windows app yet, use https://app.getborg.com"
 $commandsRoot = if ($env:CLAUDE_CONFIG_DIR) { $env:CLAUDE_CONFIG_DIR } else { Join-Path $HOME ".claude" }
 $commands = Join-Path $commandsRoot "commands"
@@ -128,10 +140,11 @@ if ((Test-Path $commands) -and (Get-ChildItem $commands -ErrorAction SilentlyCon
 if (Test-Path (Join-Path $dir "shep\bin\shep")) { Write-Have "SHEP command deck (run it from Git Bash: ./shep/bin/shep --help)" } else { Write-Miss "SHEP command deck" "update the Founding Circle folder (paste this command again)" }
 Write-Host ""
 
-# Quickstart has already found or installed the toolkit beside the selected clone.
-$tk = Join-Path $parent "amm-toolkit"
-if (Test-Path (Join-Path $tk ".git")) { Write-Host "Toolkit folder: $tk" } else { Write-Host "Toolkit unavailable beside $dir; audit will still run." }
-Write-Host ""
+# All AMM skills, artifacts, and tools are in the selected Founding Circle clone.
+# Never create, update, delete, or merge a sibling toolkit folder.
+$legacyToolkit = Join-Path $parent "amm-toolkit"
+if (Test-Path $legacyToolkit) { Write-Host "Legacy AMM toolkit folder left untouched: $legacyToolkit" }
+Write-Host "Founding Circle skills, artifacts, and tools: $(Join-Path $dir 'skills')"
 
 if (-not (Test-Path (Join-Path $dir "onboarding\portal.py"))) {
     Write-Host "This copy lacks onboarding/portal.py. Keep the folder; back up local work and seek help updating it. No folder was deleted."

@@ -99,35 +99,98 @@ def test_quickstart_dirty_clone_preserved(tmp_path):
     assert not (home / "amm-founding-circle").exists()
 
 
-def test_claude_commands_create_update_and_preserve_member_edits(tmp_path):
-    home = tmp_path / "home"
-    home.mkdir()
-    config = tmp_path / "custom-claude"
-    toolkit = tmp_path / "amm-toolkit"
-    commands = toolkit / "commands"
-    commands.mkdir(parents=True)
-    (commands / "scout.md").write_text("first")
-    (commands / "plan.md").write_text("toolkit plan")
-    dest = config / "commands"
-    dest.mkdir(parents=True)
-    (dest / "plan.md").write_text("member plan")
-    env = dict(os.environ, HOME=str(home), AMM_QUICKSTART_LIB="1", CLAUDE_CONFIG_DIR=str(config))
-    script = 'source "$1"; install_claude_commands "$2"'
-    def install():
-        subprocess.run(["bash", "-c", script, "bash", str(REPO / "quickstart.sh"), str(toolkit)],
-                       env=env, cwd=tmp_path, text=True, capture_output=True, check=True)
-    install()
-    assert (dest / "scout.md").read_text() == "first"
-    assert (dest / "plan.md").read_text() == "member plan"
-    assert not (dest / ".amm-managed-plan.md.sha256").exists()
-    (commands / "scout.md").write_text("second")
-    install()
-    assert (dest / "scout.md").read_text() == "second"
-    (dest / "scout.md").write_text("member-edited")
-    (commands / "scout.md").write_text("third")
-    install()
-    assert (dest / "scout.md").read_text() == "member-edited"
-    assert not (dest / "herdr").exists() and not (dest / "shep").exists()
+def test_single_root_never_installs_or_updates_sibling_toolkit():
+    quickstart = (REPO / "quickstart.sh").read_text()
+    runner = (REPO / "onboarding/run.sh").read_text()
+    assert "amm-toolkit.git" not in quickstart
+    assert "git clone" not in runner.split("# All AMM skills", 1)[1]
+    assert "never creates a sibling toolkit folder" in runner
+    assert "archive origin/main" in runner
+
+
+# --- legacy migration -------------------------------------------------------
+
+
+def _migration(root: Path, *args: str) -> subprocess.CompletedProcess[str]:
+    return subprocess.run(
+        ["bash", str(REPO / "migrate.sh"), "--root", str(root), *args],
+        text=True, capture_output=True, check=False,
+    )
+
+
+def _legacy_fixture(root: Path) -> tuple[Path, Path]:
+    legacy = root / "amm-toolkit"
+    legacy.mkdir(parents=True)
+    (legacy / "visible.txt").write_text("visible")
+    (legacy / ".hidden.txt").write_text("hidden")
+    return legacy, root / "work" / "legacy-toolkit"
+
+
+def test_migration_moves_visible_and_hidden_files_and_leaves_shims(tmp_path):
+    root = tmp_path / "custom-mothership"
+    root.mkdir()
+    legacy, work = _legacy_fixture(root)
+    result = _migration(root, "--apply")
+    assert result.returncode == 0, result.stdout + result.stderr
+    assert (work / "visible.txt").read_text() == "visible"
+    assert (work / ".hidden.txt").read_text() == "hidden"
+    assert legacy.is_symlink()
+    assert (legacy / "visible.txt").is_symlink()
+    assert (legacy / ".hidden.txt").is_symlink()
+    assert (legacy / ".hidden.txt").resolve() == (work / ".hidden.txt").resolve()
+    manifests = list((root / "migration-manifests").glob("*.manifest"))
+    assert manifests and "source=" in manifests[0].read_text()
+    assert "destination=" in manifests[0].read_text()
+
+
+def test_migration_aborts_before_move_on_destination_collision(tmp_path):
+    root = tmp_path / "root"
+    root.mkdir()
+    legacy, work = _legacy_fixture(root)
+    work.mkdir(parents=True)
+    (work / "visible.txt").write_text("keep destination")
+    result = _migration(root, "--apply")
+    assert result.returncode != 0
+    assert "Destination collision" in result.stderr
+    assert (legacy / "visible.txt").read_text() == "visible"
+    assert (work / "visible.txt").read_text() == "keep destination"
+
+
+def test_migration_force_backs_up_collision_with_timestamp_suffix(tmp_path):
+    root = tmp_path / "root"
+    root.mkdir()
+    legacy, work = _legacy_fixture(root)
+    work.mkdir(parents=True)
+    (work / "visible.txt").write_text("keep destination")
+    result = _migration(root, "--apply", "--force")
+    assert result.returncode == 0, result.stdout + result.stderr
+    backups = list(work.glob("visible.txt.backup-*"))
+    assert len(backups) == 1 and backups[0].read_text() == "keep destination"
+    assert (work / "visible.txt").read_text() == "visible"
+
+
+def test_migration_rerun_is_idempotent(tmp_path):
+    root = tmp_path / "root"
+    root.mkdir()
+    legacy, work = _legacy_fixture(root)
+    first = _migration(root, "--apply")
+    second = _migration(root, "--apply")
+    assert first.returncode == second.returncode == 0
+    assert (work / "visible.txt").read_text() == "visible"
+    assert (legacy / "visible.txt").read_text() == "visible"
+    assert len(list((root / "archive").glob("amm-toolkit-*"))) == 1
+
+
+def test_migration_custom_root_and_powerShell_contract():
+    # The executable behavior is covered above; this is parity-by-inspection
+    # because pwsh is not available in this test environment.
+    ps = (REPO / "migrate.ps1").read_text(encoding="utf-8-sig")
+    assert "[switch]$Force" in ps
+    assert "Get-ChildItem -LiteralPath $legacy -File -Recurse -Force" in ps
+    assert "Get-ChildItem -LiteralPath $staging -File -Recurse -Force" in ps
+    assert "-ItemType SymbolicLink" in ps
+    assert "destination=" in ps and "backup=" in ps
+    assert "Dry run" in ps and "manifest directory" in ps
 
 
 def test_windows_reconciliation_contract():
@@ -143,11 +206,11 @@ def test_windows_reconciliation_contract():
     assert runner.index('$dir = Find-Folder') < runner.index('Invoke-RestMethod "$RawBase/quickstart.ps1"')
     assert '"status", "--porcelain"' in quickstart or 'status --porcelain' in quickstart
     assert '"merge", "--ff-only"' in quickstart
-    assert 'function Install-ClaudeCommands' in quickstart
-    assert 'Get-FileHash -LiteralPath $target' in quickstart
-    assert 'CLAUDE_CONFIG_DIR' in quickstart and 'CLAUDE_CONFIG_DIR' in runner
-    assert 'Install-ClaudeCommands $ToolkitDir' in quickstart
-    assert '"herdr"' not in quickstart.split('function Install-ClaudeCommands')[1].split('# A stock Windows install')[0]
+    assert 'Install-ClaudeCommands' not in quickstart
+    assert '$LegacyToolkit' in quickstart
+    assert '$legacyToolkit' in runner
+    assert 'amm-toolkit.git' not in runner
+    assert 'amm-toolkit.git' not in quickstart and 'amm-toolkit.git' not in runner
     assert 'Delete it' not in runner
     for path in (REPO / "quickstart.ps1", REPO / "onboarding/run.ps1"):
         assert path.read_bytes().startswith(b"\xef\xbb\xbf"), f"{path} must retain UTF-8 BOM for Windows PowerShell 5.1"

@@ -3,16 +3,16 @@
 # The portal's Run audit command (onboarding/run.ps1) runs this first, in its own PowerShell, before the audit.
 # Set AMM_NO_OPEN=1 to skip opening Borg's web page and a Herdr window (headless runs and tests).
 $ErrorActionPreference = "Stop"
-$ToolkitUrl = "https://github.com/search-atlas-group/amm-toolkit.git"
 $FcUrl = "https://github.com/search-atlas-group/amm-founding-circle.git"
 $HerdrInstallUrl = "https://herdr.dev/install.ps1"
 $WarpDownloadPage = "https://www.warp.dev/download"
-$WorkspaceDir = if ($env:AMM_WORKSPACE) { $env:AMM_WORKSPACE } else { Join-Path $HOME "amm-founding-circle" }
+$MothershipDir = if ($env:AMM_MOTHERSHIP_ROOT) { $env:AMM_MOTHERSHIP_ROOT } else { Join-Path $HOME "amm-mothership" }
+$WorkspaceDir = if ($env:AMM_WORKSPACE) { $env:AMM_WORKSPACE } else { Join-Path $MothershipDir "founding-circle" }
 function Test-FcFolder([string]$Path) {
     return [bool]($Path -and (Test-Path (Join-Path $Path ".git")) -and (Test-Path (Join-Path $Path "onboarding")))
 }
 function Find-FcFolder {
-    foreach ($candidate in @($env:AMM_WORKSPACE, (Get-Location).Path, (Join-Path (Get-Location).Path "amm-founding-circle"))) {
+    foreach ($candidate in @($env:AMM_WORKSPACE, (Get-Location).Path, (Join-Path (Get-Location).Path "amm-founding-circle"), (Join-Path $MothershipDir "founding-circle"))) {
         if (Test-FcFolder $candidate) { return $candidate }
     }
     $roots = @((Join-Path $HOME "Desktop"), (Join-Path $HOME "Documents"))
@@ -57,31 +57,6 @@ function Invoke-Git([string[]]$GitArgs) {
     try { & git @GitArgs 2>$null | Out-Null; return ($LASTEXITCODE -eq 0) } catch { return $false } finally { $ErrorActionPreference = $prev }
 }
 
-function Install-ClaudeCommands([string]$ToolkitPath) {
-    $source = Join-Path $ToolkitPath "commands"
-    if (-not (Test-Path $source -PathType Container)) { Write-WarnLine "Toolkit slash commands unavailable at $source; install them after the toolkit is downloaded."; return }
-    $config = if ($env:CLAUDE_CONFIG_DIR) { $env:CLAUDE_CONFIG_DIR } else { Join-Path $HOME ".claude" }
-    $dest = Join-Path $config "commands"
-    try { [void](New-Item -ItemType Directory -Force -Path $dest) } catch { Write-WarnLine "Cannot create Claude commands folder $dest; leaving existing files alone."; return }
-    $installed = 0; $updated = 0; $preserved = 0
-    foreach ($item in (Get-ChildItem -LiteralPath $source -File -Filter "*.md")) {
-        $target = Join-Path $dest $item.Name
-        $receipt = Join-Path $dest (".amm-managed-" + $item.Name + ".sha256")
-        try {
-            if (Test-Path -LiteralPath $target) {
-                if (-not (Test-Path -LiteralPath $target -PathType Leaf) -or -not (Test-Path -LiteralPath $receipt -PathType Leaf) -or
-                    (Get-Content -LiteralPath $receipt -Raw).Trim() -ne (Get-FileHash -LiteralPath $target -Algorithm SHA256).Hash) {
-                    $preserved++; continue
-                }
-                if ((Get-FileHash -LiteralPath $target -Algorithm SHA256).Hash -eq (Get-FileHash -LiteralPath $item.FullName -Algorithm SHA256).Hash) { continue }
-                $updated++
-            } else { $installed++ }
-            Copy-Item -LiteralPath $item.FullName -Destination $target
-            (Get-FileHash -LiteralPath $target -Algorithm SHA256).Hash.ToLowerInvariant() | Set-Content -LiteralPath $receipt -Encoding ASCII
-        } catch { Write-WarnLine "Could not install $($item.Name) ($($_.Exception.Message)); existing files left intact." }
-    }
-    Write-Ok "Claude slash commands in $dest`: $installed added, $updated updated, $preserved existing files preserved."
-}
 
 # A stock Windows install has App Execution Alias stubs that only open the Microsoft Store, so a command being found
 # is not enough: it has to run.
@@ -121,22 +96,21 @@ $selected = Find-FcFolder
 if ($selected) {
     $WorkspaceDir = $selected
     Update-Repo $WorkspaceDir "Founding Circle"
-} elseif (Test-Path $WorkspaceDir) {
-    Write-WarnLine "The default folder $WorkspaceDir exists but is not a valid Founding Circle clone. Leave it intact and choose a folder manually."
-    exit 1
-} elseif (-not (Invoke-Git @("clone", "-q", $FcUrl, $WorkspaceDir))) {
-    Write-WarnLine "Could not download the Founding Circle. Check your internet connection, then re-run."; exit 1
+} else {
+    [void](New-Item -ItemType Directory -Force -Path (Split-Path -Parent $WorkspaceDir))
+    if (-not (Invoke-Git @("clone", "-q", $FcUrl, $WorkspaceDir))) {
+        Write-WarnLine "Could not download the Founding Circle. Check your internet connection, then re-run."; exit 1
+    }
 }
 $env:AMM_FOUNDING_CIRCLE_DIR = $WorkspaceDir
 Write-Ok "Selected Founding Circle folder: $WorkspaceDir"
-Write-Step "3/5" "Getting the AMM toolkit"
-$ToolkitDir = Join-Path (Split-Path -Parent $WorkspaceDir) "amm-toolkit"
-if (Test-Path (Join-Path $ToolkitDir ".git")) {
-    Update-Repo $ToolkitDir "AMM toolkit"
-} elseif (Test-Path $ToolkitDir) {
-    Write-WarnLine "Toolkit path $ToolkitDir exists but is not a Git clone; leaving it intact."
-} elseif (Invoke-Git @("clone", "-q", $ToolkitUrl, $ToolkitDir)) { Write-Ok "AMM toolkit ready at $ToolkitDir" } else { Write-WarnLine "Could not download the AMM toolkit. Re-run this later." }
-Install-ClaudeCommands $ToolkitDir
+Write-Step "3/5" "Using Founding Circle tools"
+# Skills, artifacts, tools, SHEP, and onboarding all live in this one repository.
+# A legacy sibling toolkit is never cloned, updated, or removed; existing files stay untouched.
+$LegacyToolkit = Join-Path (Split-Path -Parent $WorkspaceDir) "amm-toolkit"
+if (Test-Path $LegacyToolkit) { Write-WarnLine "Legacy AMM toolkit folder found at $LegacyToolkit; leaving it untouched. Founding Circle is now the single source of truth." }
+Write-Ok "Founding Circle skills, artifacts, and tools ready at $WorkspaceDir"
+
 Write-Step "4/5" "Installing Herdr terminal command"
 if (Get-Command herdr -ErrorAction SilentlyContinue) { Write-Ok "Herdr already installed" } else {
     $herdrOk = $false
@@ -163,6 +137,5 @@ if ($WarpReady -and -not $env:CI -and -not $env:AMM_UNATTENDED -and -not $env:AM
   if (Test-Path $warpExe) { Start-Process $warpExe } else { try { Start-Process warp } catch { } }
 }
 if (Test-Path (Join-Path $WorkspaceDir "shep\bin\shep")) { Write-Ok "SHEP terminal command: run from Git Bash: $WorkspaceDir\shep\bin\shep --help" }
-$ClaudeConfig = if ($env:CLAUDE_CONFIG_DIR) { $env:CLAUDE_CONFIG_DIR } else { Join-Path $HOME ".claude" }
-Write-Host "`nTerminal commands: herdr (if installed), SHEP (repo-local, use Git Bash). Claude slash commands: $ClaudeConfig\commands. Borg opens in the browser." -ForegroundColor Green
+Write-Host "`nTerminal commands: herdr (if installed), SHEP (repo-local, use Git Bash). Founding Circle skills: $WorkspaceDir\skills. Borg opens in the browser." -ForegroundColor Green
 Write-Host "`nSetup complete. Run the onboarding audit from your AMM portal." -ForegroundColor Green
