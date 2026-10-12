@@ -1,0 +1,7 @@
+# Shell scripts must keep LF endings, even in a Windows checkout with core.autocrlf=true: bash run from Git Bash
+# (onboard.ps1 -InstallSkills) fails on CRLF with "$'\r': command not found".
+*.sh text eol=lf
+shep/bin/* text eol=lf
+# PowerShell files stay ASCII-only (onboarding/test_onboarding.py checks it), so Windows PowerShell 5.1, which reads
+# a file without a BOM as the system code page, parses them the same as PowerShell 7.
+*.ps1 text

@@ -11,7 +11,12 @@ from __future__ import annotations
 
 import json
 import os
+import shutil
+import subprocess
+import sys
 from pathlib import Path
+
+import pytest
 
 
 import ladder_probe as lp
@@ -22,6 +27,193 @@ import share
 import skills_index
 
 REPO = Path(__file__).resolve().parent.parent
+
+
+# --- quickstart clone reconciliation ----------------------------------------
+
+def _git(*args):
+    subprocess.run(["git", *map(str, args)], check=True, capture_output=True)
+
+
+def _quickstart_lib(command, home, cwd):
+    env = dict(os.environ, HOME=str(home), AMM_QUICKSTART_LIB="1", AMM_WORKSPACE="")
+    return subprocess.run(["bash", "-c", 'source "$1"; ' + command, "bash", str(REPO / "quickstart.sh")],
+                          cwd=cwd, env=env, text=True, capture_output=True, check=True).stdout
+
+
+def test_quickstart_prefers_existing_desktop_clone_over_default(tmp_path):
+    home = tmp_path / "home"
+    desktop = home / "Desktop" / "amm-founding-circle"
+    (desktop / "onboarding").mkdir(parents=True)
+    _git("init", desktop)
+    default = home / "amm-founding-circle"
+    (default / "onboarding").mkdir(parents=True)
+    _git("init", default)
+    assert _quickstart_lib('find_fc_folder', home, tmp_path).strip() == str(desktop)
+    # Both the installer and audit use this discovery before any clone command.
+    installer = (REPO / "quickstart.sh").read_text()
+    runner = (REPO / "onboarding/run.sh").read_text()
+    assert installer.index('SELECTED_DIR="$(find_fc_folder') < installer.index('git clone -q "$FC_URL"')
+    assert runner.index('DIR="$(find_fc_folder') < runner.index('bash "$QUICKSTART"')
+
+
+def test_full_quickstart_does_not_clone_default_when_desktop_exists(tmp_path):
+    home = tmp_path / "home"
+    desktop = home / "Desktop" / "amm-founding-circle"
+    (desktop / "onboarding").mkdir(parents=True)
+    _git("init", desktop)
+    (desktop / "member-notes.txt").write_text("do not overwrite")
+    toolkit = home / "Desktop" / "amm-toolkit"
+    toolkit.mkdir()
+    _git("init", toolkit)
+    (toolkit / "local-notes.txt").write_text("also keep")
+    (home / "Applications" / "Borg.app").mkdir(parents=True)
+    bindir = tmp_path / "bin"
+    bindir.mkdir()
+    git_log = tmp_path / "git-calls"
+    git = bindir / "git"
+    git.write_text(f'#!/bin/sh\nprintf "%s\\n" "$*" >> "{git_log}"\nexec "{shutil.which("git")}" "$@"\n')
+    git.chmod(0o755)
+    herdr = bindir / "herdr"
+    herdr.write_text("#!/bin/sh\nexit 0\n")
+    herdr.chmod(0o755)
+    env = dict(os.environ, HOME=str(home), PATH=f"{bindir}:{os.environ['PATH']}", CI="1", AMM_NO_OPEN="1", AMM_WORKSPACE="")
+    result = subprocess.run(["bash", str(REPO / "quickstart.sh")], cwd=tmp_path, env=env, text=True, capture_output=True)
+    assert result.returncode == 0, result.stdout + result.stderr
+    assert f"Selected Founding Circle folder: {desktop}" in result.stdout
+    assert "clone" not in git_log.read_text()
+    assert not (home / "amm-founding-circle").exists()
+    assert (desktop / "member-notes.txt").read_text() == "do not overwrite"
+    assert (toolkit / "local-notes.txt").read_text() == "also keep"
+
+
+def test_quickstart_dirty_clone_preserved(tmp_path):
+    home = tmp_path / "home"
+    desktop = home / "Desktop" / "amm-founding-circle"
+    (desktop / "onboarding").mkdir(parents=True)
+    _git("init", desktop)
+    (desktop / "member-notes.txt").write_text("keep this")
+    output = _quickstart_lib(f'update_repo "{desktop}" "Founding Circle"', home, tmp_path)
+    assert "local changes" in output
+    assert (desktop / "member-notes.txt").read_text() == "keep this"
+    assert not (home / "amm-founding-circle").exists()
+
+
+def test_single_root_never_installs_or_updates_sibling_toolkit():
+    quickstart = (REPO / "quickstart.sh").read_text()
+    runner = (REPO / "onboarding/run.sh").read_text()
+    assert "amm-toolkit.git" not in quickstart
+    assert "git clone" not in runner.split("# All AMM skills", 1)[1]
+    assert "never creates a sibling toolkit folder" in runner
+    assert "archive origin/main" in runner
+
+
+# --- legacy migration -------------------------------------------------------
+
+
+def _migration(root: Path, *args: str) -> subprocess.CompletedProcess[str]:
+    return subprocess.run(
+        ["bash", str(REPO / "migrate.sh"), "--root", str(root), *args],
+        text=True, capture_output=True, check=False,
+    )
+
+
+def _legacy_fixture(root: Path) -> tuple[Path, Path]:
+    legacy = root / "amm-toolkit"
+    legacy.mkdir(parents=True)
+    (legacy / "visible.txt").write_text("visible")
+    (legacy / ".hidden.txt").write_text("hidden")
+    return legacy, root / "work" / "legacy-toolkit"
+
+
+def test_migration_moves_visible_and_hidden_files_and_leaves_shims(tmp_path):
+    root = tmp_path / "custom-mothership"
+    root.mkdir()
+    legacy, work = _legacy_fixture(root)
+    result = _migration(root, "--apply")
+    assert result.returncode == 0, result.stdout + result.stderr
+    assert (work / "visible.txt").read_text() == "visible"
+    assert (work / ".hidden.txt").read_text() == "hidden"
+    assert legacy.is_symlink()
+    assert (legacy / "visible.txt").is_symlink()
+    assert (legacy / ".hidden.txt").is_symlink()
+    assert (legacy / ".hidden.txt").resolve() == (work / ".hidden.txt").resolve()
+    manifests = list((root / "migration-manifests").glob("*.manifest"))
+    assert manifests and "source=" in manifests[0].read_text()
+    assert "destination=" in manifests[0].read_text()
+
+
+def test_migration_aborts_before_move_on_destination_collision(tmp_path):
+    root = tmp_path / "root"
+    root.mkdir()
+    legacy, work = _legacy_fixture(root)
+    work.mkdir(parents=True)
+    (work / "visible.txt").write_text("keep destination")
+    result = _migration(root, "--apply")
+    assert result.returncode != 0
+    assert "Destination collision" in result.stderr
+    assert (legacy / "visible.txt").read_text() == "visible"
+    assert (work / "visible.txt").read_text() == "keep destination"
+
+
+def test_migration_force_backs_up_collision_with_timestamp_suffix(tmp_path):
+    root = tmp_path / "root"
+    root.mkdir()
+    legacy, work = _legacy_fixture(root)
+    work.mkdir(parents=True)
+    (work / "visible.txt").write_text("keep destination")
+    result = _migration(root, "--apply", "--force")
+    assert result.returncode == 0, result.stdout + result.stderr
+    backups = list(work.glob("visible.txt.backup-*"))
+    assert len(backups) == 1 and backups[0].read_text() == "keep destination"
+    assert (work / "visible.txt").read_text() == "visible"
+
+
+def test_migration_rerun_is_idempotent(tmp_path):
+    root = tmp_path / "root"
+    root.mkdir()
+    legacy, work = _legacy_fixture(root)
+    first = _migration(root, "--apply")
+    second = _migration(root, "--apply")
+    assert first.returncode == second.returncode == 0
+    assert (work / "visible.txt").read_text() == "visible"
+    assert (legacy / "visible.txt").read_text() == "visible"
+    assert len(list((root / "archive").glob("amm-toolkit-*"))) == 1
+
+
+def test_migration_custom_root_and_powerShell_contract():
+    # The executable behavior is covered above; this is parity-by-inspection
+    # because pwsh is not available in this test environment.
+    ps = (REPO / "migrate.ps1").read_text(encoding="utf-8-sig")
+    assert "[switch]$Force" in ps
+    assert "Get-ChildItem -LiteralPath $legacy -File -Recurse -Force" in ps
+    assert "Get-ChildItem -LiteralPath $staging -File -Recurse -Force" in ps
+    assert "-ItemType SymbolicLink" in ps
+    assert "destination=" in ps and "backup=" in ps
+    assert "Dry run" in ps and "manifest directory" in ps
+
+
+def test_windows_reconciliation_contract():
+    # Static contract only: CI on macOS/Linux cannot execute Windows PowerShell 5.1.
+    quickstart = (REPO / "quickstart.ps1").read_text(encoding="utf-8-sig")
+    runner = (REPO / "onboarding/run.ps1").read_text(encoding="utf-8-sig")
+    for text in (quickstart, runner):
+        assert 'Join-Path $oneDrive "Desktop"' in text
+        assert 'Join-Path $oneDrive "Documents"' in text
+        assert 'Test-Folder' in text or 'Test-FcFolder' in text
+        assert 'Join-Path $root "amm-founding-circle"' in text
+    assert quickstart.index('$selected = Find-FcFolder') < quickstart.index('"clone", "-q", $FcUrl')
+    assert runner.index('$dir = Find-Folder') < runner.index('Invoke-RestMethod "$RawBase/quickstart.ps1"')
+    assert '"status", "--porcelain"' in quickstart or 'status --porcelain' in quickstart
+    assert '"merge", "--ff-only"' in quickstart
+    assert 'Install-ClaudeCommands' not in quickstart
+    assert '$LegacyToolkit' in quickstart
+    assert '$legacyToolkit' in runner
+    assert 'amm-toolkit.git' not in runner
+    assert 'amm-toolkit.git' not in quickstart and 'amm-toolkit.git' not in runner
+    assert 'Delete it' not in runner
+    for path in (REPO / "quickstart.ps1", REPO / "onboarding/run.ps1"):
+        assert path.read_bytes().startswith(b"\xef\xbb\xbf"), f"{path} must retain UTF-8 BOM for Windows PowerShell 5.1"
 
 
 # --- skills index ----------------------------------------------------------
@@ -976,6 +1168,121 @@ def test_run_without_a_request_says_what_to_press(home, monkeypatch, capsys):
     portal._save("http://127.0.0.1:3000", TOKEN, "jane-smith")
     assert portal.main(["--run"]) == 0
     assert "Press Run audit" in capsys.readouterr().out
+
+
+def test_run_ends_the_portal_run_when_an_audit_module_will_not_import(home, monkeypatch, capsys):
+    """2026-10-08 production failure: share.py imported setup_probe, which was never committed, so every fresh copy
+    raised ModuleNotFoundError at `import share`. The traceback killed the command before _finish, and the portal
+    showed "Audit running" until its 15-minute sweep. The run must end as failed, with no traceback."""
+    wire = _Wire()
+    monkeypatch.setattr(portal, "_request", wire)
+    monkeypatch.setitem(sys.modules, "share", None)  # makes `import share` raise ImportError
+    portal._ran[0] = False
+    assert portal.main(["--run", "ABCD-2345", "--portal", "http://127.0.0.1:3000"]) == 0
+    assert wire.finishes() == [{"status": "failed", "failure": "audit_failed"}]
+    assert "/api/scans/upload" not in [c[1] for c in wire.calls]
+    assert "The audit could not finish on this computer." in wire.logged()
+    out = capsys.readouterr().out
+    assert "Error: import of share" in out and "Traceback" not in out and TOKEN not in out
+
+
+def _local_imports(path: Path) -> set[str]:
+    """Names of sibling modules a file imports, at any depth (top level or inside a function)."""
+    import ast
+    names: set[str] = set()
+    for node in ast.walk(ast.parse(path.read_text(encoding="utf-8"))):
+        if isinstance(node, ast.Import):
+            names |= {a.name.split(".")[0] for a in node.names}
+        elif isinstance(node, ast.ImportFrom) and node.module and not node.level:
+            names.add(node.module.split(".")[0])
+    return {n for n in names if (path.parent / f"{n}.py").exists() or n not in sys.stdlib_module_names}
+
+
+def test_every_onboarding_module_imported_is_committed():
+    """A module that exists only on the author's machine passes every local test and breaks every member's copy."""
+    import shutil
+    import subprocess
+    here = Path(__file__).resolve().parent
+    git = shutil.which("git")
+    if not git or not (REPO / ".git").exists():
+        pytest.skip("not a git checkout")
+    tracked = subprocess.run([git, "-C", str(REPO), "ls-files", "onboarding"], capture_output=True, text=True,
+                             check=True).stdout.split()
+    tracked_names = {Path(p).stem for p in tracked if p.endswith(".py")}
+    if not tracked_names:
+        pytest.skip("onboarding is not tracked in this checkout")
+    third_party = {"pytest"}
+    missing = {}
+    for name in sorted(tracked_names):
+        need = _local_imports(here / f"{name}.py") - third_party - tracked_names
+        if need:
+            missing[name] = sorted(need)
+    assert missing == {}, f"imported but not committed: {missing}"
+
+
+def test_upload_path_modules_import_from_a_fresh_copy(tmp_path):
+    """Import the run path (portal -> ladder_probe, share -> setup_probe) in a clean interpreter from a copy of only
+    the committed files, the way a member's fresh clone does. The 2026-10-08 failure passed every in-place test."""
+    import shutil
+    import subprocess
+    here = Path(__file__).resolve().parent
+    git = shutil.which("git")
+    if not git or not (REPO / ".git").exists():
+        pytest.skip("not a git checkout")
+    tracked = subprocess.run([git, "-C", str(REPO), "ls-files", "--cached", "onboarding"], capture_output=True,
+                             text=True, check=True).stdout.split()
+    copy = tmp_path / "onboarding"
+    copy.mkdir()
+    for rel in tracked:
+        if rel.endswith(".py") or rel.endswith(".json"):
+            shutil.copy2(REPO / rel, copy / Path(rel).name)
+    code = "import portal, ladder_probe, share, setup_probe; print('ok')"
+    out = subprocess.run([sys.executable, "-I", "-c", f"import sys; sys.path.insert(0, {str(copy)!r}); {code}"],
+                         capture_output=True, text=True, cwd=str(tmp_path))
+    assert out.returncode == 0 and out.stdout.strip() == "ok", out.stderr[-600:]
+
+
+def _sa_check(tmp_path, *, commands=False, plugin_json=False, plugin_list=None):
+    """Run run.sh's has_sa_commands function alone, with a fake HOME and a fake `claude` on PATH."""
+    src = (Path(__file__).resolve().parent / "run.sh").read_text(encoding="utf-8")
+    start = src.index("has_sa_commands() {")
+    body = src[start:src.index("\n}\n", start) + 3]
+    home = tmp_path / "home"
+    (home / ".claude").mkdir(parents=True)
+    if commands:
+        (home / ".claude" / "commands").mkdir()
+        (home / ".claude" / "commands" / "scout.md").write_text("x")
+    if plugin_json:
+        (home / ".claude" / "plugins").mkdir()
+        (home / ".claude" / "plugins" / "installed_plugins.json").write_text(
+            json.dumps({"version": 2, "plugins": {"searchatlas@searchatlas": [{"scope": "user"}]}}))
+    bindir = tmp_path / "bin"
+    bindir.mkdir()
+    if plugin_list is not None:
+        fake = bindir / "claude"
+        fake.write_text("#!/bin/sh\ncat <<'EOF'\n" + plugin_list + "\nEOF\n")
+        fake.chmod(0o755)
+    script = "set -euo pipefail\n" + body + "if has_sa_commands; then echo HAVE; else echo MISS; fi\n"
+    env = {"HOME": str(home), "PATH": f"{bindir}:/usr/bin:/bin"}
+    out = subprocess_run(["bash", "-c", script], env)
+    return out.stdout.strip()
+
+
+def subprocess_run(cmd, env):
+    import subprocess
+    return subprocess.run(cmd, capture_output=True, text=True, env=env, timeout=20)
+
+
+@pytest.mark.skipif(os.name == "nt", reason="run.sh is the Mac and Linux command")
+@pytest.mark.parametrize("kw,expect", [
+    ({}, "MISS"),
+    ({"commands": True}, "HAVE"),
+    ({"plugin_json": True}, "HAVE"),
+    ({"plugin_list": "Installed plugins:\n  > searchatlas@synced\n    Status: loaded"}, "HAVE"),
+    ({"plugin_list": "Installed plugins:\n  > github@claude-plugins-official"}, "MISS"),
+])
+def test_run_sh_counts_the_searchatlas_plugin_as_slash_commands(tmp_path, kw, expect):
+    assert _sa_check(tmp_path, **kw) == expect
 
 
 # --- quickstart.sh: Warp step ----------------------------------------------

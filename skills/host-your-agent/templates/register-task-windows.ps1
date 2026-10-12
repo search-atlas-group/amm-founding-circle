@@ -20,7 +20,7 @@ param(
 
 $ErrorActionPreference = "Stop"
 
-# Find python — prefer the launcher, fall back to python3/python on PATH.
+# Find python: prefer the launcher, fall back to python3/python on PATH.
 $python = (Get-Command py -ErrorAction SilentlyContinue)?.Source
 if (-not $python) { $python = (Get-Command python3 -ErrorAction SilentlyContinue)?.Source }
 if (-not $python) { $python = (Get-Command python -ErrorAction SilentlyContinue)?.Source }
@@ -48,7 +48,7 @@ Register-ScheduledTask `
     -Settings $settings `
     -Description "Runs your overnight agent job on a schedule (host-your-agent skill)." | Out-Null
 
-Write-Host "Registered scheduled task '$TaskName' — runs daily at $At for up to $Minutes min."
+Write-Host "Registered scheduled task '$TaskName': runs daily at $At for up to $Minutes min."
 Write-Host "Check it:   Get-ScheduledTask -TaskName $TaskName"
 Write-Host "Run now:    Start-ScheduledTask -TaskName $TaskName"
 Write-Host "Remove it:  Unregister-ScheduledTask -TaskName $TaskName -Confirm:`$false"

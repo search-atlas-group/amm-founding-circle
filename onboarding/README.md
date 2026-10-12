@@ -167,7 +167,39 @@ and the rung of each skill comes from [`../skills/README.md`](../skills/README.m
 Neither is copied here — this reads them, so when a skill is added the scan
 knows about it immediately.
 
+## Migrating an older `amm-toolkit`
+
+The canonical layout is `~/amm-mothership/founding-circle`, alongside `work/`
+and `archive/`. Migration is opt-in and dry-run by default. Review the manifest,
+then apply it from the repository root:
+
+```bash
+./migrate.sh                 # report and write a manifest only
+./migrate.sh --apply         # move personal files, archive the old toolkit, add shims
+```
+
+Both scripts write manifests under `migration-manifests/`, including during a
+ dry-run, and apply moves through a staging directory. They refuse destination
+collisions unless forced; `--force`/`-Force` timestamp-backs up the existing
+entry. The per-file links at the old absolute paths are temporary compatibility
+shims: keep them until old callers are updated, then remove the shim and archive
+manually. On Windows use `./migrate.ps1` and `./migrate.ps1 -Apply` in PowerShell.
+Neither script deletes member files. A legacy sibling is otherwise left untouched
+by quickstart and onboarding.
+
+
+Do not delete or move either folder. In the AMM portal, open **Onboarding**, click **Run audit**, and paste the command the portal generates for your machine into Terminal (macOS/Linux) or PowerShell (Windows). It selects an existing valid clone from the current folder, Desktop, Documents, or OneDrive Desktop/Documents before using the default home folder, prints `Selected Founding Circle folder` and `Running audit from selected Founding Circle folder`, and uses that selected clone as the single home for AMM skills, artifacts, and tools. A legacy sibling toolkit is left untouched and is never recreated. Setup updates clean clones only by fast-forward; when a clone has local edits, is offline, or cannot fast-forward, it leaves it untouched and reports that limitation. The audit runs from the selected path.
+
+If two valid clones remain, use the printed audit path as the one to keep working in. Compare **both** folders first: run `git status --short` in each (on Windows, `git -C "C:\path\to\amm-founding-circle" status --short`) and inspect any untracked files as well as edits. Copy all local-only uncommitted work from **each** folder into a separate backup outside both repos before any manual consolidation. Confirm the backup contains those files, then manually copy only the work you want into the selected folder and inspect `git status --short` there. Re-run the portal-generated audit command and check its selected path. Keep the old folder and backup until you have confirmed the result; there is no automatic deletion or relocation. If an update is blocked, finish or save your edits and ask for help with the branch rather than resetting it.
+
+## Tools and skills
+
+The Founding Circle folder is the single installed root. Its `skills/`, `tools/`, `shep/`, `handouts/`, `playbooks/`, `automations/`, and onboarding files are the AMM skills, artifacts, and tools. New installs do not clone `amm-toolkit`. If an older sibling `amm-toolkit` folder exists, setup reports it and leaves it untouched; compare and migrate any personal files manually, then keep it as a backup until verified.
+
+**Herdr** is a terminal command installed by its installer: run `herdr` in Terminal or PowerShell after setup (reopen the terminal if the newly installed command is not on PATH). **SHEP** is a terminal command included in the selected Founding Circle folder: on macOS/Linux, run `./shep/bin/shep --help` from that folder; on Windows, use Git Bash to run `./shep/bin/shep --help`. Neither is a Claude slash command, and neither binary is copied to the Claude commands folder. Windows has no Borg desktop app; use the web version.
+
 ## If something looks wrong
+
 
 The scan can be wrong. It looks in the usual places (`~/Desktop`, `~/Documents`,
 `~/Projects`, `~/dev`, `~/code`, `~/work`, `~/src`, `~/Sync`, three levels deep)

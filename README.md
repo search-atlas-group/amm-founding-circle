@@ -8,18 +8,14 @@ playbooks, curriculum, and automations we build together, in one place.
 ## 60-second quickstart
 
 ```bash
-# 1. clone, then install the skills into ~/.claude/skills
-git clone https://github.com/search-atlas-group/amm-founding-circle.git
-cd amm-founding-circle/skills && ./install.sh   # USE_SYMLINKS=1 to update via git pull
+# 1. install the single-root workspace (macOS/Linux; PowerShell has quickstart.ps1)
+curl -fsSL https://raw.githubusercontent.com/search-atlas-group/amm-founding-circle/main/quickstart.sh | bash
 
-# 2. find your rung — scans your machine, opens a readout, uploads nothing
-cd .. && ./onboarding/onboard.sh
-
-# 3. open Claude Code and run your first skill — e.g. an AEO audit:
-#    "Run an LLM citation audit for acme.com" -> loads skills/llm-citation-audit
+# 2. run the local onboarding audit
+cd ~/amm-mothership/founding-circle && ./onboarding/onboard.sh
 ```
 
-4. See what it produces in [`examples/`](examples/) before you run anything.
+The default mothership is `~/amm-mothership` (Windows: `%USERPROFILE%\amm-mothership`) with `founding-circle/`, `work/`, and `archive/`. Claude, Codex, and generic agents all resolve skills and tools from the canonical `founding-circle/`; keep personal files in `work/`. Override the root with `AMM_MOTHERSHIP_ROOT`.
 
 **Where am I on the ladder?** [`./onboarding/onboard.sh`](onboarding/README.md) checks
 your own machine and tells you your rung, what is solid underneath it, and the one

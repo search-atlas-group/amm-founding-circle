@@ -4,7 +4,7 @@
 # Usage from any folder:
 #   curl -fsSL https://raw.githubusercontent.com/search-atlas-group/amm-founding-circle/main/quickstart.sh | bash
 #
-# It installs the AMM coding environment, clones and updates this Founding Circle repo and the AMM toolkit beside it,
+# It installs the AMM coding environment and clones or updates this Founding Circle repo,
 # installs Herdr, downloads the Borg Mac installer, and installs Warp (the terminal). SHEP is included in this repo. The onboarding audit then
 # finds this copy automatically.
 set -euo pipefail
@@ -15,13 +15,13 @@ ok(){ printf "  ${GREEN}✓${NC}  %s\n" "$1"; }
 warn(){ printf "  ${YELLOW}!${NC}  %s\n" "$1"; }
 fail(){ printf "  ${YELLOW}✗${NC}  %s\n" "$1" >&2; exit 1; }
 
-TOOLKIT_URL="https://github.com/search-atlas-group/amm-toolkit.git"
 FC_URL="https://github.com/search-atlas-group/amm-founding-circle.git"
 HERDR_INSTALL_URL="https://herdr.dev/install.sh"
 BORG_DMG_URL="https://download.getborg.com/Borg-0.0.79-mac-arm64.dmg"
 WARP_DMG_URL="https://app.warp.dev/download?package=dmg"   # official; 302s to releases.warp.dev/stable/<version>/Warp.dmg
 WARP_DOWNLOAD_PAGE="https://www.warp.dev/download"
-WORKSPACE_DIR="${AMM_WORKSPACE:-$HOME/amm-founding-circle}"
+MOTHERSHIP_DIR="${AMM_MOTHERSHIP_ROOT:-$HOME/amm-mothership}"
+WORKSPACE_DIR="${AMM_WORKSPACE:-$MOTHERSHIP_DIR/founding-circle}"
 
 # Warp: the terminal. Returns non-zero on failure; the caller warns and continues.
 warp_app_path(){
@@ -62,9 +62,39 @@ open_warp(){
   local app; app="$(warp_app_path)" || return 0
   open "$app" >/dev/null 2>&1 || true
 }
+# Keep discovery in the downloaded quickstart too, so the audit and standalone setup agree.
+is_fc_folder(){ [[ -d "$1/.git" && -d "$1/onboarding" ]]; }
+find_fc_folder(){
+  local d root
+  [[ -n "${AMM_WORKSPACE:-}" ]] && is_fc_folder "$AMM_WORKSPACE" && { printf '%s\n' "$AMM_WORKSPACE"; return; }
+  for d in "$PWD" "$PWD/amm-founding-circle" "$MOTHERSHIP_DIR/founding-circle"; do
+    is_fc_folder "$d" && { printf '%s\n' "$d"; return; }
+  done
+  for root in "$HOME/Desktop" "$HOME/Documents" "${OneDrive:-${ONEDRIVE:-$HOME/OneDrive}}/Desktop" "${OneDrive:-${ONEDRIVE:-$HOME/OneDrive}}/Documents"; do
+    for d in "$root/amm-founding-circle" "$root"/*/amm-founding-circle "$root"/*/*/amm-founding-circle; do
+      is_fc_folder "$d" && { printf '%s\n' "$d"; return; }
+    done
+  done
+  for d in "$HOME/Developer/amm-founding-circle" "$HOME/Code/amm-founding-circle" "$HOME/code/amm-founding-circle" "$MOTHERSHIP_DIR/founding-circle" "$HOME/amm-founding-circle"; do
+    is_fc_folder "$d" && { printf '%s\n' "$d"; return; }
+  done
+  return 1
+}
+update_repo(){
+  local dir="$1" name="$2"
+  if [[ -n "$(git -C "$dir" status --porcelain)" ]]; then
+    warn "$name at $dir has local changes; leaving it unchanged. Save your work before updating."
+  elif ! git -C "$dir" fetch -q origin main; then
+    warn "$name at $dir could not check for updates (offline or remote unavailable); using your existing copy."
+  elif ! git -C "$dir" merge --ff-only -q FETCH_HEAD; then
+    warn "$name at $dir could not fast-forward; leaving it unchanged. Resolve the branch before updating."
+  else
+    ok "$name updated at $dir"
+  fi
+}
 if (return 0 2>/dev/null); then [[ "${AMM_QUICKSTART_LIB:-}" == 1 ]] && return 0; fi
 
-step "1/6" "Checking prerequisites"
+step "1/5" "Checking prerequisites"
 command -v git >/dev/null 2>&1 || fail "Install Git first (macOS: xcode-select --install), then re-run."
 if ! command -v python3 >/dev/null 2>&1; then
   if [[ "$(uname -s)" == "Darwin" ]]; then
@@ -79,35 +109,40 @@ else
   ok "python3 ready"
 fi
 
-step "2/6" "Getting the Founding Circle"
-if [[ -d "$WORKSPACE_DIR/.git" ]]; then
-  git -C "$WORKSPACE_DIR" fetch -q origin main 2>/dev/null || true
-  git -C "$WORKSPACE_DIR" merge --ff-only -q origin/main 2>/dev/null || true
+step "2/5" "Getting the Founding Circle"
+SELECTED_DIR="$(find_fc_folder || true)"
+if [[ -n "$SELECTED_DIR" ]]; then
+  WORKSPACE_DIR="$SELECTED_DIR"
+  update_repo "$WORKSPACE_DIR" "Founding Circle"
+elif [[ -e "$WORKSPACE_DIR" ]]; then
+  fail "The default folder $WORKSPACE_DIR already exists but is not a valid Founding Circle clone. Leave it intact and choose a folder manually."
 else
-  git clone -q "$FC_URL" "$WORKSPACE_DIR"
+  mkdir -p "$(dirname "$WORKSPACE_DIR")"
+  git clone -q "$FC_URL" "$WORKSPACE_DIR" || fail "Could not download Founding Circle to $WORKSPACE_DIR. Check the connection and retry."
 fi
-ok "Founding Circle ready at $WORKSPACE_DIR"
+ok "Selected Founding Circle folder: $WORKSPACE_DIR"
 export AMM_FOUNDING_CIRCLE_DIR="$WORKSPACE_DIR"
 
-step "3/6" "Getting the AMM toolkit"
-TOOLKIT_DIR="$(dirname "$WORKSPACE_DIR")/amm-toolkit"
-if [[ -d "$TOOLKIT_DIR/.git" ]]; then
-  git -C "$TOOLKIT_DIR" fetch -q origin main 2>/dev/null || true
-  git -C "$TOOLKIT_DIR" merge --ff-only -q origin main 2>/dev/null || true
-else
-  git clone -q "$TOOLKIT_URL" "$TOOLKIT_DIR"
+step "3/5" "Installing Herdr terminal command"
+# Skills, artifacts, tools, SHEP, and onboarding all live in this one repository.
+# A legacy sibling toolkit is never cloned, updated, or removed; existing files stay untouched.
+LEGACY_TOOLKIT="$(dirname "$WORKSPACE_DIR")/amm-toolkit"
+if [[ -e "$LEGACY_TOOLKIT" ]]; then
+  warn "Legacy AMM toolkit folder found at $LEGACY_TOOLKIT; leaving it untouched. Founding Circle is now the single source of truth."
 fi
-ok "AMM toolkit ready"
+ok "Founding Circle skills, artifacts, and tools ready at $WORKSPACE_DIR"
 
-step "4/6" "Installing Herdr"
 if command -v herdr >/dev/null 2>&1; then
   ok "Herdr already installed"
 else
-  curl -fsSL "$HERDR_INSTALL_URL" | sh
-  ok "Herdr installed"
+  if curl -fsSL "$HERDR_INSTALL_URL" | sh && command -v herdr >/dev/null 2>&1; then
+    ok "Herdr terminal command installed (run: herdr)"
+  else
+    warn "Herdr command is not on PATH yet. Reopen your terminal or retry the Herdr installer."
+  fi
 fi
 
-step "5/6" "Borg"
+step "4/5" "Borg"
 if [[ -d "/Applications/Borg.app" || -d "$HOME/Applications/Borg.app" ]]; then
   ok "Borg already installed"
 else
@@ -122,7 +157,7 @@ else
   fi
 fi
 
-step "6/6" "Warp"
+step "5/5" "Warp"
 if install_warp; then
   WARP_NOTE="Warp (terminal): ready"
   open_warp
@@ -134,4 +169,4 @@ fi
 printf "
 %sEnvironment ready.%s
 " "$BOLD" "$NC"
-printf "  Installed: coding environment, Herdr, Borg installer, Warp. SHEP is in %s/shep.\n  %s\n" "$WORKSPACE_DIR" "$WARP_NOTE"
+printf "  Terminal commands: Herdr (run: herdr if installed), SHEP (run: %s/shep/bin/shep --help).\n  Founding Circle skills: %s/skills.\n  %s\n" "$WORKSPACE_DIR" "$WORKSPACE_DIR" "$WARP_NOTE"
