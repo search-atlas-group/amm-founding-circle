@@ -196,7 +196,7 @@ If two valid clones remain, use the printed audit path as the one to keep workin
 
 The Founding Circle folder is the single installed root. Its `skills/`, `tools/`, `shep/`, `handouts/`, `playbooks/`, `automations/`, and onboarding files are the AMM skills, artifacts, and tools. New installs do not clone `amm-toolkit`. If an older sibling `amm-toolkit` folder exists, setup reports it and leaves it untouched; compare and migrate any personal files manually, then keep it as a backup until verified.
 
-**Herdr** is a terminal command installed by its installer: run `herdr` in Terminal or PowerShell after setup (reopen the terminal if the newly installed command is not on PATH). **SHEP** is a terminal command included in the selected Founding Circle folder: on macOS/Linux, run `./shep/bin/shep --help` from that folder; on Windows, use Git Bash to run `./shep/bin/shep --help`. Neither is a Claude slash command, and neither binary is copied to the Claude commands folder. Windows has no Borg desktop app; use the web version.
+**Herdr** is a terminal command installed by its installer: run `herdr` in Terminal or PowerShell after setup (reopen the terminal if the newly installed command is not on PATH). **SHEP** is a terminal command included in the selected Founding Circle folder: on macOS/Linux, run `./shep/bin/shep --help` from that folder; on Windows, use Git Bash to run `./shep/bin/shep --help`. Neither is a Claude slash command, and neither binary is copied to the Claude commands folder. Borg has a Windows desktop app: `https://download.getborg.com/Borg-0.0.79-win-x64.exe` (the unversioned `Borg-win-x64.exe` link is a stub — do not use it). On Windows the web app remains the fallback at `https://app.getborg.com`.
 
 ## If something looks wrong
 

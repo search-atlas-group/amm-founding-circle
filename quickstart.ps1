@@ -1,11 +1,12 @@
 ﻿# AMM Founding Circle quickstart for Windows PowerShell.
 # Usage: irm https://raw.githubusercontent.com/search-atlas-group/amm-founding-circle/main/quickstart.ps1 | iex
 # The portal's Run audit command (onboarding/run.ps1) runs this first, in its own PowerShell, before the audit.
-# Set AMM_NO_OPEN=1 to skip opening Borg's web page and a Herdr window (headless runs and tests).
+# Set AMM_NO_OPEN=1 to skip opening Borg's installer and a Herdr window (headless runs and tests).
 $ErrorActionPreference = "Stop"
 $FcUrl = "https://github.com/search-atlas-group/amm-founding-circle.git"
 $HerdrInstallUrl = "https://herdr.dev/install.ps1"
 $WarpDownloadPage = "https://www.warp.dev/download"
+$BorgWinUrl = "https://download.getborg.com/Borg-0.0.79-win-x64.exe"
 $MothershipDir = if ($env:AMM_MOTHERSHIP_ROOT) { $env:AMM_MOTHERSHIP_ROOT } else { Join-Path $HOME "amm-mothership" }
 $WorkspaceDir = if ($env:AMM_WORKSPACE) { $env:AMM_WORKSPACE } else { Join-Path $MothershipDir "founding-circle" }
 function Test-FcFolder([string]$Path) {
@@ -127,9 +128,17 @@ try {
     if ($LASTEXITCODE -eq 0) { Write-Ok "Warp installed"; $WarpReady = $true } else { Write-WarnLine "winget could not install Warp. Get it from $WarpDownloadPage" }
   } else { Write-WarnLine "winget not found. Get Warp from $WarpDownloadPage" }
 } catch { Write-WarnLine "Warp did not install ($($_.Exception.Message)). Get it from $WarpDownloadPage" }
-Write-WarnLine "Borg desktop is not available for Windows yet; opening the web version."
+Write-Ok "Borg for Windows is available. Downloading the desktop installer."
+$BorgExe = Join-Path $HOME "Downloads\Borg-0.0.79-win-x64.exe"
+$borgOk = $false
+try {
+  [void](New-Item -ItemType Directory -Force -Path (Split-Path -Parent $BorgExe))
+  Invoke-WebRequest -Uri $BorgWinUrl -OutFile $BorgExe -UseBasicParsing
+  $borgOk = $true
+  Write-Ok "Borg downloaded to $BorgExe"
+} catch { Write-WarnLine "Could not download Borg for Windows. Get it from https://www.getborg.com/#download" }
 if (-not $env:AMM_NO_OPEN) {
-  try { Start-Process "https://app.getborg.com" } catch { }
+  if ($borgOk) { try { Start-Process $BorgExe } catch { Write-WarnLine "Borg downloaded but did not open. Run $BorgExe" } }
   if (Get-Command herdr -ErrorAction SilentlyContinue) { try { Start-Process powershell -ArgumentList "-NoExit","-Command","herdr" } catch { } }
 }
 if ($WarpReady -and -not $env:CI -and -not $env:AMM_UNATTENDED -and -not $env:AMM_NO_OPEN) {
@@ -137,5 +146,5 @@ if ($WarpReady -and -not $env:CI -and -not $env:AMM_UNATTENDED -and -not $env:AM
   if (Test-Path $warpExe) { Start-Process $warpExe } else { try { Start-Process warp } catch { } }
 }
 if (Test-Path (Join-Path $WorkspaceDir "shep\bin\shep")) { Write-Ok "SHEP terminal command: run from Git Bash: $WorkspaceDir\shep\bin\shep --help" }
-Write-Host "`nTerminal commands: herdr (if installed), SHEP (repo-local, use Git Bash). Founding Circle skills: $WorkspaceDir\skills. Borg opens in the browser." -ForegroundColor Green
+Write-Host "`nTerminal commands: herdr (if installed), SHEP (repo-local, use Git Bash). Founding Circle skills: $WorkspaceDir\skills. Borg for Windows: $BorgExe." -ForegroundColor Green
 Write-Host "`nSetup complete. Run the onboarding audit from your AMM portal." -ForegroundColor Green

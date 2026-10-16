@@ -133,7 +133,7 @@ function Write-Have([string]$Name) { Write-Host "  [ok]      $Name" }
 function Write-Miss([string]$Name, [string]$Fix) { Write-Host "  [missing] $Name"; Write-Host "            Fix: $Fix" }
 if (Get-Command node -ErrorAction SilentlyContinue) { Write-Have "Node.js" } else { Write-Miss "Node.js" "install it from https://nodejs.org (LTS), then re-open PowerShell" }
 if (Get-Command claude -ErrorAction SilentlyContinue) { Write-Have "Claude Code" } else { Write-Miss "Claude Code" "run the Founding Circle setup again" }
-Write-Host "  [web]     Borg: there is no Windows app yet, use https://app.getborg.com"
+Write-Host "  [app]     Borg for Windows: https://download.getborg.com/Borg-0.0.79-win-x64.exe"
 $commandsRoot = if ($env:CLAUDE_CONFIG_DIR) { $env:CLAUDE_CONFIG_DIR } else { Join-Path $HOME ".claude" }
 $commands = Join-Path $commandsRoot "commands"
 if ((Test-Path $commands) -and (Get-ChildItem $commands -ErrorAction SilentlyContinue | Select-Object -First 1)) { Write-Have "SearchAtlas slash commands" } else { Write-Miss "SearchAtlas slash commands" "run step 1 on the Onboarding page" }

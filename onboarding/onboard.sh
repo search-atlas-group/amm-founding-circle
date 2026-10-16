@@ -12,7 +12,13 @@
 #   ./onboarding/onboard.sh --listen            wait for the portal's Run audit button (Ctrl+C stops)
 #   ./onboarding/onboard.sh --disconnect        forget the portal token and stop the background connector
 #   ./onboarding/onboard.sh --auto-update        keep this repo current every 2 hours
-#   ./onboarding/onboard.sh --auto-update-off    stop that
+#   ./onboarding/onboard.sh --auto-update-off    stop the 2-hourly update
+#
+# Onboarding arms the 2-hourly update itself. Hermes is set up in the same
+# pass: installed if it is missing, the Founding Circle skills put on its
+# skill path, and Nova written as the guide when the member has no soul of
+# their own. --no-hermes skips that. --repair-only is what the 2-hourly job
+# calls: it never opens a window.
 #
 # Everything is presence-only: it checks whether files and commands exist, never
 # what is inside them. The scan makes no network call; only --connect and
@@ -37,6 +43,8 @@ LISTEN=0
 RUN=0
 RUNCODE=""
 BACKGROUND=1
+HERMES=1
+REPAIR_ONLY=0
 
 usage() { sed -n '2,16p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//'; }
 
@@ -57,6 +65,8 @@ while [[ $# -gt 0 ]]; do
     --no-background) BACKGROUND=0 ;;
     --auto-update) bash "$HERE/install_autosync.sh"; exit $? ;;
     --auto-update-off) bash "$HERE/install_autosync.sh" --remove; exit $? ;;
+    --no-hermes) HERMES=0 ;;
+    --repair-only) REPAIR_ONLY=1; OPEN=0; HERMES=1 ;;
     -h|--help) usage; exit 0 ;;
     *) echo "unknown option: $1" >&2; usage >&2; exit 64 ;;
   esac
@@ -116,7 +126,23 @@ echo "AMM Founding Circle — ladder check"
 echo "repo: $REPO"
 echo
 
-# --- step 1: skills (optional) ---------------------------------------------
+# --- step 1: keep this repo current, and stand Hermes up ------------------
+# Armed here, not offered. The two-hour job fast-forwards a clean tree and
+# repairs Hermes without opening a window. A failure must not stop the audit.
+if [[ $REPAIR_ONLY -eq 0 ]]; then
+  bash "$HERE/install_autosync.sh" || echo "  (the 2-hourly update could not be armed — the scan still works)"
+  echo
+fi
+if [[ $HERMES -eq 1 ]]; then
+  if [[ $REPAIR_ONLY -eq 1 ]]; then
+    "$PY" "$HERE/hermes_setup.py" --repair || echo "  (Hermes repair reported a problem — the scan still works)"
+  else
+    "$PY" "$HERE/hermes_setup.py" || echo "  (Hermes setup reported a problem — the scan still works)"
+  fi
+  echo
+fi
+
+# --- step 2: skills (optional) ---------------------------------------------
 if [[ $INSTALL -eq 1 ]]; then
   if [[ -f "$REPO/skills/install.sh" ]]; then
     echo "Installing this repo's skills…"
@@ -161,8 +187,4 @@ fi
 
 echo
 echo "Re-run this any time — it is the same command after every change you make,"
-echo "or just ask your agent: \"run my AMM ladder audit\"."
-if ! bash "$HERE/install_autosync.sh" --status 2>/dev/null | grep -q installed; then
-  echo
-  echo "Tip: ./onboarding/onboard.sh --auto-update keeps this repo current every 2 hours."
-fi
+echo "or just ask Nova: \"what should I automate next?\"."

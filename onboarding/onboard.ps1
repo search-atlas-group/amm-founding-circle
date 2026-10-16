@@ -38,7 +38,8 @@ param(
     [string]$Run = "",
     [switch]$RunSaved,
     [switch]$Listen,
-    [switch]$NoBackground
+    [switch]$NoBackground,
+    [switch]$NoHermes
 )
 
 $ErrorActionPreference = "Stop"
@@ -168,7 +169,35 @@ Write-Host "AMM Founding Circle: ladder check"
 Write-Host "repo: $Repo"
 Write-Host ""
 
-# --- step 1: skills (optional) ----------------------------------------------
+# --- step 1: arm the 2-hourly update, and stand Hermes up -------------------
+# Git for Windows bash, not WSL's, so the scheduled job sees this Windows home.
+$BashForAmm = $null
+$gitCmdAmm = Get-Command git -CommandType Application -ErrorAction SilentlyContinue | Select-Object -First 1
+if ($gitCmdAmm) {
+    $gitRootAmm = Split-Path -Parent (Split-Path -Parent $gitCmdAmm.Source)
+    foreach ($p in @("bin\bash.exe", "usr\bin\bash.exe")) {
+        if (Test-Path (Join-Path $gitRootAmm $p)) { $BashForAmm = Join-Path $gitRootAmm $p; break }
+    }
+}
+if (-not $BashForAmm) {
+    $foundBash = Get-Command bash -CommandType Application -ErrorAction SilentlyContinue |
+        Where-Object { $_.Source -notlike "*\System32\*" -and $_.Source -notlike "*\WindowsApps\*" } | Select-Object -First 1
+    if ($foundBash) { $BashForAmm = $foundBash.Source }
+}
+if ($BashForAmm) {
+    & $BashForAmm (Join-Path $Here "install_autosync.sh")
+    if ($LASTEXITCODE -ne 0) { Write-Host "  (the 2-hourly update could not be armed -- the scan still works)" }
+} else {
+    Write-Host "  (no Git bash found, so the 2-hourly update was not armed. Install Git for Windows and re-run.)"
+}
+Write-Host ""
+if (-not $NoHermes) {
+    try { Run-Py @((Join-Path $Here "hermes_setup.py")) }
+    catch { Write-Host "  (Hermes setup reported a problem -- the scan still works)" }
+    Write-Host ""
+}
+
+# --- step 2: skills (optional) ----------------------------------------------
 if ($InstallSkills) {
     $installSh = Join-Path $Repo "skills\install.sh"
     if (Test-Path $installSh) {
@@ -236,7 +265,4 @@ try {
 
 Write-Host ""
 Write-Host "Re-run this any time -- it is the same command after every change you make,"
-Write-Host "or just ask your agent: `"run my AMM ladder audit`"."
-Write-Host ""
-Write-Host "Note: the every-2-hours auto-update (-AutoUpdate on onboard.sh) is a macOS/Linux"
-Write-Host "feature for now. On Windows, just re-run this script by hand after a git pull."
+Write-Host "or just ask Nova: `"what should I automate next?`"."

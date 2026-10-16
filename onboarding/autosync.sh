@@ -12,6 +12,7 @@ set -euo pipefail
 
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO="$(cd "$HERE/.." && pwd)"
+PY_AUTOSYNC="${PYTHON:-python3}"
 # The log lives OUTSIDE the repo on purpose. Writing it inside would leave the
 # working tree permanently dirty, and the dirty-tree guard below would then
 # block every future pull -- the job would silently disable itself after one run.
@@ -65,6 +66,17 @@ if ! git merge --ff-only "origin/$BRANCH" --quiet 2>/dev/null; then
 fi
 
 say "autosync: updated $BRANCH by $BEHIND commit(s)"
+
+# Repair Hermes after a pull: install it if it is still missing, keep the
+# Founding Circle skills on its path, and refresh Nova only while the soul is
+# still the one we shipped. Never opens a window. Never blocks the pull.
+if [[ -f "$HERE/hermes_setup.py" ]]; then
+  if "$PY_AUTOSYNC" "$HERE/hermes_setup.py" --repair >>"$LOG" 2>&1; then
+    log "autosync: hermes repaired"
+  else
+    log "autosync: hermes repair reported a problem (see above)"
+  fi
+fi
 
 # Re-install skills so a new or changed skill is actually usable. Only when the
 # member already installed them once -- we never install on a machine that

@@ -18,6 +18,7 @@ fail(){ printf "  ${YELLOW}✗${NC}  %s\n" "$1" >&2; exit 1; }
 FC_URL="https://github.com/search-atlas-group/amm-founding-circle.git"
 HERDR_INSTALL_URL="https://herdr.dev/install.sh"
 BORG_DMG_URL="https://download.getborg.com/Borg-0.0.79-mac-arm64.dmg"
+BORG_WIN_URL="https://download.getborg.com/Borg-0.0.79-win-x64.exe"
 WARP_DMG_URL="https://app.warp.dev/download?package=dmg"   # official; 302s to releases.warp.dev/stable/<version>/Warp.dmg
 WARP_DOWNLOAD_PAGE="https://www.warp.dev/download"
 MOTHERSHIP_DIR="${AMM_MOTHERSHIP_ROOT:-$HOME/amm-mothership}"
@@ -143,19 +144,31 @@ else
 fi
 
 step "4/5" "Borg"
-if [[ -d "/Applications/Borg.app" || -d "$HOME/Applications/Borg.app" ]]; then
-  ok "Borg already installed"
-else
-  mkdir -p "$HOME/Downloads"
-  BORG_DMG="$HOME/Downloads/Borg-0.0.79-mac-arm64.dmg"
-  curl -L --fail --silent --show-error "$BORG_DMG_URL" -o "$BORG_DMG"
-  if [[ "$(uname -s)" == "Darwin" ]]; then
-    open "$BORG_DMG"
-    ok "Borg installer opened; drag Borg into Applications"
-  else
-    ok "Borg downloaded to $BORG_DMG"
-  fi
-fi
+case "$(uname -s)" in
+  Darwin)
+    if [[ -d "/Applications/Borg.app" || -d "$HOME/Applications/Borg.app" ]]; then
+      ok "Borg already installed"
+    else
+      mkdir -p "$HOME/Downloads"
+      BORG_DMG="$HOME/Downloads/Borg-0.0.79-mac-arm64.dmg"
+      curl -L --fail --silent --show-error "$BORG_DMG_URL" -o "$BORG_DMG"
+      open "$BORG_DMG"
+      ok "Borg installer opened; drag Borg into Applications"
+    fi
+    ;;
+  MINGW*|MSYS*|CYGWIN*)
+    mkdir -p "$HOME/Downloads"
+    BORG_EXE="$HOME/Downloads/Borg-0.0.79-win-x64.exe"
+    if curl -L --fail --silent --show-error "$BORG_WIN_URL" -o "$BORG_EXE"; then
+      ok "Borg for Windows downloaded to $BORG_EXE — open it to install"
+    else
+      warn "Could not download Borg for Windows. Get it from https://www.getborg.com/#download"
+    fi
+    ;;
+  *)
+    warn "Borg desktop is installed from https://www.getborg.com/#download on this system (Linux: curl -fsSL https://getborg.com/install.sh | sh)."
+    ;;
+esac
 
 step "5/5" "Warp"
 if install_warp; then
