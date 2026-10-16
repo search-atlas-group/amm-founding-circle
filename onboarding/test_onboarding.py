@@ -1195,7 +1195,10 @@ def _local_imports(path: Path) -> set[str]:
             names |= {a.name.split(".")[0] for a in node.names}
         elif isinstance(node, ast.ImportFrom) and node.module and not node.level:
             names.add(node.module.split(".")[0])
-    return {n for n in names if (path.parent / f"{n}.py").exists() or n not in sys.stdlib_module_names}
+    return {n for n in names
+            if (path.parent / f"{n}.py").exists()
+            or (path.parent / "harness" / f"{n}.py").exists()
+            or n not in sys.stdlib_module_names}
 
 
 def test_every_onboarding_module_imported_is_committed():
@@ -1203,20 +1206,21 @@ def test_every_onboarding_module_imported_is_committed():
     import shutil
     import subprocess
     here = Path(__file__).resolve().parent
+    modules = list(here.glob("*.py")) + list((here / "harness").glob("*.py"))
     git = shutil.which("git")
     if not git or not (REPO / ".git").exists():
         pytest.skip("not a git checkout")
-    tracked = subprocess.run([git, "-C", str(REPO), "ls-files", "onboarding"], capture_output=True, text=True,
+    tracked = subprocess.run([git, "-C", str(REPO), "ls-files", "--cached", "onboarding"], capture_output=True, text=True,
                              check=True).stdout.split()
     tracked_names = {Path(p).stem for p in tracked if p.endswith(".py")}
     if not tracked_names:
         pytest.skip("onboarding is not tracked in this checkout")
     third_party = {"pytest"}
     missing = {}
-    for name in sorted(tracked_names):
-        need = _local_imports(here / f"{name}.py") - third_party - tracked_names
+    for module in sorted(modules):
+        need = _local_imports(module) - third_party - tracked_names
         if need:
-            missing[name] = sorted(need)
+            missing[module.stem] = sorted(need)
     assert missing == {}, f"imported but not committed: {missing}"
 
 
