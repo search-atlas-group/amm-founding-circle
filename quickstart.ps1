@@ -83,7 +83,7 @@ function Update-SessionPath {
     }
 }
 
-Write-Step "1/5" "Checking prerequisites"
+Write-Step "1/6" "Checking prerequisites"
 if (-not (Get-Command git -ErrorAction SilentlyContinue)) { Write-WarnLine "Install Git for Windows first, then re-run."; exit 1 }
 if (-not (Test-Python) -and (Get-Command winget -ErrorAction SilentlyContinue)) {
     Write-WarnLine "Python is not installed; installing it for this user with winget."
@@ -92,7 +92,7 @@ if (-not (Test-Python) -and (Get-Command winget -ErrorAction SilentlyContinue)) 
     try { winget install -e --id Python.Python.3.12 --scope user --accept-package-agreements --accept-source-agreements } catch { } finally { $ErrorActionPreference = $prev }
     Update-SessionPath
 }
-Write-Step "2/5" "Getting the Founding Circle"
+Write-Step "2/6" "Getting the Founding Circle"
 $selected = Find-FcFolder
 if ($selected) {
     $WorkspaceDir = $selected
@@ -105,21 +105,21 @@ if ($selected) {
 }
 $env:AMM_FOUNDING_CIRCLE_DIR = $WorkspaceDir
 Write-Ok "Selected Founding Circle folder: $WorkspaceDir"
-Write-Step "3/5" "Using Founding Circle tools"
+Write-Step "3/6" "Using Founding Circle tools"
 # Skills, artifacts, tools, SHEP, and onboarding all live in this one repository.
 # A legacy sibling toolkit is never cloned, updated, or removed; existing files stay untouched.
 $LegacyToolkit = Join-Path (Split-Path -Parent $WorkspaceDir) "amm-toolkit"
 if (Test-Path $LegacyToolkit) { Write-WarnLine "Legacy AMM toolkit folder found at $LegacyToolkit; leaving it untouched. Founding Circle is now the single source of truth." }
 Write-Ok "Founding Circle skills, artifacts, and tools ready at $WorkspaceDir"
 
-Write-Step "4/5" "Installing Herdr terminal command"
+Write-Step "4/6" "Installing Herdr terminal command"
 if (Get-Command herdr -ErrorAction SilentlyContinue) { Write-Ok "Herdr already installed" } else {
     $herdrOk = $false
     try { powershell -NoProfile -ExecutionPolicy Bypass -c "irm $HerdrInstallUrl | iex"; $herdrOk = ($LASTEXITCODE -eq 0) } catch { }
     Update-SessionPath
     if ($herdrOk -and (Get-Command herdr -ErrorAction SilentlyContinue)) { Write-Ok "Herdr terminal command installed (run: herdr)" } else { Write-WarnLine "Herdr command is not on PATH yet. Reopen PowerShell or retry the Herdr installer." }
 }
-Write-Step "5/5" "Warp"
+Write-Step "5/6" "Warp"
 $WarpReady = $false
 try {
   if (Test-WarpInstalled) { Write-Ok "Warp already installed"; $WarpReady = $true }
@@ -146,5 +146,17 @@ if ($WarpReady -and -not $env:CI -and -not $env:AMM_UNATTENDED -and -not $env:AM
   if (Test-Path $warpExe) { Start-Process $warpExe } else { try { Start-Process warp } catch { } }
 }
 if (Test-Path (Join-Path $WorkspaceDir "shep\bin\shep")) { Write-Ok "SHEP terminal command: run from Git Bash: $WorkspaceDir\shep\bin\shep --help" }
+
+Write-Step "6/6" "Hermes"
+# Installs Hermes if it is missing, points it at this repo's skills, and lays down Nova when the member has no soul of their own.
+$HermesSetup = Join-Path $WorkspaceDir "onboarding\hermes_setup.py"
+if (Test-Path $HermesSetup) {
+  try {
+    python $HermesSetup
+    if ($LASTEXITCODE -eq 0) { Write-Ok "Hermes is set up and can see the Founding Circle skills" } else { Write-WarnLine "Hermes setup did not finish. Run it again with: python $HermesSetup" }
+  } catch { Write-WarnLine "Hermes setup did not finish ($($_.Exception.Message))." }
+} else { Write-WarnLine "Hermes setup script not found at $HermesSetup" }
+Write-Host "Hermes: run 'hermes setup' once to choose your model, then 'hermes'." -ForegroundColor Green
+
 Write-Host "`nTerminal commands: herdr (if installed), SHEP (repo-local, use Git Bash). Founding Circle skills: $WorkspaceDir\skills. Borg for Windows: $BorgExe." -ForegroundColor Green
 Write-Host "`nSetup complete. Run the onboarding audit from your AMM portal." -ForegroundColor Green

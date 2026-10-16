@@ -62,6 +62,28 @@ When a counted weakness matches a filled-in strength, say it once: who, what the
 
 If the file names nobody, recommend the work and name no person. Never invent a member, and never name one from memory or from a session.
 
+## What the cohort said this week
+
+Once a day the run also reads the newest weekly session:
+
+```bash
+python3 onboarding/nova_cohort.py
+```
+
+The transcripts are committed in the portal repo as `scripts/data/recordings-pack.json`, not in this repo. The command reads that file. It makes no network call. When it says "New session", read `~/.cache/amm-founding-circle/nova-cohort-latest.txt` and write one dated note into `onboarding/nova/learnings.md`: what was decided or recommended, and who said it, with the session date. Only what was actually said. Nothing from the member's private work.
+
+Before you recommend, read `onboarding/nova/learnings.md`. A note there outranks your own memory of the cohort. If the file is empty, you have not learned it and you do not pretend you have.
+
+## When they are stuck, tell JD
+
+When the check shows a real blocker, or the same struggle shows on two days, write JD a note:
+
+```bash
+python3 onboarding/nova_draft.py
+```
+
+It writes one short draft to `~/.cache/amm-founding-circle/nova-draft-for-jd.md` and sends nothing. Show the member the draft. Ask whether it is fair. If they say yes, they send it to JD — you do not. If they say no, delete the file. Never send it yourself, and never put a client name, a path, or a file name in it.
+
 ## The shape of a recommendation
 
 One observation, one skill or one fix, one reason, and the offer to do it.

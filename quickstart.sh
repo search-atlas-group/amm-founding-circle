@@ -95,7 +95,7 @@ update_repo(){
 }
 if (return 0 2>/dev/null); then [[ "${AMM_QUICKSTART_LIB:-}" == 1 ]] && return 0; fi
 
-step "1/5" "Checking prerequisites"
+step "1/6" "Checking prerequisites"
 command -v git >/dev/null 2>&1 || fail "Install Git first (macOS: xcode-select --install), then re-run."
 if ! command -v python3 >/dev/null 2>&1; then
   if [[ "$(uname -s)" == "Darwin" ]]; then
@@ -110,7 +110,7 @@ else
   ok "python3 ready"
 fi
 
-step "2/5" "Getting the Founding Circle"
+step "2/6" "Getting the Founding Circle"
 SELECTED_DIR="$(find_fc_folder || true)"
 if [[ -n "$SELECTED_DIR" ]]; then
   WORKSPACE_DIR="$SELECTED_DIR"
@@ -124,7 +124,7 @@ fi
 ok "Selected Founding Circle folder: $WORKSPACE_DIR"
 export AMM_FOUNDING_CIRCLE_DIR="$WORKSPACE_DIR"
 
-step "3/5" "Installing Herdr terminal command"
+step "3/6" "Installing Herdr terminal command"
 # Skills, artifacts, tools, SHEP, and onboarding all live in this one repository.
 # A legacy sibling toolkit is never cloned, updated, or removed; existing files stay untouched.
 LEGACY_TOOLKIT="$(dirname "$WORKSPACE_DIR")/amm-toolkit"
@@ -143,7 +143,7 @@ else
   fi
 fi
 
-step "4/5" "Borg"
+step "4/6" "Borg"
 case "$(uname -s)" in
   Darwin)
     if [[ -d "/Applications/Borg.app" || -d "$HOME/Applications/Borg.app" ]]; then
@@ -170,7 +170,7 @@ case "$(uname -s)" in
     ;;
 esac
 
-step "5/5" "Warp"
+step "5/6" "Warp"
 if install_warp; then
   WARP_NOTE="Warp (terminal): ready"
   open_warp
@@ -179,7 +179,18 @@ else
   WARP_NOTE="Warp (terminal): not installed, get it from $WARP_DOWNLOAD_PAGE"
 fi
 
+step "6/6" "Hermes"
+# Installs Hermes if it is missing, points it at this repo's skills, and lays
+# down Nova when the member has no soul of their own. A failure here must not
+# undo the rest of the setup.
+if python3 "$WORKSPACE_DIR/onboarding/hermes_setup.py"; then
+  ok "Hermes is set up and can see the Founding Circle skills"
+else
+  warn "Hermes setup did not finish. Run it again with: python3 $WORKSPACE_DIR/onboarding/hermes_setup.py"
+fi
+HERMES_NOTE="Hermes: installed, skills wired. Run 'hermes setup' once to choose your model, then 'hermes'."
+
 printf "
 %sEnvironment ready.%s
 " "$BOLD" "$NC"
-printf "  Terminal commands: Herdr (run: herdr if installed), SHEP (run: %s/shep/bin/shep --help).\n  Founding Circle skills: %s/skills.\n  %s\n" "$WORKSPACE_DIR" "$WORKSPACE_DIR" "$WARP_NOTE"
+printf "  Terminal commands: Herdr (run: herdr if installed), SHEP (run: %s/shep/bin/shep --help).\n  Founding Circle skills: %s/skills.\n  %s\n  %s\n" "$WORKSPACE_DIR" "$WORKSPACE_DIR" "$WARP_NOTE" "$HERMES_NOTE"

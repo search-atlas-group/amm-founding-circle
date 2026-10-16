@@ -20,6 +20,7 @@ Failure is a message, not an exception that stops the ladder audit.
 from __future__ import annotations
 
 import argparse
+import json
 import os
 import shutil
 import subprocess
@@ -188,11 +189,27 @@ def _append_external_dir(text: str, target: str) -> str:
     return "\n".join(lines) + "\n"
 
 
+def _config_set(binary: str, value: str) -> bool:
+    """Write the list through Hermes itself, so the file stays valid.
+
+    A hand edit can break config.yaml and leave the gateway running on its last
+    good copy. The config command reads the current list and writes the whole
+    thing back, comments aside, which is the trade for a file that still loads.
+    """
+    proc = run([binary, "config", "set", "skills.external_dirs", value])
+    if proc.returncode != 0:
+        log("could not set the skill path through Hermes — config.yaml was left as it was")
+        return False
+    log("Founding Circle skills are on the Hermes skill path")
+    return True
+
+
 def wire_skills() -> str:
     """Point Hermes at the repo's skills. Returns 'added', 'present', or 'skipped'.
 
-    Edits only the external_dirs list, so comments and secrets elsewhere in
-    config.yaml survive. A shape we do not understand is left untouched.
+    Uses `hermes config set` and always passes the full list, so a member's
+    other skill roots stay. When Hermes itself is not installed yet, the path
+    is written by hand into a small config that Hermes will read on arrival.
     """
     if not SKILLS.is_dir():
         log(f"no skills directory at {SKILLS} — nothing to wire")
@@ -208,9 +225,14 @@ def wire_skills() -> str:
     if str(SKILLS.resolve()) in resolved:
         log("Founding Circle skills already on the Hermes skill path")
         return "present"
+    binary = hermes_bin()
+    if binary:
+        updated = dirs + [target]
+        literal = "[" + ", ".join(json.dumps(entry) for entry in updated) + "]"
+        return "added" if _config_set(binary, literal) else "skipped"
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(_append_external_dir(text, target), encoding="utf-8")
-    log(f"Founding Circle skills added to Hermes ({target})")
+    log(f"Hermes is not installed yet — wrote the skill path for when it arrives ({target})")
     return "added"
 
 
@@ -231,9 +253,10 @@ def write_nova() -> str:
     if current == nova:
         log("Nova is already the guide")
         return "present"
-    if _is_ours():
+    if _is_ours() or _is_default_soul(current):
         dest.write_text(nova, encoding="utf-8")
-        log("Nova updated (their soul was still the one we shipped)")
+        _mark()
+        log("Nova replaces the soul Hermes seeded, which nobody wrote")
         return "updated"
     log("a soul is already there and it is theirs — Nova was not written over it")
     return "kept"
@@ -242,6 +265,33 @@ def write_nova() -> str:
 def _mark() -> None:
     marker = hermes_home() / ".amm-nova"
     marker.write_text(f"{MARKER}\n", encoding="utf-8")
+
+
+# The souls Hermes seeds on its own. Copied from hermes_cli/default_soul.py so a
+# member's machine needs no copy of the Hermes source. A file matching one of
+# these carries nobody's intent and Nova may replace it. Anything else is kept.
+_HERMES_SEEDED_SOULS = (
+    "You are Hermes Agent, built by Nous Research. Be direct: match the length of your reply to the weight of "
+    "the ask — a one-line question gets a one-line answer, and finished work gets a short report of what "
+    "changed, what's verified, and what's left, never a replay of the process. No filler (\"Great question,\" "
+    "\"I'd be happy to\"), no restating the request back, no re-summarizing what you already said, no narrating "
+    "tool calls the user can see. Plain claims over adjectives; when unsure, say so plainly. Agree because it's "
+    "right, not because the user said it. Depth is earned — give it when the user asks for detail, teaches, or "
+    "the stakes demand it, not by default.",
+    "You are Hermes Agent, an intelligent AI assistant created by Nous Research. You are helpful, "
+    "knowledgeable, and direct. You assist users with a wide range of tasks including answering questions, "
+    "writing and editing code, analyzing information, creative work, and executing actions via your tools. "
+    "You communicate clearly, admit uncertainty when appropriate, and prioritize being genuinely useful over "
+    "being verbose unless otherwise directed below. Be targeted and efficient in your exploration and "
+    "investigations.",
+)
+
+
+def _is_default_soul(text: str) -> bool:
+    """True when the file is the soul Hermes seeds itself, which carries no one's intent."""
+    normalized = text.replace("\r\n", "\n").replace("\r", "\n").lstrip("\ufeff").strip()
+    return any(normalized == seeded.strip() or normalized == seeded.replace("\u2014", "--").strip()
+               for seeded in _HERMES_SEEDED_SOULS)
 
 
 def _is_ours() -> bool:
@@ -311,6 +361,11 @@ def main(argv: list[str] | None = None) -> int:
         log(f"could not wire skills ({exc}). Left config.yaml as it was.")
         wired = "skipped"
     write_nova()
+    try:
+        import harness_setup
+        harness_setup.main([])
+    except Exception as exc:  # the harness must not kill onboarding
+        log(f"could not install the harness ({exc}). Left the hooks as they were.")
     if not args.repair and installed:
         open_hermes()
     if not installed:

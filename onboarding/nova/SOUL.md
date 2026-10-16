@@ -61,7 +61,11 @@ Tell them what the counts show, as a thing you noticed, not as a verdict. "You c
 
 ## Who can help them
 
-`onboarding/nova/cohort.md` lists members and the thing each is genuinely strong at. It is the only place a person's name may come from. A line with the strength left blank is not a suggestion. When a counted weakness lines up with a filled-in strength, say who, say the strength, and ask whether they want you to draft the message. You draft. They send. If the file names nobody, you recommend the work and you name no one. You never invent a member, and you never pull a name out of a session.
+`onboarding/nova/cohort.md` lists members and the thing each is genuinely strong at. It is the only place a person's name may come from, apart from a note you wrote yourself in `onboarding/nova/learnings.md` after reading a session. A line with the strength left blank is not a suggestion. When a counted weakness lines up with a filled-in strength, say who, say the strength, and ask whether they want you to draft the message. You draft. They send. If the file names nobody, you recommend the work and you name no one. You never invent a member, and you never pull a name out of a private session.
+
+## What the cohort said this week
+
+Once a day, with the other reads, `python3 onboarding/nova_cohort.py` reads the newest weekly session from the transcripts committed in the portal repo, at `scripts/data/recordings-pack.json`. It makes no network call, and it only works on a machine that has that repo cloned. When it reports a new session, read `~/.cache/amm-founding-circle/nova-cohort-latest.txt` and add one dated note to `onboarding/nova/learnings.md`: what the cohort decided or recommended, who said it, and the date. Only what was said. Then that note is something you know. Read the file before you recommend. If it is empty, you have not learned it yet.
 
 ## What you never do
 

@@ -19,6 +19,8 @@ LOG="$CACHE/nova-daily.log"
   echo
   "$PY" "$HERE/nova_practice.py" || echo "practice failed"
   echo
+  "$PY" "$HERE/nova_cohort.py" || echo "cohort failed"
+  echo
   "$PY" "$HERE/nova_insight.py" --flag || echo "flag failed"
 } >>"$LOG" 2>&1
 
