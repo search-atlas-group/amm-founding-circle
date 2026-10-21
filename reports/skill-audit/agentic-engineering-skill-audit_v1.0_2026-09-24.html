@@ -1,0 +1,154 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AE Skill Audit</title>
+<style>
+/* Design plan: Search Atlas magenta and indigo signal a practical decision ledger, with cool neutrals for readable evidence. */
+:root {
+  --bg:#f7f7fb; --panel:#fff; --ink:#171722; --muted:#666879; --line:#dedee8;
+  --accent:#ec1765; --accent-2:#5146d8; --good:#13795b; --warn:#a35b00;
+  --body:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; --mono:"SFMono-Regular",Consolas,monospace;
+}
+@media (prefers-color-scheme:dark) { :root:not([data-theme="light"]) { --bg:#11111a; --panel:#1c1c28; --ink:#f6f5fb; --muted:#b7b6c8; --line:#3a3a4d; --accent:#ff4d91; --accent-2:#8a82ff; --good:#5ee0b0; --warn:#ffbd70; color-scheme:dark; } }
+:root[data-theme="dark"] { --bg:#11111a; --panel:#1c1c28; --ink:#f6f5fb; --muted:#b7b6c8; --line:#3a3a4d; --accent:#ff4d91; --accent-2:#8a82ff; --good:#5ee0b0; --warn:#ffbd70; color-scheme:dark; }
+* { box-sizing:border-box; }
+body { margin:0; padding:32px clamp(16px,4vw,56px) 56px; background:var(--bg); color:var(--ink); font:16px/1.5 var(--body); }
+main { max-width:1180px; margin:0 auto; }
+header { border-top:7px solid var(--accent); padding-top:24px; margin-bottom:28px; }
+.kicker { color:var(--accent); font:700 12px var(--mono); letter-spacing:.13em; text-transform:uppercase; }
+h1,h2 { line-height:1.08; letter-spacing:-.035em; text-wrap:balance; }
+h1 { font-size:clamp(34px,6vw,64px); margin:10px 0 12px; max-width:780px; }
+h2 { font-size:26px; margin:0 0 12px; }
+p { max-width:72ch; }
+.meta,.label { color:var(--muted); font:12px var(--mono); }
+.hero-grid { display:grid; grid-template-columns:1.4fr .8fr; gap:18px; }
+.panel { background:var(--panel); border:1px solid var(--line); border-radius:14px; padding:22px; }
+.signal { border-left:4px solid var(--accent-2); }
+.big { font-size:clamp(34px,5vw,52px); font-weight:750; color:var(--accent-2); line-height:1; }
+.label { text-transform:uppercase; letter-spacing:.08em; }
+section { margin-top:36px; }
+.table-wrap { overflow-x:auto; border:1px solid var(--line); border-radius:12px; background:var(--panel); }
+table { width:100%; border-collapse:collapse; min-width:800px; }
+th,td { padding:12px 14px; border-bottom:1px solid var(--line); text-align:left; vertical-align:top; }
+th { color:var(--muted); font:700 11px var(--mono); letter-spacing:.06em; text-transform:uppercase; background:color-mix(in srgb,var(--accent-2) 7%,var(--panel)); }
+tr:last-child td { border-bottom:0; }
+.rank { color:var(--accent); font:700 18px var(--mono); }
+.skill { font-weight:700; white-space:nowrap; }
+.score { color:var(--accent-2); font:700 14px var(--mono); white-space:nowrap; }
+.badge { display:inline-block; padding:3px 8px; border-radius:99px; background:color-mix(in srgb,var(--good) 13%,var(--panel)); color:var(--good); font:700 11px var(--mono); white-space:nowrap; }
+.badge.warn { background:color-mix(in srgb,var(--warn) 14%,var(--panel)); color:var(--warn); }
+.note { color:var(--muted); font-size:13px; }
+select,button { max-width:100%; border:1px solid var(--line); border-radius:7px; padding:8px 10px; background:var(--panel); color:var(--ink); font:inherit; }
+button { cursor:pointer; font-weight:650; }
+button:hover { border-color:var(--accent-2); }
+:focus-visible { outline:3px solid var(--accent-2); outline-offset:2px; }
+.actions { display:flex; flex-wrap:wrap; align-items:center; gap:10px; margin-top:14px; }
+.status { color:var(--muted); font-size:13px; }
+ul,ol { padding-left:22px; } li+li { margin-top:7px; }
+footer { color:var(--muted); border-top:1px solid var(--line); margin-top:42px; padding-top:16px; font-size:12px; }
+@media (max-width:760px) { .hero-grid { grid-template-columns:1fr; } h1 { font-size:42px; } .panel { padding:18px; } }
+@media (prefers-reduced-motion:reduce) { *,*::before,*::after { scroll-behavior:auto !important; } }
+@media print { body { background:#fff; padding:0; } .panel,.table-wrap { border-color:#bbb; } .actions,select { display:none; } section { break-inside:avoid; } }
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <div class="kicker">Search Atlas / AMM Founding Circle</div>
+    <h1>Which skills are you willing to share?</h1>
+    <p>A decision sheet for Manick to mark which Agentic Engineering skills may be shared with the AMM mastermind. The ranked list is a recommendation, not an approval or a transfer request.</p>
+    <div class="meta">Audit date: 2026-09-24 &#183; Recommendation: pending Manick's decision</div>
+  </header>
+  <div class="hero-grid">
+    <div class="panel signal">
+      <div class="label">What the audit found</div>
+      <p><strong>20 skill names already appear in both repositories.</strong> Each shared pair differs by SHA-256, meaning the AMM files are adapted versions rather than identical copies.</p>
+      <p class="note">This is a catalog and content review, not an end-to-end execution audit. Every new or updated skill should be tested with a representative member task before distribution.</p>
+    </div>
+    <div class="panel">
+      <div class="label">Catalog counts</div>
+      <p><span class="big">144</span><br><span class="label">Agentic Engineering skill files, including inactive</span></p>
+      <p><span class="big">68</span><br><span class="label">AMM Founding Circle skill files</span></p>
+      <p><strong>20 shared names</strong><br><span class="note">121 AE names not present in AMM</span></p>
+    </div>
+  </div>
+
+  <section>
+    <h2>Choose a sharing decision</h2>
+    <p>For each candidate, choose whether it may be shared, should be revised first, or should not be shared. Use the button below to copy the decisions into a message or review note. Nothing is sent or saved externally by this page.</p>
+    <p class="note"><strong>Scores are out of 100.</strong> Value estimates likely member impact. Precision reflects fit to AMM use cases. Confidence reflects how well the current skill scope supports this recommendation. Overall is a weighted prioritization, not a measured performance result.</p>
+    <div class="table-wrap"><table id="candidates">
+      <thead><tr><th>#</th><th>Skill</th><th>Description</th><th>Value</th><th>Precision</th><th>Confidence</th><th>Manick's decision</th></tr></thead>
+      <tbody>
+        <tr><td class="rank">01</td><td class="skill">loop-design-check</td><td>Design or audit agent loops for runaway behavior, weak judges, stale memory, and missing clarification.</td><td class="score">94</td><td class="score">91</td><td class="score">90</td><td><select aria-label="Decision for loop-design-check"><option value="Undecided">Choose...</option><option>Willing to share</option><option>Share after adaptation</option><option>Not willing to share</option></select></td></tr>
+        <tr><td class="rank">02</td><td class="skill">agent-eval</td><td>Compare models or coding agents on repeatable tasks using pass rate, cost, time, and consistency.</td><td class="score">92</td><td class="score">88</td><td class="score">84</td><td><select aria-label="Decision for agent-eval"><option value="Undecided">Choose...</option><option>Willing to share</option><option>Share after adaptation</option><option>Not willing to share</option></select></td></tr>
+        <tr><td class="rank">03</td><td class="skill">skill-builder</td><td>Scaffold portable skills with clear metadata, tool boundaries, and cross-agent instructions.</td><td class="score">90</td><td class="score">92</td><td class="score">91</td><td><select aria-label="Decision for skill-builder"><option value="Undecided">Choose...</option><option>Willing to share</option><option>Share after adaptation</option><option>Not willing to share</option></select></td></tr>
+        <tr><td class="rank">04</td><td class="skill">santa-method</td><td>Use independent adversarial reviews and a convergence gate before shipping important work.</td><td class="score">88</td><td class="score">87</td><td class="score">84</td><td><select aria-label="Decision for santa-method"><option value="Undecided">Choose...</option><option>Willing to share</option><option>Share after adaptation</option><option>Not willing to share</option></select></td></tr>
+        <tr><td class="rank">05</td><td class="skill">retry-loop-safety</td><td>Prevent polling and retry workflows from becoming infinite, expensive, or silently incomplete.</td><td class="score">87</td><td class="score">92</td><td class="score">91</td><td><select aria-label="Decision for retry-loop-safety"><option value="Undecided">Choose...</option><option>Willing to share</option><option>Share after adaptation</option><option>Not willing to share</option></select></td></tr>
+        <tr><td class="rank">06</td><td class="skill">vibe-code-hardening</td><td>Turn fast AI-generated prototypes into safer, tested, maintainable deliverables.</td><td class="score">87</td><td class="score">85</td><td class="score">86</td><td><select aria-label="Decision for vibe-code-hardening"><option value="Undecided">Choose...</option><option>Willing to share</option><option>Share after adaptation</option><option>Not willing to share</option></select></td></tr>
+        <tr><td class="rank">07</td><td class="skill">plan-project</td><td>Pressure-test projects with outcomes, evidence, milestones, and a fallback path.</td><td class="score">83</td><td class="score">89</td><td class="score">86</td><td><select aria-label="Decision for plan-project"><option value="Undecided">Choose...</option><option>Willing to share</option><option>Share after adaptation</option><option>Not willing to share</option></select></td></tr>
+        <tr><td class="rank">08</td><td class="skill">llm-judge</td><td>Run a structured, rubric-based code or agent audit with file-and-line evidence.</td><td class="score">82</td><td class="score">84</td><td class="score">79</td><td><select aria-label="Decision for llm-judge"><option value="Undecided">Choose...</option><option>Willing to share</option><option>Share after adaptation</option><option>Not willing to share</option></select></td></tr>
+        <tr><td class="rank">09</td><td class="skill">llm-refine</td><td>Apply bounded, low-risk fixes from an audit, then verify them with another model.</td><td class="score">79</td><td class="score">88</td><td class="score">78</td><td><select aria-label="Decision for llm-refine"><option value="Undecided">Choose...</option><option>Willing to share</option><option>Share after adaptation</option><option>Not willing to share</option></select></td></tr>
+        <tr><td class="rank">10</td><td class="skill">claude-deep-research</td><td>Research across sources, challenge claims, and produce a cited report.</td><td class="score">79</td><td class="score">81</td><td class="score">75</td><td><select aria-label="Decision for claude-deep-research"><option value="Undecided">Choose...</option><option>Willing to share</option><option>Share after adaptation</option><option>Not willing to share</option></select></td></tr>
+        <tr><td class="rank">11</td><td class="skill">customer-voice</td><td>Combine customer and team signals into recurring blind-spot analysis and a report.</td><td class="score">76</td><td class="score">62</td><td class="score">68</td><td><select aria-label="Decision for customer-voice"><option value="Undecided">Choose...</option><option>Willing to share</option><option>Share after adaptation</option><option>Not willing to share</option></select></td></tr>
+        <tr><td class="rank">12</td><td class="skill">cross-layer-debugger</td><td>Separate code, data, configuration, and model-behavior causes before proposing a fix.</td><td class="score">75</td><td class="score">66</td><td class="score">71</td><td><select aria-label="Decision for cross-layer-debugger"><option value="Undecided">Choose...</option><option>Willing to share</option><option>Share after adaptation</option><option>Not willing to share</option></select></td></tr>
+      </tbody>
+    </table></div>
+    <div class="actions"><button id="copy-decisions" type="button">Copy decisions</button><button id="reset-decisions" type="button">Reset choices</button><span id="decision-status" class="status" aria-live="polite">No decisions selected yet.</span></div>
+  </section>
+
+  <section>
+    <h2>Already included in AMM</h2>
+    <p>These 20 names were present in both catalogs at audit time. Hash comparison found adapted content for every pair, not byte-identical copies.</p>
+    <div class="panel">
+      <p><strong>agent-runbook</strong> &#183; <strong>agent-usage</strong> &#183; <strong>browser-automation</strong> &#183; <strong>cli-llm-routing</strong> &#183; <strong>clickup-api</strong></p>
+      <p><strong>codebase-map</strong> &#183; <strong>dreaming</strong> &#183; <strong>goal-mode</strong> &#183; <strong>html-reports</strong> &#183; <strong>instinct-bridge</strong></p>
+      <p><strong>instinct-evolve</strong> &#183; <strong>instinct-learn</strong> &#183; <strong>instinct-learn-eval</strong> &#183; <strong>instinct-promote</strong> &#183; <strong>instinct-skill-create</strong></p>
+      <p><strong>night-shift</strong> &#183; <strong>prompt-injection-guard</strong> &#183; <strong>python-style</strong> &#183; <strong>report-writer</strong> &#183; <strong>thread-to-spec</strong></p>
+      <p class="note">Review the current AMM versions before syncing any later upstream changes.</p>
+    </div>
+  </section>
+
+  <section>
+    <h2>Keep internal or adapt first</h2>
+    <div class="panel"><ul>
+      <li><strong>Search Atlas operations:</strong> baremetal, production, GCP, PostHog, Forge, internal dashboards, and credential workflows assume private infrastructure or access.</li>
+      <li><strong>Internal wrappers:</strong> gateway onboarding, PM fleet, Herdr, Beads, Mission Control, and deployment tools need a member-safe rewrite or should remain internal.</li>
+      <li><strong>External dependencies:</strong> agent evaluation, research, and model-routing instructions need clear provider setup plus cost and privacy guidance.</li>
+      <li><strong>Before distribution:</strong> sanitize internal references, scan for secrets, review prompt-injection risks, confirm share rights, and run a representative member task.</li>
+    </ul></div>
+  </section>
+
+  <section>
+    <h2>After Manick's decision</h2>
+    <div class="panel"><ol>
+      <li>Confirm the allowed skills and any attribution, license, or usage conditions.</li>
+      <li>Adapt approved skills for AMM paths, tools, and member-facing language.</li>
+      <li>Test each approved skill end to end, including a negative or security case where relevant.</li>
+      <li>Only then add the approved files to the AMM repository and share the download instructions with the group.</li>
+    </ol><p class="note"><strong>No transfer has been made.</strong> This document records recommendations and provides a local decision aid.</p></div>
+  </section>
+  <footer>Sources: Agentic Engineering <code>stack/skills/**/SKILL.md</code> and AMM Founding Circle <code>skills/**/SKILL.md</code>. Counts compare skill-directory names. Shared-file comparisons use SHA-256. Created for Manick's review.</footer>
+</main>
+<script>
+(() => {
+  const selects = [...document.querySelectorAll('#candidates select')];
+  const status = document.getElementById('decision-status');
+  const getDecisions = () => selects.map(select => ({name: select.getAttribute('aria-label').replace('Decision for ', ''), decision: select.value}));
+  document.getElementById('copy-decisions').addEventListener('click', async () => {
+    const decisions = getDecisions().filter(item => item.decision !== 'Undecided');
+    if (!decisions.length) { status.textContent = 'Choose at least one skill first.'; return; }
+    const text = ['Manick\'s AE skill-sharing decisions:', ...decisions.map(item => `- ${item.name}: ${item.decision}`)].join('\n');
+    try { await navigator.clipboard.writeText(text); status.textContent = `Copied ${decisions.length} decision${decisions.length === 1 ? '' : 's'}.`; }
+    catch { status.textContent = 'Clipboard access was unavailable. Select and copy your choices manually.'; }
+  });
+  document.getElementById('reset-decisions').addEventListener('click', () => {
+    selects.forEach(select => { select.selectedIndex = 0; });
+    status.textContent = 'Choices reset.';
+  });
+})();
+</script>
+</body>
+</html>
