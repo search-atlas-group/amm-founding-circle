@@ -19,9 +19,10 @@ The default mothership is `~/amm-mothership` (Windows: `%USERPROFILE%\amm-mother
 
 **Where am I on the ladder?** [`./onboarding/onboard.sh`](onboarding/README.md) checks
 your own machine and tells you your rung, what is solid underneath it, and the one
-next thing that moves you up — pointing at the skills in this repo that do it. It is
-presence-only, nothing is uploaded, and sharing your result is opt-in. Re-run it after
-every change.
+next thing that moves you up — pointing at the skills in this repo that do it.
+For a quick terminal result or script integration, run
+`./onboarding/agentic-score` (use `--json` for path-free JSON; nothing is uploaded).
+Sharing your result is opt-in. Re-run it after every change.
 
 New to a client? The capstone **[client-onboarding-os](skills/client-onboarding-os/SKILL.md)** sequences the first 90 days and tells you which skill to run when.
 

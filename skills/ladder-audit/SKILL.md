@@ -28,7 +28,10 @@ So a member who built something we have never seen still gets credit for it.
 ## Run it
 
 ```bash
-./onboarding/onboard.sh
+./onboarding/agentic-score                 # quick terminal score
+./onboarding/agentic-score --json          # path-free JSON for scripts
+./onboarding/agentic-score --ask           # answer what a scan cannot see
+./onboarding/onboard.sh                    # full HTML readout
 ```
 
 That scans, writes `onboarding/your-ladder.html`, and opens it. It is safe to

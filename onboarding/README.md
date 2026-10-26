@@ -86,6 +86,9 @@ The card for the rung you should work on next opens automatically.
 ./onboarding/onboard.sh                    # scan and open your readout
 ./onboarding/onboard.sh --ask              # answer what a scan can't see (2 min)
 ./onboarding/onboard.sh --install-skills   # install this repo's skills first
+./onboarding/agentic-score                 # quick terminal score, local only
+./onboarding/agentic-score --json          # path-free JSON for scripts
+./onboarding/agentic-score --ask           # answer unobservable capabilities
 ```
 
 Run it again any time. It is the same command after every change you make, and
@@ -156,6 +159,8 @@ from session attendance. But it is your call, every time.
 | `probes.py` | the low-level presence checks |
 | `objectives.py` | what each rung is for, and every way to satisfy it |
 | `ladder_probe.py` | the scoring — reach, floor, tier progress, system score |
+| `agentic-score` | the quick member-facing terminal score command |
+| `agentic_score.py` | path-free status output for humans or scripts |
 | `skills_index.py` | reads `skills/README.md` for the rung of every skill |
 | `report.py` | builds your HTML readout |
 | `share.py` | the opt-in payload, plus the leak guard |

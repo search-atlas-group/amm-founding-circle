@@ -1460,3 +1460,42 @@ def test_setup_caps_servers_per_runtime(fakehome):
     (h / ".claude.json").write_text(json.dumps(
         {"mcpServers": {f"s{i}": {"command": "x"} for i in range(100)}}))
     assert len(setup_probe.detect(work)["mcp"]["claude"]["servers"]) == 40
+
+
+# --- member-facing score command -------------------------------------------
+
+
+def test_agentic_score_help_is_local_and_privacy_first():
+    result = subprocess.run(
+        [sys.executable, str(REPO / "onboarding" / "agentic_score.py"), "--help"],
+        text=True, capture_output=True, check=True,
+    )
+    assert "local" in result.stdout.lower()
+    assert "upload" in result.stdout.lower()
+    assert "--ask" in result.stdout
+
+
+def test_agentic_score_json_is_machine_readable_without_paths():
+    result = subprocess.run(
+        [sys.executable, str(REPO / "onboarding" / "agentic_score.py"), "--json"],
+        cwd=REPO, text=True, capture_output=True, check=True,
+    )
+    payload = json.loads(result.stdout)
+    assert {"system_score", "current_rung", "next_rung", "tier_progress"} <= set(payload)
+    assert str(REPO) not in result.stdout
+    assert "facts_summary" not in payload
+
+
+def test_agentic_score_does_not_import_network_or_report_modules():
+    source = (REPO / "onboarding" / "agentic_score.py").read_text()
+    assert "portal" not in source
+    assert "report" not in source
+
+
+def test_agentic_score_shell_entrypoint_runs_from_any_directory(tmp_path):
+    result = subprocess.run(
+        [str(REPO / "onboarding" / "agentic-score"), "--json"],
+        cwd=tmp_path, text=True, capture_output=True, check=True,
+    )
+    payload = json.loads(result.stdout)
+    assert 0 <= payload["system_score"] <= 100
