@@ -775,9 +775,14 @@ class _Stub:
                 stub.requests.append(("POST", self.path, self.headers.get("Authorization"), body))
                 code, data = stub.upload
                 if data is None:
-                    data = {"created": True, "scanId": "s1", "next": "/onboarding",
-                            "summary": {"score": 40, "reach": 3, "floor": 2,
-                                        "counts": {"solid": 1, "partial": 2, "gap": 3, "unknown": 4}}}
+                    if self.path == "/api/scans/update":
+                        data = {"updated": True, "created": True, "scanId": "s1", "next": "/dashboard",
+                                "summary": {"score": 40, "reach": 3, "floor": 2,
+                                            "counts": {"solid": 1, "partial": 2, "gap": 3, "unknown": 4}}}
+                    else:
+                        data = {"created": True, "scanId": "s1", "next": "/onboarding",
+                                "summary": {"score": 40, "reach": 3, "floor": 2,
+                                            "counts": {"solid": 1, "partial": 2, "gap": 3, "unknown": 4}}}
                 self._send(code, data)
 
         self.server = http.server.HTTPServer(("127.0.0.1", 0), H)
@@ -1486,9 +1491,33 @@ def test_agentic_score_json_is_machine_readable_without_paths():
     assert "facts_summary" not in payload
 
 
-def test_agentic_score_does_not_import_network_or_report_modules():
+def test_agentic_score_update_portal_is_opt_in_and_stripped(home, stub, capsys):
+    import agentic_score as score_cmd
+
+    s = stub()
+    _conn(s)
+    assert score_cmd.main(["--update-portal", "--json"]) == 0
+    out = json.loads(capsys.readouterr().out)
+    assert out["portal_update"]["updated"] is True
+    post = [r for r in s.requests if r[0] == "POST"][-1]
+    assert post[1] == "/api/scans/update"
+    assert post[2] == f"Bearer {TOKEN}"
+    assert set(post[3]) == {"schema_version", "member", "captured_at", "ladder", "objectives"}
+    assert "setup" not in post[3] and "skills" not in post[3]
+
+
+def test_agentic_score_update_portal_reports_missing_auth_without_scanning(home, monkeypatch, capsys):
+    import agentic_score as score_cmd
+
+    monkeypatch.setattr(portal, "_request", lambda *a, **k: pytest.fail("network call"))
+    assert score_cmd.main(["--update-portal"]) == 2
+    assert "--connect" in capsys.readouterr().err
+
+
+def test_agentic_score_does_not_eagerly_import_network_modules():
     source = (REPO / "onboarding" / "agentic_score.py").read_text()
-    assert "portal" not in source
+    assert "import portal" not in source
+    assert "--update-portal" in source
     assert "report" not in source
 
 

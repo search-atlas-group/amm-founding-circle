@@ -31,6 +31,7 @@ So a member who built something we have never seen still gets credit for it.
 ./onboarding/agentic-score                 # quick terminal score
 ./onboarding/agentic-score --json          # path-free JSON for scripts
 ./onboarding/agentic-score --ask           # answer what a scan cannot see
+./onboarding/agentic-score --update-portal # opt in: update your portal dashboard
 ./onboarding/onboard.sh                    # full HTML readout
 ```
 
