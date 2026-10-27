@@ -176,19 +176,19 @@ def _request(method: str, url: str, token: str | None, body: dict | None = None,
                       "the portal address, then try again.") from None
 
 
-def _status_message(status: int, raw: bytes) -> str:
+def _status_message(status: int, raw: bytes, operation: str = "upload") -> str:
     reason = _reason(raw)
     if status == 401:
         return ("The portal did not accept your token. Create a new one under 'Connect "
                 "your audit' on /onboarding, then run --connect again.")
     if status == 400:
         code = f" ({reason})" if reason else ""
-        return (f"The portal could not accept this upload{code}. "
+        return (f"The portal could not accept this {operation}{code}. "
                 "Run git pull to update this repo, then try again.")
     if status == 413:
-        return "The upload was too large for the portal. Please tell JD."
+        return f"The {operation} was too large for the portal. Please tell JD."
     if status == 415:
-        return "The portal rejected the upload format. Run git pull to update this repo, then try again."
+        return f"The portal rejected the {operation} format. Run git pull to update this repo, then try again."
     if status == 429:
         return "Too many uploads in a short time. Wait a few minutes and try again."
     if status >= 500:
@@ -223,6 +223,31 @@ def publish(payload: dict) -> dict:
         data["http_status"] = status
         return data
     raise PortalError(_status_message(status, raw))
+
+
+def update_score(payload: dict) -> dict:
+    """POST the member-owned score/status slice and return a safe response."""
+    conn = load()
+    if not conn:
+        raise PortalError(NOT_CONNECTED)
+    url = validate_url(conn["portal_url"])
+    status, data, raw = _request("POST", f"{url}/api/scans/update", conn["token"], payload)
+    if status not in (200, 201):
+        raise PortalError(_status_message(status, raw, "update"))
+    summary = data.get("summary") if isinstance(data.get("summary"), dict) else {}
+    counts = summary.get("counts") if isinstance(summary.get("counts"), dict) else {}
+    return {
+        "updated": data.get("updated") is True,
+        "created": data.get("created") is True,
+        "scan_id": data.get("scanId") if isinstance(data.get("scanId"), str) else None,
+        "summary": {
+            "score": summary.get("score") if isinstance(summary.get("score"), int) else None,
+            "reach": summary.get("reach") if isinstance(summary.get("reach"), int) else None,
+            "floor": summary.get("floor") if isinstance(summary.get("floor"), int) else None,
+            "counts": {key: counts.get(key) if isinstance(counts.get(key), int) else 0
+                       for key in ("solid", "partial", "gap", "unknown")},
+        },
+    }
 
 
 # --- pair and listen ---------------------------------------------------------

@@ -89,6 +89,7 @@ The card for the rung you should work on next opens automatically.
 ./onboarding/agentic-score                 # quick terminal score, local only
 ./onboarding/agentic-score --json          # path-free JSON for scripts
 ./onboarding/agentic-score --ask           # answer unobservable capabilities
+./onboarding/agentic-score --update-portal # opt in: update your portal dashboard
 ```
 
 Run it again any time. It is the same command after every change you make, and
@@ -126,7 +127,18 @@ Windows: `.\onboarding\onboard.ps1 -Connect -Portal <address>`, `-Publish`
 - **Where the token lives:** `~/.config/amm-portal/connection.json` (Windows:
   `%APPDATA%\amm-portal\connection.json`), readable only by you. It is never
   printed. `--disconnect` deletes the file; you can also revoke the token in the portal.
-- Nothing is ever published unless you run `--publish`.
+- Nothing is ever published unless you run `--publish` or `--update-portal`.
+
+### Update your portal score
+
+After the one-time connection above, this is the short version of sharing your score:
+
+```bash
+./onboarding/agentic-score --update-portal
+./onboarding/agentic-score --update-portal --json
+```
+
+It scans locally, then sends only your rung statuses, system score, reach, and floor. It does not send setup details, installed skills, unanswered questions, file paths, or file contents. Your official rung stays JD's call. The number on your portal dashboard updates from this scan. If this computer is not connected, the command stops and tells you to run `--connect`; it does not guess or send anything.
 
 ## Privacy — read this bit
 
