@@ -16,3 +16,6 @@ __pycache__/
 
 # internal session planning lives in the private brain, never here
 weekly-session-content/
+
+# local baseline written by skills/php-advisory-watch
+.php-advisory-state.json
