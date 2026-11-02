@@ -39,6 +39,7 @@ New to a client? The capstone **[client-onboarding-os](skills/client-onboarding-
 | [`sops/`](sops/) | Step-by-step procedures (3D-video pipeline). |
 | [`docs/`](docs/) | Operating model, getting-started, content boundaries, agent-authoring guide. |
 | [`templates/`](templates/) · [`essays/`](essays/) · [`handouts/`](handouts/) | Reusable starting points · ideas behind the practice · printable security references. |
+| [`docs/security/`](docs/security/) | OWASP-informed agent security and Internet Risks Mastermind operating notes. |
 | [`examples/`](examples/) | Sample (redacted) outputs so you can see what skills produce. |
 
 ## The skills, in one line
