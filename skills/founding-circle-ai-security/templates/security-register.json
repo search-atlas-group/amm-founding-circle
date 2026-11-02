@@ -1,0 +1,21 @@
+{
+  "as_of": "2026-10-29",
+  "owner": "",
+  "controls": [
+    {"id":"C01","name":"Skill inventory","domain":"governance","priority":"critical","status":"not_started","owner":"","due":"","evidence":[]},
+    {"id":"C02","name":"Hash and provenance pinning","domain":"supply_chain","priority":"critical","status":"not_started","owner":"","due":"","evidence":[]},
+    {"id":"C03","name":"Deny-by-default capabilities","domain":"permissions","priority":"critical","status":"not_started","owner":"","due":"","evidence":[]},
+    {"id":"C04","name":"No ambient credentials","domain":"secrets","priority":"critical","status":"not_started","owner":"","due":"","evidence":[]},
+    {"id":"C05","name":"Egress allowlist and logging","domain":"network","priority":"high","status":"not_started","owner":"","due":"","evidence":[]},
+    {"id":"C06","name":"Isolated terminal and browser workers","domain":"isolation","priority":"high","status":"not_started","owner":"","due":"","evidence":[]},
+    {"id":"C07","name":"Approval for external writes","domain":"actions","priority":"high","status":"not_started","owner":"","due":"","evidence":[]},
+    {"id":"C08","name":"Memory provenance and protection","domain":"memory","priority":"high","status":"not_started","owner":"","due":"","evidence":[]},
+    {"id":"C09","name":"Tamper-evident audit trail","domain":"observability","priority":"high","status":"not_started","owner":"","due":"","evidence":[]},
+    {"id":"C10","name":"Kill switch and revocation test","domain":"response","priority":"critical","status":"not_started","owner":"","due":"","evidence":[]},
+    {"id":"C11","name":"Prompt-injection regression suite","domain":"testing","priority":"high","status":"not_started","owner":"","due":"","evidence":[]},
+    {"id":"C12","name":"Model/provider routing policy","domain":"routing","priority":"medium","status":"not_started","owner":"","due":"","evidence":[]}
+  ],
+  "skills": [],
+  "incidents": [],
+  "notes": "Use evidence URLs or ticket IDs; do not put secrets in this file."
+}

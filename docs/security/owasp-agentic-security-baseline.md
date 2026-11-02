@@ -4,10 +4,27 @@ This package adapts the OWASP Agentic Skills Top 10, OpenCRE, and OWASP LLM guid
 
 ## Included
 
-- `../../handouts/security/owasp-agent-security-cheatsheet.html` — printable OWASP reference for agentic agencies.
-- `../../handouts/security/amm-ai-safety-baseline-2026-10-29.html` — SearchAtlas-aligned visual briefing for cohort sharing.
-- `../../skills/founding-circle-ai-security/SKILL.md` — portable operating skill for Hermes, Claude Code, Gemini, Cursor, Codex, and Board.
-- Existing `skills/security-radar/` — read-only posture scanning for installed skills, MCP servers, permissions, and dependencies.
+The complete plug-and-play package lives in [`skills/founding-circle-ai-security/`](../../skills/founding-circle-ai-security/):
+
+- `SKILL.md` — portable operating procedure for Hermes, Claude Code, Gemini, Cursor, Codex, and Board.
+- `templates/security-register.json` — editable 12-control baseline.
+- `templates/skill-manifest.yaml` — least-privilege capability declaration.
+- `templates/incident-record.json` — incident response record.
+- `scripts/validate_register.py` — standard-library validator.
+- `dashboard/agent-security-dashboard.html` — local JSON-import dashboard.
+
+The companion handouts are:
+
+- [`owasp-agent-security-cheatsheet.html`](../../handouts/security/owasp-agent-security-cheatsheet.html) — printable OWASP reference.
+- [`amm-ai-safety-baseline-2026-10-29.html`](../../handouts/security/amm-ai-safety-baseline-2026-10-29.html) — short cohort briefing visual.
+- Existing [`skills/security-radar/`](../../skills/security-radar/) — read-only posture scanning for installed skills, MCP servers, permissions, and dependencies.
+
+## Plug-and-play start
+
+1. Copy the complete `skills/founding-circle-ai-security/` directory into the agent's shared skills path.
+2. Copy `templates/security-register.json` to a working location.
+3. Run `python3 scripts/validate_register.py security-register.json`.
+4. Open the dashboard and import the register.
 
 ## What teams can do with it
 

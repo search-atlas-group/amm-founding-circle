@@ -1,0 +1,15 @@
+{
+  "incident_id": "INC-YYYYMMDD-001",
+  "detected_at": "",
+  "severity": "high",
+  "summary": "",
+  "affected_agents_or_skills": [],
+  "data_at_risk": [],
+  "containment": {"skill_disabled": false, "credentials_revoked": false, "network_blocked": false},
+  "timeline": [],
+  "evidence": [],
+  "root_cause": "",
+  "remediation_owner": "",
+  "lessons_learned": "",
+  "closed_at": ""
+}

@@ -1,0 +1,27 @@
+name: example-skill
+version: 0.1.0
+artifact_sha256: replace-with-immutable-digest
+source_uri: https://example.invalid/source
+owner: team-or-person
+risk_tier: high
+capabilities:
+  shell: false
+  filesystem:
+    read: []
+    write: []
+  network:
+    allow: []
+  browser:
+    domains: []
+  connectors: []
+secrets: []
+data_classes:
+  input: internal
+  output: internal
+human_approval:
+  required_for: [external_write, file_delete]
+review:
+  reviewed_at: ''
+  expires_at: ''
+  reviewer: ''
+  evidence: []

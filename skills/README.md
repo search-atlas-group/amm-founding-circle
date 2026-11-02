@@ -1,6 +1,6 @@
 # Skills Index — AMM Founding Circle
 
-This repository carries **66 skills** under `skills/`, organized into seven groups:
+This repository carries **67 skills** under `skills/`, organized into seven groups:
 
 - **A. Marketing & AEO/SEO** — the original 16, referenced by canonical number `#1`–`#16` throughout the two orchestrators (`client-onboarding-os` and `aeo-llm-content-planner`). These chain into each other: foundation skills feed diagnostics, diagnostics feed the planner, and the planner + onboarding OS sequence everything else.
 - **B. Agentic Engineering** — 27 skills (19 adopted + 8 built for the cohort) covering the instinct/learning loop, build & code tooling, orchestration, reporting, routing, and safety. No canonical numbering.
@@ -137,6 +137,7 @@ The **agentic-ladder rung** column is a suggested autonomy level (L1–L10): sin
 | Skill | What it does | When to use | Inputs → Outputs | Rung |
 |-------|--------------|-------------|------------------|------|
 | [security-radar](security-radar/SKILL.md) | Audits installed skills, MCP servers, permissions, and dependencies against OSV.dev + OWASP (read-only). | When hardening the setup, or after installing new skills/servers/dependencies. | Local config + lockfiles + installed surface → posture brief (rating + severity-sorted findings + fixes). | L4 |
+| [founding-circle-ai-security](founding-circle-ai-security/SKILL.md) | Plug-and-play governance baseline with register templates, manifest, incident record, validator, and local dashboard. | When onboarding or updating an agentic system, or preparing a security review. | Agent surface + evidence → reviewed register + readiness dashboard + remediation trail. | L4 |
 | [php-advisory-watch](php-advisory-watch/SKILL.md) | Reads the official PHP advisory list, baselines it, and reports only new advisories. | A site runs PHP or WordPress and needs to hear about a flaw before a headline. | Public advisory page → new advisory ids and CVEs, or UNKNOWN when unread. | L4 |
 | [stack-inventory](stack-inventory/SKILL.md) | Inventories one site's platform, language, packages, and versions from local files. | A named advisory needs comparison against one site. | Project folder → JSON inventory with explicit unknowns; never an exposure verdict. | L3 |
 | [advisory-version-check](advisory-version-check/SKILL.md) | Compares one local inventory against one advisory's affected version range. | An advisory names a component and the question is whether this site's recorded version is inside the range. | Inventory JSON + advisory JSON → in-range, out-of-range, not-present, or UNKNOWN. Never a safety verdict. | L3 |
