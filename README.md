@@ -31,13 +31,14 @@ New to a client? The capstone **[client-onboarding-os](skills/client-onboarding-
 | Folder | What's in it |
 |---|---|
 | [`onboarding/`](onboarding/README.md) | **Start here.** Scans your machine, tells you your rung, what's solid underneath it, and the one next thing to do. Presence-only, nothing uploaded. |
-| [`skills/`](skills/README.md) | **52 skills** — start at the index. Group A: 16 AEO/SEO (a chained client workflow). Group B: 22 agentic-engineering skills. Group C: security. Group D: 9 always-on (L5). Group E: 3 autonomy-tier (L7/L9/L10). Group F: the L1 on-ramp. |
+| [`skills/`](skills/README.md) | **79 skills** — start at the index. Group A: 16 AEO/SEO. Group B: agentic engineering. Group C: security. Groups D–F: always-on, autonomy, and the L1 on-ramp. Groups H–J: migration, launch planning, and the mastermind-derived operating model. |
 | [`curriculum/`](curriculum/) | The L1–L10 agentic-ladder progression. Every skill is tagged to a rung. |
 | [`playbooks/`](playbooks/) | How to work *with* agents — browser-verification, compounding-feedback, parallel-prototyping. |
 | [`harnesses/`](harnesses/) | Reusable agent patterns (SENSE → JUDGE → ACT → REPORT morning-brief loop). |
 | [`automations/`](automations/) | Runnable automations (daily AI-news digest → Slack). |
 | [`sops/`](sops/) | Step-by-step procedures (3D-video pipeline). |
 | [`docs/`](docs/) | Operating model, getting-started, content boundaries, agent-authoring guide. |
+| [`reports/mastermind-session/`](reports/mastermind-session/) | Session-derived command-center brief in HTML/PDF, with the evidence register in `docs/founding-circle/`. |
 | [`templates/`](templates/) · [`essays/`](essays/) · [`handouts/`](handouts/) | Reusable starting points · ideas behind the practice · printable security references. |
 | [`docs/security/`](docs/security/) | OWASP-informed agent security and Internet Risks Mastermind operating notes. |
 | [`examples/`](examples/) | Sample (redacted) outputs so you can see what skills produce. |

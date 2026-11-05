@@ -1,6 +1,6 @@
 # Skills Index — AMM Founding Circle
 
-This repository carries **67 skills** under `skills/`, organized into seven groups:
+This repository carries **79 skills** under `skills/`, organized into eight groups:
 
 - **A. Marketing & AEO/SEO** — the original 16, referenced by canonical number `#1`–`#16` throughout the two orchestrators (`client-onboarding-os` and `aeo-llm-content-planner`). These chain into each other: foundation skills feed diagnostics, diagnostics feed the planner, and the planner + onboarding OS sequence everything else.
 - **B. Agentic Engineering** — 27 skills (19 adopted + 8 built for the cohort) covering the instinct/learning loop, build & code tooling, orchestration, reporting, routing, and safety. No canonical numbering.
@@ -10,6 +10,7 @@ This repository carries **67 skills** under `skills/`, organized into seven grou
 - **F. Foundation on-ramp (L1)** — the very first rung, made runnable: one genuine client task, by voice, in an hour, with proof it shipped. Start here if you're new, overwhelmed, or coming back after time away.
 - **H. Website Migration (giveaway kit)** — 5 skills that let a non-technical person run one real stage of a WordPress → SearchAtlas Website Studio migration themselves — a genuine taste of the full service, with the automated/bulk/managed version as the obvious upsell. Shared at the 2026-08-13 session.
 - **I. Website Launch Planning** — 1 skill: a full pre-launch plan (site architecture, per-page SEO briefs, schemas, tracking) for a brand-new site, grounded in live Search Atlas MCP data. Complements Group H — that kit migrates an *existing* site, this one plans a site that doesn't exist yet.
+- **J. Mastermind-derived operating model** — six reusable skills and the lane/mission/command-center, voice-agent, and team-sharing playbooks/templates distilled from the 2026-11-05 mastermind session.
 
 The **agentic-ladder rung** column is a suggested autonomy level (L1–L10): single-purpose, human-in-the-loop skills sit around L3–L4; multi-skill orchestrators around L6; self-modifying / autonomy / instinct skills higher. See [`../curriculum/agentic-ladder.md`](../curriculum/agentic-ladder.md).
 
@@ -209,6 +210,23 @@ A single-page site migration, run by hand, one stage at a time. Free/paid line t
 | Skill | What it does | When to use | Inputs → Outputs | Rung |
 |-------|--------------|-------------|------------------|------|
 | [launch-website](launch-website/SKILL.md) | Turns discovery inputs (URL, services, locations) into a complete pre-launch plan — site architecture, per-page briefs (keywords, metadata, modules, FAQs, schemas, internal links), tracking setup — pulling live Search Atlas MCP data. Opinionated toward local service businesses with 1–5 locations. | Planning a brand-new site launch; "plan a launch," "generate site architecture," "build per-page SEO briefs." | Domain + services + locations → `plan.md` + `dashboard.html` + `notes.md`, with every number sourced to a tool call. | L6 |
+
+## J. Mastermind-derived operating model
+
+A reusable commander system distilled from the 2026-11-05 mastermind session. The raw transcript remains private; the shared artifacts retain segment references and separate requests from verified execution.
+
+| Skill | What it does | When to use | Inputs → Outputs | Rung |
+|---|---|---|---|---|
+| [lanes-momentum-framework](lanes-momentum-framework/SKILL.md) | Turns a messy objective into 3–4 owned lanes, a three-week horizon, daily lane walks, mission briefs, and a visible done shelf. | When the team is overloaded, the founder owns everything, or work has become a diary/task dump. | Organization + objective + candidate work → lane board + mission briefs + decision log. | L4 |
+| [agency-command-center](agency-command-center/SKILL.md) | Specifies a read-first internal view across fulfillment, revenue, and meeting context. | When portfolio context is fragmented across systems. | Supplied/redacted sources → context map + field/source/owner table + unknowns. | L4 |
+| [sales-journey-audit](sales-journey-audit/SKILL.md) | Audits the four-stage prospect journey and ranks repair opportunities without inventing funnel data. | When the weakest sales stage is unclear. | Supplied sources + optional prior transcript → evidence-backed stage audit + repair brief. | L4 |
+| [case-study-engine](case-study-engine/SKILL.md) | Finds evidence-backed case-study candidates and routes drafts through permission and review. | When client outcomes need to become proof for marketing or sales. | Supplied results → candidate records + approval-gated drafts. | L4 |
+| [voice-agent-pilot](voice-agent-pilot/SKILL.md) | Designs a staged, read-only voice-agent pilot with explicit data-flow, interruption, denied-write and failure tests. | Before connecting voice to a member or client workflow. | Approved scope + provider/local constraints → pilot plan + test record + rollback. | L4 |
+| [team-agent-sharing](team-agent-sharing/SKILL.md) | Selects a safe team-sharing surface and tests identity, least privilege, isolation, write denial and revocation. | When a member wants teammates to use an agent or shared system. | Team roster + surface + permissions → sharing contract + acceptance evidence. | L4 |
+
+Related templates and playbooks: [`../templates/lanes-board-template.md`](../templates/lanes-board-template.md), [`../templates/mission-brief-template.md`](../templates/mission-brief-template.md), [`../playbooks/voice-agent-setup.md`](../playbooks/voice-agent-setup.md), [`../playbooks/team-agent-sharing.md`](../playbooks/team-agent-sharing.md), [`../docs/operating-model/lanes-momentum-framework.md`](../docs/operating-model/lanes-momentum-framework.md), and [`../docs/operating-model/command-center-brief.md`](../docs/operating-model/command-center-brief.md).
+
+---
 
 ## Install
 

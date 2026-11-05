@@ -1,0 +1,19 @@
+{
+  "source_mode": "SYNTHETIC_FIXTURE_NOT_LIVE",
+  "sessions": {
+    "pilot-alpha": {
+      "session_id": "pilot-alpha",
+      "status": "active",
+      "summary": "Synthetic documentation review is in progress.",
+      "blocker": "Waiting for the synthetic reviewer.",
+      "freshness": "Static test fixture; not current account state."
+    },
+    "pilot-beta": {
+      "session_id": "pilot-beta",
+      "status": "paused",
+      "summary": "Synthetic checklist review is paused.",
+      "blocker": "No synthetic input supplied.",
+      "freshness": "Static test fixture; not current account state."
+    }
+  }
+}

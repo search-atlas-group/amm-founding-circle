@@ -1,0 +1,13 @@
+{
+  "name": "get_pilot_session_status",
+  "description": "Read synthetic status for one server-authorized test session. No writes or commands.",
+  "parameters": {
+    "type": "object",
+    "properties": {
+      "session_id": {"type": "string", "enum": ["pilot-alpha", "pilot-beta"]}
+    },
+    "required": ["session_id"],
+    "additionalProperties": false
+  },
+  "defer_until_eot": true
+}
