@@ -45,4 +45,4 @@ Do not build a live dashboard, ingest private transcripts, alter billing, send c
 
 ## Evidence
 
-Transcript JSON `i` segments 564–593 and 568–587 motivated this specification. Existing `client-dashboard` remains the external read-only view; this skill is internal portfolio context.
+Transcript JSON `i` segments 564–593 motivated this specification. Existing `client-dashboard` remains the external read-only view; this skill is internal portfolio context.
