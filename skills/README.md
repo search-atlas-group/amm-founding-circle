@@ -10,7 +10,7 @@ This repository carries **79 skills** under `skills/`, organized into eight grou
 - **F. Foundation on-ramp (L1)** — the very first rung, made runnable: one genuine client task, by voice, in an hour, with proof it shipped. Start here if you're new, overwhelmed, or coming back after time away.
 - **H. Website Migration (giveaway kit)** — 5 skills that let a non-technical person run one real stage of a WordPress → SearchAtlas Website Studio migration themselves — a genuine taste of the full service, with the automated/bulk/managed version as the obvious upsell. Shared at the 2026-08-13 session.
 - **I. Website Launch Planning** — 1 skill: a full pre-launch plan (site architecture, per-page SEO briefs, schemas, tracking) for a brand-new site, grounded in live Search Atlas MCP data. Complements Group H — that kit migrates an *existing* site, this one plans a site that doesn't exist yet.
-- **J. Mastermind-derived operating model** — six reusable skills and the lane/mission/command-center, voice-agent, and team-sharing playbooks/templates distilled from the 2026-11-05 mastermind session.
+- **J. Mastermind-derived operating model** — six reusable skills and the lane/mission/command-center, voice-agent, and team-sharing playbooks/templates prepared on 2026-11-05 from the 2026-09-30 Las Vegas Day 3 session.
 
 The **agentic-ladder rung** column is a suggested autonomy level (L1–L10): single-purpose, human-in-the-loop skills sit around L3–L4; multi-skill orchestrators around L6; self-modifying / autonomy / instinct skills higher. See [`../curriculum/agentic-ladder.md`](../curriculum/agentic-ladder.md).
 
@@ -213,7 +213,7 @@ A single-page site migration, run by hand, one stage at a time. Free/paid line t
 
 ## J. Mastermind-derived operating model
 
-A reusable commander system distilled from the 2026-11-05 mastermind session. The raw transcript remains private; the shared artifacts retain segment references and separate requests from verified execution.
+A reusable commander system prepared on 2026-11-05 from the 2026-09-30 Las Vegas Day 3 session. The raw transcript remains private; the shared artifacts retain segment references and separate requests from verified execution.
 
 | Skill | What it does | When to use | Inputs → Outputs | Rung |
 |---|---|---|---|---|
