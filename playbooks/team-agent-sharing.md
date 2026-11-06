@@ -2,6 +2,14 @@
 
 **Start with one useful read-only task, not a copy of someone's machine.** This playbook produces a scoped pilot and a tested stop path. All commands below are instructions for a later, explicitly authorized setup; publishing this guide changes no accounts or runtime.
 
+**Source/status (Nov 5):** This guide is aligned to the Thursday, November 5, 2026 cohort session. Private source receipt: SHA-256 `ad2bc89af91a8f7137b2b3b9040074f5ccb7e37f57af67e0c5bb30374c41adb1`. It is not attributed to any other cohort recording.
+
+| Available in this repo | Still missing for a live shared agent |
+|---|---|
+| Sanitized foundation guidance, blank contract/member-card/test-record templates, dedicated-profile/SaaS-seat/Coworker decision points, and offline acceptance criteria | Any invitation, provider login, Borg/board or connector authorization, Hermes profile/gateway deployment, Coworker installation, live source ACL proof, revocation rehearsal, or production launch |
+
+The correct Nov 5 choices are **Borg/Search Atlas seats**, a **dedicated Hermes messaging profile**, or **Search Atlas Coworker**. They are separate surfaces: a shared repo is not a runtime, a seat is not an owner's context, and Coworker is not an arbitrary Hermes bot.
+
 ## 1. Choose what you are sharing
 
 | Surface | What teammates receive | What it does not establish |
@@ -55,6 +63,17 @@ git rev-parse HEAD
 ```
 
 If there is no upstream, unexpected code, a dirty tree, or a conflict, stop; do not reset, force-pull or overwrite local work. Record old/new revisions and rerun acceptance after behavioral changes.
+
+## 3a. Have each teammate prove the sanitized baseline loaded
+
+This is a knowledge-package check, not a permissions or live-messaging check. Each teammate uses their own repository identity and profile/workspace:
+
+1. Clone the approved revision and record `git rev-parse HEAD` (the exact commands are in step 3).
+2. Read the onboarding README and one named shared reference. Confirm the file contains only approved, sanitized material; do not add private notes to the shared checkout.
+3. In a fresh agent session, ask: `What is the approved pilot task? Cite the shared file path and revision. State one thing this package does not grant.` Require the response to identify the expected marker/path and the boundary (no credentials, private memory, or runtime access).
+4. Compare the response with the checked-out file and record the revision, file path, fresh-session reference and result in the private test record. A correct answer proves the reviewed baseline was loaded; it does **not** prove a connector, seat, gateway, channel or source permission works.
+
+If the agent cannot cite the marker, reads an unexpected path, or invents a connector result, stop and fix the foundation/profile mapping before inviting anyone. Never “prove” loading by pasting private context into the prompt.
 
 ## 4. If you need Hermes messaging, create a separate bot
 
@@ -168,6 +187,18 @@ All applicable gates must pass, including a remove-and-retest revocation rehears
 5. Restrict incident evidence privately, record actual before/after source state and scope of exposure, rotate any exposed credentials, and follow the data owner's retention/incident policy. Do not paste leaked content into tickets or chats. Old sensitive sessions/memory must not be resumed into the relaunched audience; a fresh session alone does not erase them.
 6. Keep exposure disabled until every failed negative test passes on the new configuration. Report what stopped, what was revoked, and what remains unverified.
 
+## 9. Remaining blockers before calling the agent shared
+
+This audit changed documentation only; no invitations, logins, connectors, gateways or live permissions were exercised.
+
+- **Foundation owner:** publish a sanitized, reviewed revision and manifest; prove each teammate can load and cite it without exposing private context.
+- **Surface/platform owner:** choose exactly one initial surface and authorize it. Borg/Search Atlas requires individual seats and confirmed role/connector entitlements; Hermes requires a separate profile, tool restriction and platform authorization; Coworker requires its own Slack/admin and Search Atlas authorization. Do not treat one surface's success as another's.
+- **Runtime engineer:** create the selected profile/route from a blank identity, pin the reviewed workspace/skills, inspect extensions and effective tools, and prove the real listener:not only a local smoke prompt:handles a fresh allowed message.
+- **Source owner:** approve one sanitized/read-only source and audience, verify source-side ACLs and Personal versus Shared connector scope, and provide the actual revocation controls.
+- **Test owner/reviewer:** run controlled positive and negative identities, cross-user/client isolation, technical write denial, stop, remove-and-retest revocation and rollback. Keep any unobserved row `NOT RUN` or `BLOCKED`.
+
+Until these are observed, the only honest state is `planned`, `configured-not-live`, or `blocked`; do not hand out a live-access claim from a cloned repo or configured profile.
+
 ## Source and verification notes
 
-Prepared 2026-11-05 from the team-sharing presentation and sibling research, with Hermes commands checked against current official docs and Search Atlas procedures checked against public help articles linked above. Hermes CLI commands were verified against `hermes-agent.nousresearch.com` docs as of 2026-11-05. Search Atlas UI steps (Billing, Team Members, Coworker) were verified against `help.searchatlas.com` as of 2026-11-05. Verify both before acting if more than 60 days have elapsed. Private research is not redistributed here. Account-specific entitlements, service routing and all live tests remain for the implementing owner to verify. No script, installer, account change or live acceptance result is supplied by this document.
+Prepared 2026-11-05 from the Thursday, November 5 cohort team-sharing and voice-agent segment; private source receipt SHA-256 `ad2bc89af91a8f7137b2b3b9040074f5ccb7e37f57af67e0c5bb30374c41adb1`. Hermes CLI commands were checked against `hermes-agent.nousresearch.com` docs as of 2026-11-05. Search Atlas UI steps (Billing, Team Members, Coworker) were checked against `help.searchatlas.com` as of 2026-11-05. Verify both before acting if more than 60 days have elapsed. Private research is not redistributed here. Account-specific entitlements, service routing and all live tests remain for the implementing owner to verify. No script, installer, account change or live acceptance result is supplied by this document.

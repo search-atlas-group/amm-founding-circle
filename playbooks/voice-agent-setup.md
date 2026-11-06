@@ -2,7 +2,13 @@
 
 **Outcome:** a test-only conversation that greets you, reads one authorized synthetic session, speaks a sourced answer, stops when interrupted, and refuses writes. This kit does not install or launch anything automatically. The hosted-to-tool bridge is not shipped; an engineering owner must build and test it before the tool-connected demo.
 
-Use the [skill](../skills/voice-agent-pilot/SKILL.md) with your agent, or follow this page yourself. Technical details live in supporting references so the member workflow stays short.
+**Source/status (Nov 5):** This guide is aligned to the Thursday, November 5, 2026 cohort session. Private source receipt: SHA-256 `ad2bc89af91a8f7137b2b3b9040074f5ccb7e37f57af67e0c5bb30374c41adb1`. It is not attributed to any other cohort recording.
+
+| Available in this repo | Still missing for a live voice pilot |
+|---|---|
+| Dependency-free synthetic lookup, 9 offline unit tests, fixture/schema/role, ten-request matrix, evidence sheet, adapter contract, and hosted/local instructions | Hosted audio client, trusted function relay, authenticated session binding, real read-only source adapter, provider credentials/account approval, live mic/audio/interrupt evidence, and rollback evidence |
+
+The offline rehearsal proves fixture policy only. It is not live audio, hosted authentication, a Commander/Happier integration, or a member account lookup.
 
 ## 1. Pick the smallest useful pilot
 
@@ -64,6 +70,18 @@ Pilot targets, **not measured promises**: 10/10 expected outcomes; zero unauthor
 A missing trace or untested safety row is `NOT_RUN`/`BLOCKED`, not pass. A fixture pass is `ACCEPTED_TEST_PILOT`, never “Commander integration shipped.” Actual integration needs separately authorized live-test evidence, exact source/API version and reviewer approval. For local no-tools conversation, accept only audio/offline behavior; tool rows stay `NOT_APPLICABLE`.
 
 Sign the [evidence sheet](../skills/voice-agent-pilot/templates/acceptance-evidence.md). Keep failures and unknowns. Record actual billed connection minutes and provider usage; no assumed free tier or cheapest-provider claim.
+
+## 7. Remaining blockers before a live claim
+
+These are not solved by the fixture or this playbook:
+
+- **Engineering:** implement the hosted client/backend relay; validate the function schema on the server; bind every call to an authenticated principal and one test session; implement timeout, cancellation, duplicate suppression, playback clearing and redacted evidence. Then exercise the synthetic function through the actual audio path.
+- **Source owner:** provide a documented, read-only test-session interface and fixed field projection. No verified Commander/Happier endpoint is supplied here; do not invent one or use a private database scrape.
+- **Account owner:** approve provider/data-processing terms, region, retention/recording settings, spend/time cap and least-privilege credentials. Create only a disposable test grant and record its revocation path.
+- **Member/operator:** approve any install/download, provide a supported browser, mic/headphones and runtime, then record actual settings, timings, usage and teardown. No live audio or permissions test has been run by this repository audit.
+- **Reviewer:** inspect the real call/result trace, all applicable matrix rows, zero-write result, cross-session denial and rollback before changing the state to `pilot-verified`.
+
+Until these are observed, report `configured-not-live` or `BLOCKED`, never “voice agent shipped.”
 
 ## Rollback
 

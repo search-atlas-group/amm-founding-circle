@@ -60,7 +60,7 @@ A private working folder containing `pilot-plan.md`, `test-matrix.csv`, `accepta
 - A function's `client_side` flag describes the provider protocol, not permission to put privileged credentials in a browser.
 - “Let me check” is not success. “I found it” requires a successful matching call result.
 - Full duplex does not automatically mean barge-in mutes all buffered speech. Measure it.
-- Latency figures from prior AMM demonstration sessions (model-step timings, no retained raw output) are not portable benchmarks. Moshi q4 has a listening verdict from that context but no recorded RTF. Neither proves speed on a member's Mac.
+- Local step timings are not portable end-to-end benchmarks. The Nov 5 benchmark pack retains recovered PersonaPlex q4/q8 aggregate console outputs, not per-step arrays or a software-version receipt. Keep those measured aggregates distinct from the transcript-reported Moshi q8 reply delay and qualitative Moshi q4 listening verdict (no recorded RTF). None proves speed on a member's Mac.
 - Don't copy experimental playground fields or an obsolete endpoint from prior notes. Use the current official docs linked in [sources](references/sources.md).
 - Local audio plus hosted reasoning still exports text. Offline means network-disconnected operation verified after downloads, not merely “running on my Mac.”
 

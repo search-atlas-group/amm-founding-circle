@@ -1,9 +1,26 @@
 # AMM Founding Circle
 
-The Agentic Marketing Mastermind (AMM) founding-circle home base — the skills,
+The Agentic Marketing Mastermind (AMM) founding-circle home base : the skills,
 playbooks, curriculum, and automations we build together, in one place.
 
 **New here? Start with the 60-second quickstart below, then open the [skills index](skills/README.md).**
+
+## Thursday cohort: 5 November 2026
+
+**[Open the session bundle](reports/cohort-2026-11-05/README.md)** for the actual
+5 November call, not the older Las Vegas pack:
+
+- [Session breakdown and commitment map](docs/founding-circle/cohort-2026-11-05.md)
+- [Borg, CoWorker or Hermes: step-by-step setup](playbooks/agent-platform-setup.md)
+- [Share a knowledge agent with your team](playbooks/team-agent-sharing.md)
+- [Voice benchmark: reported observations, reproducible protocol and evidence limits](reports/cohort-2026-11-05/benchmark/README.md)
+- [Build a voice agent](playbooks/voice-agent-setup.md)
+- [Always-on and background automation](playbooks/always-on-background-automation.md)
+
+Written guides and offline checks are distinct from live integrations and measured
+model benchmarks. See the bundle for what is verified and what remains open.
+
+**Every Thursday:** follow the [session-to-repository-to-AMM-SearchAtlas SOP](sops/thursday-cohort-delivery.md).
 
 ## 60-second quickstart
 
@@ -19,7 +36,7 @@ The default mothership is `~/amm-mothership` (Windows: `%USERPROFILE%\amm-mother
 
 **Where am I on the ladder?** [`./onboarding/onboard.sh`](onboarding/README.md) checks
 your own machine and tells you your rung, what is solid underneath it, and the one
-next thing that moves you up — pointing at the skills in this repo that do it.
+next thing that moves you up : pointing at the skills in this repo that do it.
 For a quick terminal result or script integration, run
 `./onboarding/agentic-score` (use `--json` for path-free JSON; nothing is uploaded unless you add `--update-portal`).
 Sharing your result is opt-in. Re-run it after every change.
@@ -31,9 +48,9 @@ New to a client? The capstone **[client-onboarding-os](skills/client-onboarding-
 | Folder | What's in it |
 |---|---|
 | [`onboarding/`](onboarding/README.md) | **Start here.** Scans your machine, tells you your rung, what's solid underneath it, and the one next thing to do. Presence-only, nothing uploaded. |
-| [`skills/`](skills/README.md) | **79 skills** — start at the index. Group A: 16 AEO/SEO. Group B: agentic engineering. Group C: security. Groups D–F: always-on, autonomy, and the L1 on-ramp. Groups H–J: migration, launch planning, and the mastermind-derived operating model. |
+| [`skills/`](skills/README.md) | **79 skills** : start at the index. Group A: 16 AEO/SEO. Group B: agentic engineering. Group C: security. Groups D–F: always-on, autonomy, and the L1 on-ramp. Groups H–J: migration, launch planning, and the mastermind-derived operating model. |
 | [`curriculum/`](curriculum/) | The L1–L10 agentic-ladder progression. Every skill is tagged to a rung. |
-| [`playbooks/`](playbooks/) | How to work *with* agents — browser-verification, compounding-feedback, parallel-prototyping. |
+| [`playbooks/`](playbooks/) | How to work *with* agents : browser-verification, compounding-feedback, parallel-prototyping. |
 | [`harnesses/`](harnesses/) | Reusable agent patterns (SENSE → JUDGE → ACT → REPORT morning-brief loop). |
 | [`automations/`](automations/) | Runnable automations (daily AI-news digest → Slack). |
 | [`sops/`](sops/) | Step-by-step procedures (3D-video pipeline). |
@@ -45,26 +62,26 @@ New to a client? The capstone **[client-onboarding-os](skills/client-onboarding-
 
 ## The skills, in one line
 
-- **AEO/SEO (16):** a chained workflow — `brand-kit` (#1) feeds diagnostics (`llm-citation-audit` #4, `entity-topical-authority-mapper` #5, …), which feed the `aeo-llm-content-planner` (#14), all sequenced by `client-onboarding-os` (#15). Full map + table in the [index](skills/README.md).
+- **AEO/SEO (16):** a chained workflow : `brand-kit` (#1) feeds diagnostics (`llm-citation-audit` #4, `entity-topical-authority-mapper` #5, …), which feed the `aeo-llm-content-planner` (#14), all sequenced by `client-onboarding-os` (#15). Full map + table in the [index](skills/README.md).
 - **Agentic engineering (19):** the instinct/learning loop, build & code tooling (`agent-runbook`, `codebase-map`, `thread-to-spec`, `python-style`), reporting (`html-reports`, `report-writer`), routing (`cli-llm-routing`), and safety (`prompt-injection-guard`).
-- **Security (1):** `security-radar` — audit your agentic surface (skills, MCP servers, permissions, deps).
+- **Security (1):** `security-radar` : audit your agentic surface (skills, MCP servers, permissions, deps).
 
-All skills run with **no paid APIs** — SearchAtlas MCP is used when available, with graceful web-search fallback.
+All skills run with **no paid APIs** : SearchAtlas MCP is used when available, with graceful web-search fallback.
 
 ## Governance
 
-- **[SECURITY.md](SECURITY.md)** — the skill-vetting bar every skill (esp. third-party) must clear, plus a PR review checklist.
-- **[playbooks/autonomy-fence.md](playbooks/autonomy-fence.md)** — the 🟢/🟡/🔴 + confidence-gate pattern for letting an agent act safely on your behalf.
-- **[templates/agent-spec-template.md](templates/agent-spec-template.md)** — a clean ADK-style format for specifying your own agents.
-- **`local/`** — the gitignored destination for bulk or derived data: anything that describes a person, grants access, or was fetched rather than authored — member and roster exports, API dumps, kubeconfigs and service-account files, customer or billing exports. Put it in a `local/` folder anywhere in the repo, never at a folder root. Credentials are already covered by the `.env` rules above it in `.gitignore`.
+- **[SECURITY.md](SECURITY.md)** : the skill-vetting bar every skill (esp. third-party) must clear, plus a PR review checklist.
+- **[playbooks/autonomy-fence.md](playbooks/autonomy-fence.md)** : the 🟢/🟡/🔴 + confidence-gate pattern for letting an agent act safely on your behalf.
+- **[templates/agent-spec-template.md](templates/agent-spec-template.md)** : a clean ADK-style format for specifying your own agents.
+- **`local/`** : the gitignored destination for bulk or derived data: anything that describes a person, grants access, or was fetched rather than authored : member and roster exports, API dumps, kubeconfigs and service-account files, customer or billing exports. Put it in a `local/` folder anywhere in the repo, never at a folder root. Credentials are already covered by the `.env` rules above it in `.gitignore`.
 
 ## Contributing
 
-See [CONTRIBUTING.md](CONTRIBUTING.md). A `scripts/pre-commit` hook blocks secrets / internal URLs / PII — keep it installed.
+See [CONTRIBUTING.md](CONTRIBUTING.md). A `scripts/pre-commit` hook blocks secrets / internal URLs / PII : keep it installed.
 
 ## License
 
-MIT — see [LICENSE](LICENSE).
+MIT : see [LICENSE](LICENSE).
 
 ## SHEP
 

@@ -9,6 +9,11 @@ Owner fills this card after the [pilot tests](team-agent-sharing-test-record.md)
 - Start: [approved DM, or channel + mention]
 - Stop/request help: [channel/contact and actual operator stop route]
 
+## Before first use
+
+1. Confirm the foundation revision and shared file path supplied by the owner. In a fresh session, ask the assistant to name the approved pilot task, cite that path/revision, and state one boundary. Compare the answer with the checked-out file or owner-provided reference.
+2. If the assistant cannot cite the reviewed baseline, names an unapproved source, or claims it changed something, stop and contact the owner. This check proves knowledge loading only; it does not prove live connector or account access.
+
 ## Use it
 1. Sign in as yourself. Accept your own invitation or complete your own platform login. Never borrow the owner's credentials, cookies, keys or phone session.
 2. Ask one question per thread. Name the approved project/source and requested time period.
