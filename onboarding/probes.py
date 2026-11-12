@@ -109,7 +109,7 @@ def _walk(roots, depth: int, limit: int):
     and dependency trees are never descended into. The budget is per root.
     """
     root_list = list(roots if roots is not None else (tuple(_work_dirs()) if os.environ.get("AMM_LADDER_WORK_DIRS") else WORK_DIRS))
-    per_root_limit = max(200, limit // max(1, len(root_list)))
+    per_root_limit = max(1, limit // max(1, len(root_list)))
     for root in root_list:
         base = expand(root)
         if not base.is_dir():
@@ -379,5 +379,14 @@ def package_test_scripts() -> list[str]:
     return out
 
 def run_records() -> list[str]:
-    dirs={"runs","run","artifacts","results","reports","output","receipts","history","state"}
-    return [str(p) for p in _files_matching(lambda p: p.parent.name.lower() in dirs or p.name.lower().startswith("run."), depth=5)]
+    """Grounded run evidence: dated files under an explicit run/receipt folder.
+
+    Generic output, state, history, or report directories are not enough; the
+    file itself must look like a run record (date, receipt, or run prefix).
+    """
+    dirs = {"runs", "run-records", "receipts"}
+    def grounded(path: Path) -> bool:
+        if path.parent.name.lower() not in dirs: return False
+        name = path.name.lower()
+        return name.startswith(("run-", "receipt-")) or any(ch.isdigit() for ch in name)
+    return [str(p) for p in _files_matching(grounded, depth=5)]

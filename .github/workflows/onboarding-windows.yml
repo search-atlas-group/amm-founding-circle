@@ -9,4 +9,6 @@ jobs:
         with: {python-version: '3.12'}
       - run: python -m pytest onboarding/test_onboarding.py onboarding/test_clayton_portability.py -q
       - shell: pwsh
-        run: .\onboarding\onboard.ps1 -NoOpen -NoHermes -AnswersFile .\answers.json -Answer 9.proven=false
+        run: |
+          Set-Content -Path .\answers.json -Value '{"9.proven": false}'
+          .\onboarding\onboard.ps1 -NoOpen -NoHermes -AnswersFile .\answers.json -Answer 3.atlas=false

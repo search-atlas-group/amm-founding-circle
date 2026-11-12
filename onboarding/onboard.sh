@@ -69,8 +69,8 @@ while [[ $# -gt 0 ]]; do
     --auto-update-off) bash "$HERE/install_autosync.sh" --remove; exit $? ;;
     --no-hermes) HERMES=0 ;;
     --repair-only) REPAIR_ONLY=1; OPEN=0; HERMES=1 ;;
-    --answers-file) ANSWERS_FILE="${2:-}"; shift ;;
-    --answer) ANSWERS+=("${2:-}"); shift ;;
+    --answers-file) ANSWERS_FILE="${2:?--answers-file requires a path}"; shift ;;
+    --answer) ANSWERS+=("${2:?--answer requires ID=value}"); shift ;;
     -h|--help) usage; exit 0 ;;
     *) echo "unknown option: $1" >&2; usage >&2; exit 64 ;;
   esac

@@ -290,7 +290,17 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--json", action="store_true")
     args = parser.parse_args(argv)
 
-    answers = load_answers(args.answers_file) if args.answers_file else load_answers()
+    answers = load_answers()
+    if args.answers_file:
+        if not args.answers_file.is_file():
+            parser.error(f"--answers-file not found: {args.answers_file}")
+        try:
+            supplied = json.loads(args.answers_file.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError) as err:
+            parser.error(f"--answers-file is not valid JSON: {err}")
+        if not isinstance(supplied, dict):
+            parser.error("--answers-file must contain a JSON object")
+        answers.update(supplied)
     for raw in args.answer:
         key, sep, value = raw.partition("=")
         if not sep or value.lower() not in {"true", "false", "yes", "no", "1", "0"}:
@@ -300,8 +310,6 @@ def main(argv: list[str] | None = None) -> int:
     if args.ask and not args.answers_file and not args.answer:
         answers = ask_questions(result, answers)
         result = evaluate(answers)
-    if args.answers_file:
-        Path(args.answers_file).write_text(json.dumps(answers, indent=2) + "\n", encoding="utf-8")
     v = assess(result)
 
     if args.json:
