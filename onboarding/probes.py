@@ -14,6 +14,7 @@ import json
 import os
 import shutil
 import subprocess
+from collections import deque
 from pathlib import Path
 
 #: Default places members plausibly keep client work. Bounded so the scan stays fast.
@@ -22,10 +23,14 @@ _WORK_DIRS_DEFAULT = ("~/Desktop", "~/Documents", "~/Projects", "~/projects", "~
 
 
 def _work_dirs() -> tuple[str, ...]:
-    """Allow override via AMM_LADDER_WORK_DIRS (colon-separated) while keeping defaults."""
+    """Resolve configured roots using the platform path separator.
+
+    ``os.pathsep`` is ``;`` on Windows, so a drive letter in ``C:/dev`` is
+    never mistaken for a second POSIX-style root.
+    """
     env = os.environ.get("AMM_LADDER_WORK_DIRS")
     if env:
-        return tuple(p.strip() for p in env.split(":") if p.strip())
+        return tuple(p.strip() for p in env.split(os.pathsep) if p.strip())
     return _WORK_DIRS_DEFAULT
 
 
@@ -98,43 +103,48 @@ def file_mentions(path: str, *needles: str) -> bool:
 
 
 def _walk(roots, depth: int, limit: int):
-    """Bounded, symlink-safe walk over the work directories.
+    """Bounded breadth-first walk with a cheap evidence pass per root.
 
-    The entry budget is per-root, not shared across all roots. A single large
-    root (e.g. one repo with a deep `node_modules`) used to burn the whole
-    shared budget before later roots were ever visited, so a member with 45
-    repos across ~/Desktop and ~/dev could have most of them go unseen. Each
-    root now gets its own share of `limit`, so evidence in the Nth root is
-    reached even if the first root is huge.
+    Known project evidence is inspected before arbitrary descendants. Generated
+    and dependency trees are never descended into. The budget is per root.
     """
-    root_list = list(roots if roots is not None else WORK_DIRS)
+    root_list = list(roots if roots is not None else (tuple(_work_dirs()) if os.environ.get("AMM_LADDER_WORK_DIRS") else WORK_DIRS))
     per_root_limit = max(200, limit // max(1, len(root_list)))
     for root in root_list:
         base = expand(root)
         if not base.is_dir():
             continue
         seen = 0
-        stack = [(base, 0)]
-        while stack and seen < per_root_limit:
-            current, level = stack.pop()
+        emitted: set[Path] = set()
+        queue = deque([(base, 0)])
+        while queue and seen < per_root_limit:
+            current, level = queue.popleft()
             try:
-                entries = list(current.iterdir())
+                entries = sorted(current.iterdir(), key=lambda p: p.name.lower())
             except OSError:
                 continue
+            # Evidence that is conventionally at a repository root must not
+            # lose a race against thousands of source files.
+            preferred = []
+            for candidate in (current / ".github" / "workflows",
+                              current / ".claude", current / "package.json"):
+                if candidate.is_file():
+                    preferred.append(candidate)
+                elif candidate.is_dir():
+                    try: preferred.extend(sorted(candidate.iterdir(), key=lambda p: p.name.lower()))
+                    except OSError: pass
+            entries = preferred + [e for e in entries if e not in preferred]
             for entry in entries:
-                if seen >= per_root_limit:
-                    break
-                try:
-                    is_dir = entry.is_dir() and not entry.is_symlink()
-                except OSError:
-                    continue
+                if seen >= per_root_limit: break
+                if entry in emitted: continue
+                emitted.add(entry)
+                try: is_dir = entry.is_dir() and not entry.is_symlink()
+                except OSError: continue
                 yield entry, is_dir, level
                 seen += 1
-                if not is_dir or level >= depth or entry.name in JUNK_DIR_NAMES:
-                    continue
-                if entry.name.startswith(".") and entry.name not in DESCEND_DOT_DIRS:
-                    continue
-                stack.append((entry, level + 1))
+                if not is_dir or level >= depth or entry.name in JUNK_DIR_NAMES: continue
+                if entry.name.startswith(".") and entry.name not in DESCEND_DOT_DIRS: continue
+                queue.append((entry, level + 1))
 
 
 def find_dirs(marker: str, roots=None, depth: int = 3, limit: int = 4000) -> list[Path]:
@@ -345,3 +355,29 @@ def spend_gate_files() -> list[str]:
             out.append(str(entry))
             seen_dirs.add(entry.parent)
     return out
+
+
+def _files_matching(predicate, roots=None, depth=4, limit=4000):
+    return [entry for entry, is_dir, _ in _walk(roots, depth, limit)
+            if not is_dir and predicate(entry)]
+
+
+def project_allowlist_files() -> list[str]:
+    return [str(p) for p in find_files("settings.json", depth=4)
+            if ".claude" in p.parts and json_has_key(str(p), "permissions", "allowedTools")]
+
+def project_skill_files() -> list[str]:
+    return [str(p) for p in find_files("SKILL.md", depth=5) if ".claude" in p.parts]
+
+def package_test_scripts() -> list[str]:
+    out=[]
+    for p in find_files("package.json", depth=4):
+        try: data=json.loads(p.read_text(encoding="utf-8"))
+        except (OSError, UnicodeDecodeError, json.JSONDecodeError): continue
+        script=str(data.get("scripts",{}).get("test", "")).strip()
+        if script and script.lower() not in {"echo test", "echo \"error: no test specified\" && exit 1", "true", "exit 0"} and "echo" not in script.lower(): out.append(str(p))
+    return out
+
+def run_records() -> list[str]:
+    dirs={"runs","run","artifacts","results","reports","output","receipts","history","state"}
+    return [str(p) for p in _files_matching(lambda p: p.parent.name.lower() in dirs or p.name.lower().startswith("run."), depth=5)]

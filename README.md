@@ -39,6 +39,7 @@ your own machine and tells you your rung, what is solid underneath it, and the o
 next thing that moves you up : pointing at the skills in this repo that do it.
 For a quick terminal result or script integration, run
 `./onboarding/agentic-score` (use `--json` for path-free JSON; nothing is uploaded unless you add `--update-portal`).
+See the [portability guide](docs/clayton-portability-guide.md) for noninteractive Windows/macOS runs, honest connector unknowns, usage accounting, and the bounded code-base map.
 Sharing your result is opt-in. Re-run it after every change.
 
 New to a client? The capstone **[client-onboarding-os](skills/client-onboarding-os/SKILL.md)** sequences the first 90 days and tells you which skill to run when.

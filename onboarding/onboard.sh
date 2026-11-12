@@ -45,6 +45,8 @@ RUNCODE=""
 BACKGROUND=1
 HERMES=1
 REPAIR_ONLY=0
+ANSWERS_FILE=""
+ANSWERS=()
 
 usage() { sed -n '2,16p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//'; }
 
@@ -67,6 +69,8 @@ while [[ $# -gt 0 ]]; do
     --auto-update-off) bash "$HERE/install_autosync.sh" --remove; exit $? ;;
     --no-hermes) HERMES=0 ;;
     --repair-only) REPAIR_ONLY=1; OPEN=0; HERMES=1 ;;
+    --answers-file) ANSWERS_FILE="${2:-}"; shift ;;
+    --answer) ANSWERS+=("${2:-}"); shift ;;
     -h|--help) usage; exit 0 ;;
     *) echo "unknown option: $1" >&2; usage >&2; exit 64 ;;
   esac
@@ -155,11 +159,13 @@ fi
 
 # --- step 2: scan -----------------------------------------------------------
 cd "$HERE"
-if [[ $ASK -eq 1 ]]; then
-  "$PY" ladder_probe.py --ask
-else
-  "$PY" ladder_probe.py
+SCAN_ARGS=()
+[[ $ASK -eq 1 ]] && SCAN_ARGS+=(--ask)
+[[ -n "$ANSWERS_FILE" ]] && SCAN_ARGS+=(--answers-file "$ANSWERS_FILE")
+if ((${#ANSWERS[@]})); then
+  for answer in "${ANSWERS[@]}"; do SCAN_ARGS+=(--answer "$answer"); done
 fi
+"$PY" ladder_probe.py "${SCAN_ARGS[@]}"
 
 # --- step 3: readout --------------------------------------------------------
 echo

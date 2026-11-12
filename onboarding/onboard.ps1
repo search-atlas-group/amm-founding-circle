@@ -12,6 +12,8 @@ Windows-native entrypoint (no Git Bash / WSL required).
   .\onboarding\onboard.ps1 -Pair <code> -Portal <address>   connect with the portal's one-time code, keep listening
   .\onboarding\onboard.ps1 -Run <code> -Portal <address>   run the audit the portal asked for, once
   .\onboarding\onboard.ps1 -Listen              wait for the portal's Run audit button (Ctrl+C stops)
+  .\onboarding\onboard.ps1 -AnswersFile answers.json  noninteractive answers
+  .\onboarding\onboard.ps1 -Answer 9.proven=true    repeatable noninteractive answer
   .\onboarding\onboard.ps1 -Disconnect         forget the portal token
 
 Everything is presence-only: it checks whether files and commands exist, never
@@ -39,7 +41,9 @@ param(
     [switch]$RunSaved,
     [switch]$Listen,
     [switch]$NoBackground,
-    [switch]$NoHermes
+    [switch]$NoHermes,
+    [string]$AnswersFile = "",
+    [string[]]$Answer = @()
 )
 
 $ErrorActionPreference = "Stop"
@@ -233,11 +237,11 @@ if ($InstallSkills) {
 # --- step 2: scan ------------------------------------------------------------
 Push-Location $Here
 try {
-    if ($Ask) {
-        Run-Py @("ladder_probe.py", "--ask")
-    } else {
-        Run-Py @("ladder_probe.py")
-    }
+    $scanArgs = @("ladder_probe.py")
+    if ($Ask) { $scanArgs += "--ask" }
+    if ($AnswersFile -ne "") { $scanArgs += @("--answers-file", $AnswersFile) }
+    foreach ($answerValue in $Answer) { $scanArgs += @("--answer", $answerValue) }
+    Run-Py $scanArgs
 
     # --- step 3: readout -----------------------------------------------------
     Write-Host ""

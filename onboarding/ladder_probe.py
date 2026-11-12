@@ -285,14 +285,23 @@ probe = evaluate
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("--ask", action="store_true")
+    parser.add_argument("--answers-file", type=Path, help="JSON object of objective ids to true/false; never prompts")
+    parser.add_argument("--answer", action="append", default=[], metavar="ID=BOOL", help="noninteractive answer, repeatable")
     parser.add_argument("--json", action="store_true")
     args = parser.parse_args(argv)
 
-    answers = load_answers()
+    answers = load_answers(args.answers_file) if args.answers_file else load_answers()
+    for raw in args.answer:
+        key, sep, value = raw.partition("=")
+        if not sep or value.lower() not in {"true", "false", "yes", "no", "1", "0"}:
+            parser.error(f"--answer expects ID=true|false, got {raw!r}")
+        answers[key] = value.lower() in {"true", "yes", "1"}
     result = evaluate(answers)
-    if args.ask:
+    if args.ask and not args.answers_file and not args.answer:
         answers = ask_questions(result, answers)
         result = evaluate(answers)
+    if args.answers_file:
+        Path(args.answers_file).write_text(json.dumps(answers, indent=2) + "\n", encoding="utf-8")
     v = assess(result)
 
     if args.json:

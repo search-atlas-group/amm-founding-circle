@@ -1,36 +1,25 @@
 ---
 name: agent-usage
-description: >
-  Show accurate Claude/Codex account usage from provider quota APIs where exposed and local session ledgers otherwise.
-triggers:
-  - /usage
-  - agent usage
-  - claude usage
-  - codex usage
-  - quota
-allowed-tools:
-  - Bash
+description: Report provider-reported usage when available and local token ledger totals without guessing quota.
+rung: L2
 ---
 
-# Agent Usage
+# Agent usage
 
-Use when the user asks for current Claude, Claude Max, Claude Pro, Codex, or
-agent account usage.
+Use the phrase “agent usage”, not `/usage`; Claude Code owns the `/usage` command.
+This skill separates two questions:
 
-Run the local monitor from the Agent Engineering repo:
-
-```bash
-AGENTIC_ENGINEERING_HOME="${AGENTIC_ENGINEERING_HOME:-$HOME/agentic-engineering}"
-"$AGENTIC_ENGINEERING_HOME/stack/telemetry/agent-usage-monitor.py" --refresh
-```
-
-For a browser view:
+- Provider quota/plan usage: use the provider's own built-in `/usage` or account
+  page. If the provider does not expose it, report UNKNOWN; never turn token
+  counters into subscription remaining values.
+- Local work cost: run the bundled standard-library script against your ledger.
+  It totals recorded calls by provider/model and does not make connector calls.
 
 ```bash
-AGENTIC_ENGINEERING_HOME="${AGENTIC_ENGINEERING_HOME:-$HOME/agentic-engineering}"
-"$AGENTIC_ENGINEERING_HOME/stack/telemetry/agent-usage-monitor.py" --html /tmp/agent-usage.html --watch 60
+python3 skills/agent-usage/scripts/agent_usage.py --ledger token-usage/subagent-calls.jsonl
 ```
 
-Do not estimate missing quota. If Codex plan quota is unavailable through the
-Codex CLI, report the local observed token ledger and say provider quota is not
-exposed.
+The ledger is useful for cross-provider cost and workload comparison; built-in
+`/usage` is sufficient for a single provider's live quota. The script requires
+Python 3.9+ and a JSONL ledger with numeric token fields when available. Missing
+fields remain unknown.
