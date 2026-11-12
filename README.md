@@ -5,6 +5,13 @@ playbooks, curriculum, and automations we build together, in one place.
 
 **New here? Start with the 60-second quickstart below, then open the [skills index](skills/README.md).**
 
+## Prepared for Thursday: 12 November 2026
+
+**[Observe. Specify. Build. Verify.](reports/cohort-2026-11-12/README.md)**
+
+A five-slide briefing, member guide, speaker notes, short version, reusable skill,
+and runnable fail-closed example. Prepared teaching material, not a session recap.
+
 ## Thursday cohort: 5 November 2026
 
 **[Open the session bundle](reports/cohort-2026-11-05/README.md)** for the actual
