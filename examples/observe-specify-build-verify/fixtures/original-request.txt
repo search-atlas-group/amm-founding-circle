@@ -1,0 +1,1 @@
+Create a synthetic help page with a visible Contact help link to /contact.html.

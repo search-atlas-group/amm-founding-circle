@@ -1,0 +1,12 @@
+{
+  "spec_id": "synthetic-help-page-v1",
+  "status": "APPROVED",
+  "request": "Create a synthetic help page with a visible Contact help link to /contact.html.",
+  "criteria": [
+    {
+      "id": "contact-help-link",
+      "required": true,
+      "description": "A visible link labeled Contact help points to /contact.html."
+    }
+  ]
+}
