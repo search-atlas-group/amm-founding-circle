@@ -1,72 +1,89 @@
-<!doctype html><html lang="en"><meta charset="utf-8"><title>Delegate one deliverable</title>
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<title>Delegate one deliverable</title>
 <style>
-@page{size:A4;margin:13mm}
-body{font:15px/1.4 system-ui,sans-serif;color:#17151b;max-width:840px;margin:auto;padding:22px}
-h1{font-size:36px;line-height:1.02;margin:4px 0 6px}
-.lede{font-size:17px;margin-top:0}
-.small{color:#635d68;font-size:12px;letter-spacing:.04em}
-.defn{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:16px 0}
-.defn div{border-radius:10px;padding:12px 14px}
-.is{background:#f5f2fa;border:1px solid #ddd7e0}
-.is b{color:#5b3fb0}
-.isnt{background:#fbf6f1;border:1px solid #eadfce}
-.isnt b{color:#b85c22}
-.flow{display:grid;grid-template-columns:1fr auto 1fr auto 1fr auto 1fr;gap:8px;align-items:stretch;margin:8px 0 4px}
-.step{background:#f5f2fa;border:1px solid #ddd7e0;border-radius:10px;padding:10px}
-.step b{display:block;color:#5b3fb0;font-size:12px;letter-spacing:.04em}
-.arrow{align-self:center;color:#b85c22;font-size:20px}
-h2{margin:22px 0 8px;color:#5b3fb0;font-size:15px}
-.checks{margin:0;padding-left:22px}
-.checks li{margin:4px 0}
-.cards{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
-.card{border:1px solid #ddd7e0;border-radius:10px;padding:12px}
-.card .n{font-size:26px;color:#b85c22;font-weight:700}
-.rule{background:#17151b;color:#fff;border-radius:10px;padding:12px 16px;margin-top:18px}
-.rule b{color:#f0c27a}
-a{color:#5b3fb0}
-@media(max-width:760px){.defn,.cards{grid-template-columns:1fr}.flow{grid-template-columns:1fr}.arrow{transform:rotate(90deg);justify-self:center}}
+:root{--paper:#f4f6f9;--ink:#0f1d33;--blue:#1f4fd6;--dots:#173575;--muted:#526484;--line:#d5dde7}
+*{box-sizing:border-box}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:Archivo,Arial,sans-serif}
+.sheet{max-width:1080px;margin:auto;padding:48px 56px 64px;position:relative}
+header{display:flex;justify-content:space-between;font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+h1{font-size:64px;line-height:.98;letter-spacing:-.035em;font-weight:650;margin:28px 0 0;max-width:16ch}
+.blue{color:var(--blue)}
+.lead{font-size:22px;line-height:1.35;color:var(--muted);margin:22px 0 0;max-width:34ch}
+.halftone{background-image:radial-gradient(circle,var(--dots) 1.8px,transparent 2px);background-size:9px 9px}
+.frame{position:absolute;top:108px;right:56px;width:240px;height:220px;clip-path:polygon(0 0,100% 0,100% 100%,50% 100%,50% 50%,0 50%)}
+h2{font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:var(--blue);margin:46px 0 14px;font-weight:650}
+.split{display:grid;grid-template-columns:1fr 1fr;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+.split div{padding:18px 22px 20px 0}
+.split div+div{border-left:1px solid var(--line);padding-left:22px}
+.split .k{font-size:13px;letter-spacing:.12em;text-transform:uppercase;margin-bottom:8px}
+.split p{margin:0;font-size:18px;line-height:1.35}
+.flow{display:flex;gap:18px}
+.phase{flex:1;border-top:2px solid var(--ink);padding-top:12px}
+.phase .n{font-size:12px;color:var(--blue);letter-spacing:.08em}
+.phase h3{font-size:20px;margin:6px 0}
+.phase p{margin:0;color:var(--muted);font-size:15px;line-height:1.35}
+ol{margin:0;padding:0;list-style:none;counter-reset:c}
+ol li{counter-increment:c;display:grid;grid-template-columns:42px 1fr;gap:8px;padding:9px 0;border-top:1px solid var(--line);font-size:17px;line-height:1.35}
+ol li:last-child{border-bottom:1px solid var(--line)}
+ol li:before{content:counter(c,decimal-leading-zero);color:var(--blue);font-size:13px;letter-spacing:.06em;padding-top:3px}
+.bring{display:grid;grid-template-columns:1fr 1fr 1fr;gap:28px}
+.bring .n{font-size:13px;letter-spacing:.08em}
+.bring h3{font-size:18px;margin:8px 0}
+.bring p{margin:0;color:var(--muted);font-size:15px;line-height:1.4}
+footer{margin-top:36px;font-size:13px;color:var(--muted);letter-spacing:.02em;line-height:1.5}
+a{color:var(--blue)}
+@media(max-width:800px){
+.sheet{padding:28px 20px 40px}
+h1{font-size:40px}
+.frame{display:none}
+.bring,.flow{display:grid;grid-template-columns:1fr}
+.split{grid-template-columns:1fr}
+.split div+div{border-left:none;padding-left:0;border-top:1px solid var(--line)}
+}
 </style>
 <body>
-<p class="small">AMM FOUNDING CIRCLE · BEFORE THURSDAY</p>
-<h1>Hand one deliverable to your agent.</h1>
-<p class="lede">Use the agent you already run. If you don't have one, the test below tells you whether what you build is one.</p>
+<div class="sheet">
+<header><span>Jonathan Duque / AMM</span><span>Before Thursday</span></header>
+<div class="frame halftone" aria-hidden="true"></div>
+<h1>It chose.<br>That's the <span class="blue">whole test.</span></h1>
+<p class="lead">Hand one deliverable you already sell to your own agent. Bring back what it decided.</p>
 
-<div class="defn">
-<div class="is"><b>An agent is</b><br>a standing worker with one named job, that starts while you are not at the keyboard, inside a boundary you wrote down.</div>
-<div class="isnt"><b>It is not</b><br>a prompt you paste in, a workflow you click run on, or a chat you have to sit and watch.</div>
+<h2>The difference</h2>
+<div class="split">
+<div><div class="k">A workflow</div><p>Follows the steps. Every input gets the same action. It never asks whether the action belongs.</p></div>
+<div><div class="k blue">An agent</div><p>Judges first. It reads the situation, chooses from options you wrote down, and can choose to do nothing.</p></div>
 </div>
 
-<h2>The test. All five, or it isn't an agent.</h2>
-<ol class="checks">
+<h2>Five checks. All five, or it isn't an agent.</h2>
+<ol>
 <li>One named job, not a list of things it can do.</li>
 <li>Something starts it while you are away. If you have to open it and type, it is a workflow.</li>
-<li>Its boundary is written down: what it may read, what it must never do.</li>
-<li>It finished the deliverable once, without you stepping in mid-run.</li>
-<li>The output was waiting somewhere you could open afterward. Not only inside a chat you watched.</li>
+<li>Its boundary is written down. What it may read, and what it must never do.</li>
+<li>It chose. Faced with a real case, it picked one option, or correctly picked none, and wrote the reason.</li>
+<li>The output and the reason were waiting somewhere you could open afterward.</li>
 </ol>
 
 <h2>The task</h2>
 <div class="flow">
-<div class="step"><b>1 · PICK</b>A deliverable a client pays you for.</div>
-<div class="arrow">→</div>
-<div class="step"><b>2 · HAND OFF</b>Your agent produces it while you are not there.</div>
-<div class="arrow">→</div>
-<div class="step"><b>3 · DON'T TOUCH</b>Bring the output exactly as it came back.</div>
-<div class="arrow">→</div>
-<div class="step"><b>4 · GRADE</b>Name the one change that would have raised it.</div>
+<div class="phase"><div class="n">01</div><h3>Pick</h3><p>A deliverable a client pays you for.</p></div>
+<div class="phase"><div class="n">02</div><h3>Hand off</h3><p>Your agent judges the case and produces it while you are not there.</p></div>
+<div class="phase"><div class="n">03</div><h3>Don't touch</h3><p>Bring the output exactly as it came back.</p></div>
+<div class="phase"><div class="n">04</div><h3>Grade</h3><p>Name the one change that would have raised it.</p></div>
 </div>
 
 <h2>No agent yet</h2>
-<p>Copy <a href="https://github.com/search-atlas-group/amm-founding-circle/blob/main/templates/one-job-agent.md">one-job-agent.md</a> into your own repo, fill the five blanks, and run it. A filled-in <a href="https://github.com/search-atlas-group/amm-founding-circle/blob/main/templates/one-job-agent-example.md">example</a> shows what done looks like. A "no" on any check is a valid thing to bring.</p>
+<p>Copy <a href="https://github.com/search-atlas-group/amm-founding-circle/blob/main/templates/one-job-agent.md">one-job-agent.md</a> into your own repo, fill the blanks, and run it. The <a href="https://github.com/search-atlas-group/amm-founding-circle/blob/main/templates/one-job-agent-example.md">worked example</a> shows an agent that decides a quiet week is not worth a report. A "no" on any check is a valid thing to bring.</p>
 
 <h2>Bring these three</h2>
-<div class="cards">
-<div class="card"><div class="n">1</div>The deliverable, untouched.</div>
-<div class="card"><div class="n">2</div>Your five answers, each with one line of proof.</div>
-<div class="card"><div class="n">3</div>Your grade, and the single change: tighter scope, or a skill it didn't have.</div>
+<div class="bring">
+<div><div class="n blue">01</div><h3>The deliverable</h3><p>Untouched, exactly as the agent left it.</p></div>
+<div><div class="n blue">02</div><h3>The decision</h3><p>What it chose and the reason it wrote. Plus your five answers.</p></div>
+<div><div class="n blue">03</div><h3>Your grade</h3><p>The one change. Tighter scope, or a skill it didn't have.</p></div>
 </div>
 
-<div class="rule"><b>Thursday.</b> We grade the output, then test your answer. Scope was the limit: we tighten it and rerun. A missing skill was the limit: we add that one and rerun. The gap between the two outputs is the session.</div>
-
-<p class="small">Nothing sends, nothing publishes, nothing spends. The brief your agent reads: <a href="https://github.com/search-atlas-group/amm-founding-circle/blob/main/docs/founding-circle/delegate-one-deliverable.md">delegate-one-deliverable.md</a></p>
-</body></html>
+<footer>Thursday we read the reasons. A reason that only restates the input means it didn't judge. Nothing sends, nothing publishes, nothing spends. The brief your agent reads: <a href="https://github.com/search-atlas-group/amm-founding-circle/blob/main/docs/founding-circle/delegate-one-deliverable.md">delegate-one-deliverable.md</a></footer>
+</div>
+</body>
+</html>

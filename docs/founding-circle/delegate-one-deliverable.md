@@ -4,17 +4,19 @@ Instructions for a member's own agent. Read this file and carry out the task. Do
 
 ## What counts as an agent
 
-An agent is a standing worker with one named job, that starts while the member is not at the keyboard, inside a written boundary.
+An agent judges. It reads the situation, chooses from options the member wrote down, and can choose to do nothing. The same input does not always get the same action, and it records why it chose.
 
-It is not a prompt the member pastes in, a workflow the member clicks run on, or a chat the member sits and watches.
+A workflow follows steps. Every input gets the same action, and it never asks whether the action belongs.
+
+Something must start the agent while the member is away. That trigger only wakes it. The judgment is what makes it an agent.
 
 All five must be true, or this task is not being done by an agent:
 
 1. The agent has one named job, not a list of capabilities.
 2. A trigger starts it while the member is away. If the member has to open it and type, it is a workflow.
 3. Its boundary is written down: what it may read, and what it must never do.
-4. It finishes the deliverable once without the member correcting it mid-run.
-5. The output is left somewhere the member can open afterward, not only inside a chat they were watching.
+4. It chose. Faced with the real case, it picked one option, or correctly picked none, and wrote the reason.
+5. The output and the reason are left somewhere the member can open afterward, not only inside a chat they were watching.
 
 If any check fails, stop and say which one. Do not work around it.
 
@@ -23,11 +25,12 @@ If any check fails, stop and say which one. Do not work around it.
 The member sells a deliverable. You will produce one instance of it.
 
 1. Ask which deliverable, if the member has not named one. It must be something a client already pays for.
-2. Ask which one client or account it is for.
-3. State the scope in one paragraph before you start: what you may read, what you may do, what you must never do.
-4. Produce the deliverable end to end. Do not hand a step back to the member that is inside the scope.
-5. Do not edit or polish the result once it is complete. The first complete output is the output.
-6. Leave it where the member can open it later, and write a short log of what you read and what you refused.
+2. Ask which one client or account it is for, and read the real case.
+3. State the scope in one paragraph before you start: what you may read, what you may do, what you must never do. Name the options you are allowed to choose between, including doing nothing.
+4. Judge the case. Choose one option, or choose none. Write the reason in one paragraph.
+5. Produce the deliverable end to end from that decision. Do not hand a step back to the member that is inside the scope.
+6. Do not edit or polish the result once it is complete. The first complete output is the output.
+7. Leave the deliverable and the reason where the member can open them later, and write a short log of what you read and what you refused.
 
 ## Hard limits
 
@@ -38,9 +41,10 @@ The member sells a deliverable. You will produce one instance of it.
 ## What you return
 
 1. The deliverable, unchanged.
-2. The scope paragraph.
-3. The log: sources read, actions refused.
-4. The five checks, each answered yes or no with one line of proof.
+2. The decision: the option you chose, and the reason.
+3. The scope paragraph.
+4. The log: sources read, actions refused.
+5. The five checks, each answered yes or no with one line of proof.
 
 ## If no agent exists yet
 
@@ -48,4 +52,4 @@ The member builds one first from `templates/one-job-agent.md`, using `templates/
 
 ## What the session will do with this
 
-The room grades the output, then tests the member's diagnosis. If the member says the scope was the limit, the scope is tightened and the task is rerun. If the member says a missing skill was the limit, that one skill is added and the task is rerun. The comparison of the two outputs is the point.
+The room reads the reasons. A reason that only restates the input means the agent did not judge. Then the room tests the member's diagnosis. If the member says the scope was the limit, the scope is tightened and the task is rerun. If the member says a missing skill was the limit, that one skill is added and the task is rerun. The comparison of the two outputs is the point.
