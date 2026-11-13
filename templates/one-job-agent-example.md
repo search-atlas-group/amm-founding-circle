@@ -1,21 +1,36 @@
-# One-job agent, filled in
+# The handoff proposal, filled in
 
-The same template as `one-job-agent.md`, completed for one deliverable: a weekly client report. The point of the example is the choice. On a quiet week the agent decides there is nothing worth reporting, and says why. A workflow would have written the report anyway.
+The same template, completed. The numbers are made up. What matters is the shape: several candidates, one pick, a reason the others lost, and a stated gap.
 
 ```
-JOB: Every Monday, read one client's week and decide whether there is anything worth reporting.
-TRIGGER: A scheduled run at 07:00 every Monday. Nobody opens it. The trigger only wakes it.
-OPTIONS: Draft the report. Or write nothing, when the week does not clear the bar the member set.
-MAY READ: That client's task log and the published pages changed in the last seven days.
-MUST NEVER: Send the report, email the client, or edit the live site.
-FINISHED LOOKS LIKE: Either a one-page draft, or a note that says nothing was worth reporting. Both include the reason.
-RESULT GOES TO: drafts/weekly-report.md in the client folder, overwritten each Monday.
+WINDOW: 2026-10-27 to 2026-11-09
+SOURCES READ: sent mail, closed tasks
+SOURCES REFUSED: the accounting tool, no access
 
-CHECK 1: YES. One job, the weekly judgment. It does not also audit or write pages.
-CHECK 2: YES. It runs at 07:00 whether or not anyone is there.
-CHECK 3: YES. It may read the task log and the changed pages, and it may not send or edit.
-CHECK 4: YES. Last Monday it found two typos and no shipped work, judged that below the bar, and wrote "nothing to report" with that reason.
-CHECK 5: YES. The note was waiting in drafts/weekly-report.md.
+CANDIDATES:
+- Weekly client report — 6 — drafted by hand every Monday for two clients
+- Proposal follow-up — 3 — chased by hand three days after sending
+- Invoice chase — 2 — two reminder emails, no fixed day
+
+PICKED: Weekly client report
+WHY THE OTHERS LOST: the follow-up depends on whether the proposal got a reply, so it isn't one job. The invoice chase happened twice and on no rhythm.
+
+PROPOSED AGENT
+JOB: Each Monday, read one client's week and decide whether there is anything worth reporting.
+TRIGGER: 07:00 every Monday.
+OPTIONS: Draft the report, or write nothing when the week is below the bar.
+MAY READ: that client's task log and the pages changed in the last seven days.
+MUST NEVER: send the report, email the client, or edit the live site.
+
+CONFIDENCE: medium
+THE ONE MISSING FACT: whether both clients are owed a report every week, or only when work shipped.
 ```
 
-All five are yes, so this one counts. The same run writing a report every Monday regardless of the week would fail check 4. It never chose.
+The member's correction, written underneath and not folded back in:
+
+```
+CORRECTION: wrong work
+BECAUSE: the reports are already templated. The real cost is the proposal follow-up, and it only looked irregular because the replies live in a channel you didn't read.
+```
+
+That correction is the useful result. The proposal above stays as it was written.
