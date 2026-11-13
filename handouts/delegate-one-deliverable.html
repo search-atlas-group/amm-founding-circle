@@ -27,6 +27,9 @@ h2{font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:var(--blue
 .fill.top{background:var(--blue)}
 .bar .count{font-size:14px;color:var(--muted);text-align:right}
 .note{font-size:13px;color:var(--muted);margin-top:8px}
+pre{background:#e7edf4;border-top:2px solid var(--ink);padding:20px 22px;white-space:pre-wrap;font-family:Archivo,Arial,sans-serif;font-size:15px;line-height:1.45;margin:0}
+button{font-family:Archivo,Arial,sans-serif;font-size:14px;letter-spacing:.08em;text-transform:uppercase;background:var(--ink);color:var(--paper);border:none;padding:12px 18px;margin-top:14px;cursor:pointer}
+button.done{background:var(--blue)}
 ol{margin:0;padding:0;list-style:none;counter-reset:c}
 ol li{counter-increment:c;display:grid;grid-template-columns:42px 1fr;gap:8px;padding:9px 0;border-top:1px solid var(--line);font-size:17px;line-height:1.35}
 ol li:last-child{border-bottom:1px solid var(--line)}
@@ -47,9 +50,36 @@ h1{font-size:40px}
 <header><span>Jonathan Duque / AMM</span><span>Before Thursday</span></header>
 <div class="frame halftone" aria-hidden="true"></div>
 <h1>Find the work you <span class="blue">still do</span> by hand.</h1>
-<p class="lead">Point an agent at your last two weeks. Let it find the one recurring job, and propose the agent that would take it. Build nothing.</p>
+<p class="lead">Paste the prompt below into the agent you already use. It reads your last two weeks, finds the one job you keep doing by hand, and proposes the agent that would take it. It builds nothing.</p>
 
-<h2>What you do</h2>
+<h2>Paste this</h2>
+<pre id="prompt">You are helping me find the one job I keep doing by hand, so we can propose an agent to take it. Do not build anything.
+
+1. Sources. Do not start until I have named 2 or 3 sources I personally produced in the last 14 days, such as email I sent, tasks I closed, files I edited, a client record, or a channel I posted in. If I have not named them, stop and ask. Read only what I name.
+2. Read them. If you can open a source yourself, do. If you cannot, ask me to paste the last 14 days of it. Never invent entries to fill a gap.
+3. What counts. Only work I did myself, more than once, in those 14 days. Leave out anything an agent or automation already does.
+4. Limits. Do not build, code, or turn on the agent you propose. Do not send, post, publish, spend, or change a live client account. If a source is off limits, skip it and say so.
+
+Then give me exactly this, and stop:
+
+- Candidates. Each repeated job, with how many times, and the evidence.
+- The pick. The one job worth handing off, and why the others lost.
+- The proposed agent. Its one job. What starts it. The choices it would make, including doing nothing. What it may read. What it must never do.
+- Confidence. High, medium, or low.
+- The one missing fact that would change your recommendation.
+
+Stop there. I will write a correction underneath: right work, wrong work, or work you could not see. Do not revise your answer to match it.</pre>
+<button id="copy" type="button">Copy the prompt</button>
+<script>
+document.getElementById('copy').addEventListener('click',function(){
+  var t=document.getElementById('prompt').innerText;
+  navigator.clipboard.writeText(t).then(function(){
+    var b=document.getElementById('copy');b.textContent='Copied';b.className='done';
+  });
+});
+</script>
+
+<h2>Then</h2>
 <div class="flow">
 <div class="phase"><div class="n">01</div><h3>Point it</h3><p>At your real last two weeks. Mail you sent, tasks you closed, edits you made.</p></div>
 <div class="phase"><div class="n">02</div><h3>Let it look</h3><p>It counts what repeated and names the single best candidate.</p></div>
